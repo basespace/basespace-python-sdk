@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>BaseSpacePy.model.File &mdash; BaseSpacePy 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="BaseSpacePy 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="BaseSpacePy.model" href="../model.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../../../index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../model.html" accesskey="U">BaseSpacePy.model</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for BaseSpacePy.model.File</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="kn">from</span> <span class="nn">BaseSpacePy.api.BaseSpaceException</span> <span class="kn">import</span> <span class="n">ModelNotInitializedException</span><span class="p">,</span><span class="n">WrongFiletypeException</span>
+
+<div class="viewcode-block" id="File"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File">[docs]</a><span class="k">class</span> <span class="nc">File</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Note: &#39;HrefContent&#39;,&#39;HrefVariants&#39; NOT set for list re</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">swaggerTypes</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;Name&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;HrefCoverage&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;HrefParts&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;DateCreated&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;UploadStatus&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Id&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Href&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;HrefContent&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;HrefVariants&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ContentType&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Path&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Size&#39;</span><span class="p">:</span> <span class="s">&#39;int&#39;</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="File.isInit"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.isInit">[docs]</a>    <span class="k">def</span> <span class="nf">isInit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Is called to test if the File instance has been initialized</span>
+<span class="sd">        Throws ModelNotInitializedException if the Id variable is not set</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ModelNotInitializedException</span><span class="p">(</span><span class="s">&#39;The File model has not been initialized yet&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="File.isValidFileOption"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.isValidFileOption">[docs]</a>    <span class="k">def</span> <span class="nf">isValidFileOption</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filetype</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Is called to test if the File instance is of the right        </span>
+<span class="sd">        :param filetype: The filetype for coverage or variant requests</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">filetype</span><span class="o">==</span><span class="s">&#39;bam&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">HrefCoverage</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">WrongFiletypeException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">filetype</span><span class="o">==</span><span class="s">&#39;vcf&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">HrefVariants</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">WrongFiletypeException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="File.downloadFile"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.downloadFile">[docs]</a>    <span class="k">def</span> <span class="nf">downloadFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">localDir</span><span class="p">,</span><span class="nb">range</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Download the file object to the specified localDir or a byte range of the file, by specifying the </span>
+<span class="sd">        start and stop byte in the range.</span>
+<span class="sd">        :param api: a BaseSpaceAPI with read access on the scope including the file object.</span>
+<span class="sd">        :param loadlDir: The local directory to place the file in.</span>
+<span class="sd">        :param range: Specify the start and stop byte of the file chunk that needs retrieved.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">range</span><span class="p">):</span> <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">fileDownload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span><span class="n">localDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="nb">range</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">fileDownload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span><span class="n">localDir</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">deleteFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Not yet implemented&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="File.getIntervalCoverage"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.getIntervalCoverage">[docs]</a>    <span class="k">def</span> <span class="nf">getIntervalCoverage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">Chrom</span><span class="p">,</span> <span class="n">StartPos</span><span class="p">,</span> <span class="n">EndPos</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isValidFileOption</span><span class="p">(</span><span class="s">&#39;bam&#39;</span><span class="p">)</span>
+        <span class="n">Id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HrefCoverage</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getIntervalCoverage</span><span class="p">(</span><span class="n">Id</span><span class="p">,</span><span class="n">Chrom</span><span class="p">,</span> <span class="n">StartPos</span><span class="p">,</span> <span class="n">EndPos</span><span class="p">)</span>
+    
+    <span class="c"># TODO allow to pass a queryParameters object for custom filtering</span></div>
+<div class="viewcode-block" id="File.filterVariant"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.filterVariant">[docs]</a>    <span class="k">def</span> <span class="nf">filterVariant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">Chrom</span><span class="p">,</span><span class="n">StartPos</span><span class="p">,</span> <span class="n">EndPos</span><span class="p">,</span><span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isValidFileOption</span><span class="p">(</span><span class="s">&#39;vcf&#39;</span><span class="p">)</span>
+        <span class="n">Id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HrefVariants</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">filterVariantSet</span><span class="p">(</span><span class="n">Id</span><span class="p">,</span> <span class="n">Chrom</span><span class="p">,</span> <span class="n">StartPos</span><span class="p">,</span> <span class="n">EndPos</span><span class="p">,</span> <span class="s">&#39;txt&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="File.getCoverageMeta"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.getCoverageMeta">[docs]</a>    <span class="k">def</span> <span class="nf">getCoverageMeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">Chrom</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isValidFileOption</span><span class="p">(</span><span class="s">&#39;bam&#39;</span><span class="p">)</span>
+        <span class="n">Id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HrefCoverage</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getCoverageMetaInfo</span><span class="p">(</span><span class="n">Id</span><span class="p">,</span><span class="n">Chrom</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="File.getVariantMeta"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.File.File.getVariantMeta">[docs]</a>    <span class="k">def</span> <span class="nf">getVariantMeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isValidFileOption</span><span class="p">(</span><span class="s">&#39;vcf&#39;</span><span class="p">)</span>
+        <span class="n">Id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HrefVariants</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getVariantMetadata</span><span class="p">(</span><span class="n">Id</span><span class="p">,</span><span class="s">&#39;txt&#39;</span><span class="p">)</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># If set, provides the relative Uri to fetch the mean coverage statistics for data stored in the file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefCoverage</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># If set, provides the relative Uri to fetch a list of completed file parts for multi-part file uploads in progress</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefParts</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UploadStatus</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Id</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Href</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefContent</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># If set, provides the relative Uri to fetch the variants stored in the file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefVariants</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ContentType</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Path</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+
+        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Size</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../../../index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../model.html" >BaseSpacePy.model</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Morten Kallberg.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

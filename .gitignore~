@@ -1,0 +1,12 @@
+*.py[co]
+*.pyc
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist

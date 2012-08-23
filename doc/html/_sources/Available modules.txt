@@ -1,0 +1,47 @@
+Available modules
+=======================================
+
+API
+----------------------------
+
+.. autoclass:: BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI
+    :members: 
+
+Models
+--------------------------------
+
+AppLaunch
+*************
+
+.. autoclass:: BaseSpacePy.model.AppLaunch.AppLaunch
+    :members:    
+
+Project
+*************
+
+.. autoclass:: BaseSpacePy.model.Project.Project
+    :members:
+
+Analysis
+*************
+    
+.. autoclass:: BaseSpacePy.model.Analysis.Analysis
+    :members:
+
+Sample
+*************
+
+.. autoclass:: BaseSpacePy.model.Sample.Sample
+    :members:    
+
+File
+*************
+
+.. autoclass:: BaseSpacePy.model.File.File
+    :members:
+
+QueryParameters
+*****************
+
+.. autoclass:: BaseSpacePy.model.QueryParameters.QueryParameters
+    :members:

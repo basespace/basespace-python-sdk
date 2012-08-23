@@ -1,0 +1,578 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started &mdash; BaseSpacePy 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BaseSpacePy 0.1 documentation" href="index.html" />
+    <link rel="next" title="Advanced examples" href="Advanced examples.html" />
+    <link rel="prev" title="BaseSpacePy" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Advanced examples.html" title="Advanced examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="BaseSpacePy"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">BaseSpacePy</span></tt> is a Python based SDK to be used in the development of Apps and scripts for working with Illumina&#8217;s BaseSpace cloud-computing solution for next-gen sequencing data analysis.
+The primary purpose of the SDK is to provide an easy-to-use Python environment enabling developers to authenticate a user, retrieve data, and upload data/results from their own analysis to BaseSpace.</p>
+<p>If you haven&#8217;t already done so, you may wish to familiarize yourself with the BaseSpace developer documentation (<a class="reference external" href="https://developer.basespace.illumina.com/">https://developer.basespace.illumina.com/</a>) prior to working through the example scripts below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It will be necessary to have created a BaseSpace account with a new App and have the <tt class="docutils literal"><span class="pre">client_key</span></tt> and <tt class="docutils literal"><span class="pre">client_secret</span></tt> codes for the App available to run a number of the following examples.</p>
+</div>
+<div class="section" id="availability">
+<h3>Availability<a class="headerlink" href="#availability" title="Permalink to this headline">¶</a></h3>
+<p>Version 0.1 of <tt class="docutils literal"><span class="pre">BaseSpacePy</span></tt> can be checked out here:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">svn</span> <span class="n">checkout</span> <span class="n">svn</span><span class="p">:</span><span class="o">//</span><span class="n">ilmnhw</span><span class="o">-</span><span class="n">biolinsd</span><span class="o">.</span><span class="n">hwus</span><span class="o">.</span><span class="n">illumina</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">tmann</span><span class="o">/</span><span class="n">svn</span><span class="o">/</span><span class="n">svnrepos</span><span class="o">/</span><span class="n">BaseSpacePy_v0</span><span class="o">.</span><span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="setup">
+<h3>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h3>
+<p><em>Requirements:</em> Python 2.6 with the packages &#8216;urllib2&#8217;, &#8216;pycurl&#8217;, and &#8216;shutil&#8217; available.</p>
+<p>To install &#8216;BaseSpacePy&#8217; run the &#8216;setup.py&#8217; script in the <tt class="docutils literal"><span class="pre">src</span></tt> directory (for a global install you will need to run this command with root privileges):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cd</span> <span class="n">BaseSpacePy_v0</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">src</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>If you do not have root access, you may use the <tt class="docutils literal"><span class="pre">--prefix</span></tt> option to specify the install directory (make sure this directory is in you PYTHONPATH):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="n">folder</span><span class="o">/</span><span class="ow">in</span><span class="o">/</span><span class="n">my</span><span class="o">/</span><span class="n">pythonpath</span>
+</pre></div>
+</div>
+<p>For more install options type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p>Altenatively you may include the src directory in your PYTHONPATH by doing the following export:</p>
+<div class="highlight-python"><pre>export PYTHONPATH=$PYTHONPATH:/my/path/BaseSpacePy_vx.x/src</pre>
+</div>
+<p>or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;/my/path/BaseSpacePy_vx.x/src&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">BaseSpacePy</span>
+</pre></div>
+</div>
+<p>To test that everything is working as expected, launch a Python prompt and try importing &#8216;BaseSpacePy&#8217;:</p>
+<div class="highlight-python"><pre>mkallberg@ubuntu:~/$ python
+&gt;&gt;&gt; import BaseSpacePy</pre>
+</div>
+</div>
+</div>
+<div class="section" id="application-triggering">
+<h2>Application triggering<a class="headerlink" href="#application-triggering" title="Permalink to this headline">¶</a></h2>
+<p>This section demonstrates how to retrieve the <tt class="docutils literal"><span class="pre">AppLaunch</span></tt> object produced when a user triggers a BaseSpace App.
+Further, we cover how to automatically generate the scope strings to request access to the data object (be it a project, a sample, or an analysis)
+that the App was triggered to analyze.</p>
+<p>The initial http request to our App from BaseSpace is identified by an <tt class="docutils literal"><span class="pre">ApplicationActionId</span></tt>, using this piece of information
+we are able to obtain information about the user who launched the App and the data that is sought analyzed by the App.
+First, we instantiate a BaseSpaceAuth object using the <tt class="docutils literal"><span class="pre">client_key</span></tt> and <tt class="docutils literal"><span class="pre">client_secret</span></tt> codes provided on the BaseSpace developers website when registering our App:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">BaseSpacePy.api.BaseSpaceAuth</span> <span class="kn">import</span> <span class="n">BaseSpaceAuth</span>
+
+<span class="c"># initialize an authentication object using the key and secret from your app</span>
+<span class="c"># Fill in with your own values</span>
+<span class="n">client_key</span>                 <span class="o">=</span> <span class="o">&lt;</span><span class="n">my</span> <span class="n">key</span><span class="o">&gt;</span>
+<span class="n">client_secret</span>              <span class="o">=</span> <span class="o">&lt;</span><span class="n">my</span> <span class="n">secret</span><span class="o">&gt;</span>
+<span class="n">ApplicationActionId</span>        <span class="o">=</span> <span class="o">&lt;</span><span class="n">my</span> <span class="n">action</span> <span class="nb">id</span><span class="o">&gt;</span>
+<span class="n">BaseSpaceUrl</span>               <span class="o">=</span> <span class="s">&#39;https://api.cloud-endor.illumina.com/&#39;</span>
+<span class="n">version</span>                    <span class="o">=</span> <span class="s">&#39;v1pre2/&#39;</span>
+
+<span class="c"># First we will initialize a BaseSpace authentication object</span>
+<span class="n">BSauth</span> <span class="o">=</span> <span class="n">BaseSpaceAuth</span><span class="p">(</span><span class="n">client_key</span><span class="p">,</span><span class="n">client_secret</span><span class="p">,</span><span class="n">BaseSpaceUrl</span><span class="p">,</span><span class="n">version</span><span class="p">)</span>
+
+<span class="c"># By supplying the application trigger id we can get out an AppLaunch object</span>
+<span class="n">triggerObj</span> <span class="o">=</span> <span class="n">BSauth</span><span class="o">.</span><span class="n">getAppTrigger</span><span class="p">(</span><span class="n">ApplicationActionId</span><span class="p">)</span>
+<span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">triggerObj</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">api</span><span class="o">.</span><span class="n">cloud</span><span class="o">-</span><span class="n">endor</span><span class="o">.</span><span class="n">illumina</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">v1pre2</span><span class="o">/</span><span class="n">applicationactions</span><span class="o">/&lt;</span><span class="n">my</span> <span class="n">action</span> <span class="nb">id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>We can get the type of object the app was triggered on from the <tt class="docutils literal"><span class="pre">getLaunchType</span></tt>-method in the <tt class="docutils literal"><span class="pre">BaseSpaceAuth</span></tt> instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># The trigger type is a list with two items, the first a string taking the one of the values (&#39;Projects&#39;,&#39;Samples&#39;,&#39;Analyses&#39;)</span>
+<span class="c"># and the second a list of the objects of that type</span>
+<span class="n">triggerType</span> <span class="o">=</span> <span class="n">triggerObj</span><span class="o">.</span><span class="n">getLaunchType</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Type of data the app was triggered on&quot;</span>
+<span class="k">print</span> <span class="n">triggerType</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">We can get a handle for the user who triggered the app</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">triggerObj</span><span class="o">.</span><span class="n">User</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">Type</span> <span class="n">of</span> <span class="n">data</span> <span class="n">the</span> <span class="n">app</span> <span class="n">was</span> <span class="n">triggered</span> <span class="n">on</span>
+<span class="p">[</span><span class="s">&#39;Projects&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">YourProject</span><span class="p">]]</span>
+
+<span class="n">We</span> <span class="n">can</span> <span class="n">get</span> <span class="n">a</span> <span class="n">handle</span> <span class="k">for</span> <span class="n">the</span> <span class="n">user</span> <span class="n">who</span> <span class="n">triggered</span> <span class="n">the</span> <span class="n">app</span>
+<span class="mi">152152</span><span class="p">:</span> <span class="n">Morten</span> <span class="n">Kallberg</span>
+</pre></div>
+</div>
+<p>To start working, we will want to expand our permission scope for the trigger object so we can read and write data. The details of this process is the subject of the next section.
+We end this section by demonstrating how one can easily obtain the so-called &#8220;scope string,&#8221; used when requesting further access, from the trigger object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">triggerObj</span> <span class="o">=</span> <span class="n">triggerType</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The scope string for requesting write access to the trigger object is:&quot;</span>
+<span class="k">print</span> <span class="n">triggerObj</span><span class="o">.</span><span class="n">getAccessStr</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s">&#39;write&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">The</span> <span class="n">scope</span> <span class="n">string</span> <span class="k">for</span> <span class="n">requesting</span> <span class="n">write</span> <span class="n">access</span> <span class="n">to</span> <span class="n">the</span> <span class="n">trigger</span> <span class="nb">object</span> <span class="ow">is</span><span class="p">:</span>
+<span class="n">write</span> <span class="n">project</span> <span class="mi">89</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="requesting-an-access-token-for-data-browsing">
+<h2>Requesting an access-token for data browsing<a class="headerlink" href="#requesting-an-access-token-for-data-browsing" title="Permalink to this headline">¶</a></h2>
+<p>Here we demonstrate the basic BaseSpace authentication process. The work-flow outlined here is</p>
+<ol class="arabic simple">
+<li>Request of access to a specific data-scope</li>
+<li>User approval of access request</li>
+<li>Browsing data</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It will be useful if you are logged in to the BaseSpace web-site before launching this example to make the access grant procedure faster.</p>
+</div>
+<p>Again we will start out by initializing a <tt class="docutils literal"><span class="pre">BaseSpaceAuth</span></tt> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">BaseSpacePy.api.BaseSpaceAuth</span> <span class="kn">import</span> <span class="n">BaseSpaceAuth</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="c"># initialize an authentication object using the key and secret from your app</span>
+<span class="n">client_key</span>                 <span class="o">=</span> <span class="o">&lt;</span><span class="n">my</span> <span class="n">key</span><span class="o">&gt;</span>
+<span class="n">client_secret</span>              <span class="o">=</span> <span class="o">&lt;</span><span class="n">my</span> <span class="n">secret</span><span class="o">&gt;</span>
+<span class="n">BaseSpaceUrl</span>               <span class="o">=</span> <span class="s">&#39;https://api.cloud-endor.illumina.com/&#39;</span>
+<span class="n">version</span>                    <span class="o">=</span> <span class="s">&#39;v1pre2/&#39;</span>
+<span class="n">BSauth</span> <span class="o">=</span> <span class="n">BaseSpaceAuth</span><span class="p">(</span><span class="n">client_key</span><span class="p">,</span><span class="n">client_secret</span><span class="p">,</span><span class="n">BaseSpaceUrl</span><span class="p">,</span><span class="n">version</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First get verification code and uri for scope &#8216;browse global&#8217;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">deviceInfo</span> <span class="o">=</span> <span class="n">BSauth</span><span class="o">.</span><span class="n">getVerificationCode</span><span class="p">(</span><span class="s">&#39;browse global&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point the user must visit the verification uri to grant us access</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">## PAUSE HERE</span>
+<span class="c"># Have the user visit the verification uri to grant us access</span>
+<span class="k">print</span> <span class="s">&quot;Please visit the uri within 30 seconds and grant access&quot;</span>
+<span class="k">print</span> <span class="n">deviceInfo</span><span class="p">[</span><span class="s">&#39;verification_with_code_uri&#39;</span><span class="p">]</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="c">## PAUSE HERE</span>
+</pre></div>
+</div>
+<div class="highlight-python"><pre>Output[]:
+
+Please visit the uri within 10 seconds and grant access
+https://cloud-endor.illumina.com/oauth/device?code=&lt;my device code&gt;</pre>
+</div>
+<p>There are two options for obtaining the access-token and instantiating a <tt class="docutils literal"><span class="pre">BaseSpaceAPI</span></tt> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Get the access-token directly and instantiate an api yourself</span>
+<span class="c">#token = BSauth.getAccessToken(deviceInfo[&#39;device_code&#39;])</span>
+<span class="c">#print &quot;My token &quot; + str(token)</span>
+
+<span class="c"># Alternatively we can generate an access-token and request a BaseSpaceApi instance</span>
+<span class="c"># with the newly generated token in one step</span>
+<span class="n">myAPI</span> <span class="o">=</span> <span class="n">BSauth</span><span class="o">.</span><span class="n">getBaseSpaceApi</span><span class="p">(</span><span class="n">deviceInfo</span><span class="p">[</span><span class="s">&#39;device_code&#39;</span><span class="p">])</span>
+<span class="k">print</span> <span class="n">myAPI</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">BaseSpaceAPI</span> <span class="n">instance</span> <span class="o">-</span> <span class="n">using</span> <span class="n">token</span><span class="o">=&lt;</span><span class="n">my</span> <span class="n">access</span> <span class="n">token</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>At this point we can start using the <tt class="docutils literal"><span class="pre">BaseSpaceAPI</span></tt> instance to browse the available data for the current user, the details of this process is the subject of the next section. Here we will end with showing how the API object can be used to list all BaseSpace genome instances:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># We will get all available genomes with our new api!</span>
+<span class="n">allGenomes</span>  <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getAvailableGenomes</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Genomes </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">allGenomes</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">Genomes</span>
+<span class="p">[</span><span class="n">Arabidopsis</span> <span class="n">thaliana</span><span class="p">,</span> <span class="n">Bos</span> <span class="n">Taurus</span><span class="p">,</span> <span class="n">Escherichia</span> <span class="n">coli</span><span class="p">,</span> <span class="n">Homo</span> <span class="n">sapiens</span><span class="p">,</span> <span class="n">Mus</span> <span class="n">musculus</span><span class="p">,</span> <span class="n">Phix</span><span class="p">,</span>\
+ <span class="n">Rhodobacter</span> <span class="n">sphaeroides</span><span class="p">,</span> <span class="n">Rattus</span> <span class="n">norvegicus</span><span class="p">,</span> <span class="n">Saccharomyces</span> <span class="n">cerevisiae</span><span class="p">,</span> <span class="n">Staphylococcus</span> <span class="n">aureus</span><span class="p">,</span> <span class="n">Bacillus</span> <span class="n">Cereus</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="browsing-data-with-global-browse-access">
+<h2>Browsing data with <tt class="docutils literal"><span class="pre">global</span> <span class="pre">browse</span></tt>-access<a class="headerlink" href="#browsing-data-with-global-browse-access" title="Permalink to this headline">¶</a></h2>
+<p>This section demonstrates basic browsing of BaseSpace objects once an access-token for global browsing has been obtained. We will see how
+objects can be retrieved using either the <tt class="docutils literal"><span class="pre">BaseSpaceAPI</span></tt> class or by use of method calls on related object instances (for example once
+a <tt class="docutils literal"><span class="pre">user</span></tt> instance we can use it to retrieve all project belonging to that user).</p>
+<p>First we will initialize a <tt class="docutils literal"><span class="pre">BaseSpaceAPI</span></tt> using our access-token for <tt class="docutils literal"><span class="pre">global</span> <span class="pre">browse</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">BaseSpacePy.api.BaseSpaceAPI</span> <span class="kn">import</span> <span class="n">BaseSpaceAPI</span>
+
+<span class="c"># REST server information and user access token</span>
+<span class="n">server</span>          <span class="o">=</span> <span class="s">&#39;https://api.cloud-endor.illumina.com/&#39;</span>
+<span class="n">version</span>         <span class="o">=</span> <span class="s">&#39;v1pre2&#39;</span>
+<span class="n">access_token</span>    <span class="o">=</span> <span class="o">&lt;</span><span class="n">my</span> <span class="n">access</span> <span class="n">token</span><span class="o">&gt;</span>
+
+<span class="c"># First, create a client for making calls for this user session</span>
+<span class="n">myAPI</span>   <span class="o">=</span> <span class="n">BaseSpaceAPI</span><span class="p">(</span><span class="n">AccessToken</span><span class="o">=</span><span class="n">access_token</span><span class="p">,</span><span class="n">apiServer</span><span class="o">=</span> <span class="n">server</span> <span class="o">+</span> <span class="n">version</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First we will try to retrieve a genome object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Now grab the genome with id=4</span>
+<span class="n">myGenome</span>    <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getGenomeById</span><span class="p">(</span><span class="s">&#39;4&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The Genome is &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">myGenome</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;We can get more information from the genome object&quot;</span>
+<span class="k">print</span> <span class="s">&#39;Id: &#39;</span> <span class="o">+</span> <span class="n">myGenome</span><span class="o">.</span><span class="n">Id</span>
+<span class="k">print</span> <span class="s">&#39;Href: &#39;</span> <span class="o">+</span> <span class="n">myGenome</span><span class="o">.</span><span class="n">Href</span>
+<span class="k">print</span> <span class="s">&#39;DisplayName: &#39;</span> <span class="o">+</span> <span class="n">myGenome</span><span class="o">.</span><span class="n">DisplayName</span>
+</pre></div>
+</div>
+<div class="highlight-python"><pre>Output[]:
+
+The Genome is Homo sapiens
+We can get more information from the genome object
+Id: 4
+Href: v1pre2/genomes/4
+DisplayName: Homo Sapiens - UCSC (hg19)</pre>
+</div>
+<p>Using a comparable method we can get a list of all available genomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Get a list of all genomes</span>
+<span class="n">allGenomes</span>  <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getAvailableGenomes</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Genomes </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">allGenomes</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">Genomes</span>
+<span class="p">[</span><span class="n">Arabidopsis</span> <span class="n">thaliana</span><span class="p">,</span> <span class="n">Bos</span> <span class="n">Taurus</span><span class="p">,</span> <span class="n">Escherichia</span> <span class="n">coli</span><span class="p">,</span> <span class="n">Homo</span> <span class="n">sapiens</span><span class="p">,</span> <span class="n">Mus</span> <span class="n">musculus</span><span class="p">,</span> <span class="n">Phix</span><span class="p">,</span>\
+ <span class="n">Rhodobacter</span> <span class="n">sphaeroides</span><span class="p">,</span> <span class="n">Rattus</span> <span class="n">norvegicus</span><span class="p">,</span> <span class="n">Saccharomyces</span> <span class="n">cerevisiae</span><span class="p">,</span> <span class="n">Staphylococcus</span> <span class="n">aureus</span><span class="p">,</span> <span class="n">Bacillus</span> <span class="n">Cereus</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Now, let us retrieve the <tt class="docutils literal"><span class="pre">User</span></tt> objects for the current user, and list all projects for this user:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Take a look at the current user</span>
+<span class="n">user</span>        <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getUserById</span><span class="p">(</span><span class="s">&#39;current&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The current user is </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+<span class="c"># Now list the projects for this user</span>
+<span class="n">myProjects</span>   <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getProjectByUser</span><span class="p">(</span><span class="s">&#39;current&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The projects for this user are </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">myProjects</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">The</span> <span class="n">current</span> <span class="n">user</span> <span class="ow">is</span>
+<span class="mi">152152</span><span class="p">:</span> <span class="n">Morten</span> <span class="n">Kallberg</span>
+
+<span class="n">The</span> <span class="n">projects</span> <span class="k">for</span> <span class="n">this</span> <span class="n">user</span> <span class="n">are</span>
+<span class="p">[</span><span class="n">HiSeq</span> <span class="mi">2500</span><span class="p">,</span> <span class="n">Bolt</span><span class="p">,</span> <span class="n">YourProject</span><span class="p">,</span> <span class="mi">2</span><span class="n">X151</span> <span class="n">Rhodobacter</span> <span class="n">Resequencing</span><span class="p">,</span> <span class="n">EColi</span> <span class="n">resequencing</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>We can also achieve this by making a call using the <tt class="docutils literal"><span class="pre">user</span></tt> instance. Notice that these calls take an instance of <tt class="docutils literal"><span class="pre">BaseSpaceAPI</span></tt> with apporpriate
+priviliges to complete the transaction as parameter, this true for all retrieval method calls made on data objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">myProjects2</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">getProjects</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Projects retrieved from the user instance </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">myProjects2</span><span class="p">)</span>
+
+<span class="c"># List the runs available for the current user</span>
+<span class="n">runs</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">getRuns</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The runs for this user are </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><pre>Output[]:
+
+Projects retrieved from the user instance
+[HiSeq 2500, Bolt, YourProject, 2X151 Rhodobacter Resequencing, EColi resequencing]
+
+The runs for this user are
+[2X151 Rhodobacter Resequencing, 2x26 Validation Human 4-Plex, EColi resequencing]</pre>
+</div>
+<p>In the same manner we can get a list of accessible user runs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">runs</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">getRuns</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Runs retrieved from user instance </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><pre>Output[]:
+
+Runs retrieved from user instance
+[2X151 Rhodobacter Resequencing, 2x26 Validation Human 4-Plex, EColi resequencing]</pre>
+</div>
+</div>
+<div class="section" id="accessing-file-trees-and-querying-bam-vcf-files">
+<h2>Accessing file-trees and querying BAM/VCF files<a class="headerlink" href="#accessing-file-trees-and-querying-bam-vcf-files" title="Permalink to this headline">¶</a></h2>
+<p>In this section we demonstrate how to access samples and analysis from a projects and how to work with the available file data for such instances.
+In addition, we take a look at some of the special queuring methods associated with BAM- and VCF-files.</p>
+<p>Again, start out by initializing a <tt class="docutils literal"><span class="pre">BaseSpacePy</span></tt> instance and retrieving all projects belonging to the current user:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># First, create a client for making calls for this user session</span>
+<span class="n">myAPI</span>   <span class="o">=</span> <span class="n">BaseSpaceAPI</span><span class="p">(</span><span class="n">AccessToken</span><span class="o">=</span><span class="n">access_token</span><span class="p">,</span><span class="n">apiServer</span><span class="o">=</span> <span class="n">server</span> <span class="o">+</span> <span class="n">version</span><span class="p">)</span>
+<span class="n">user</span>        <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getUserById</span><span class="p">(</span><span class="s">&#39;current&#39;</span><span class="p">)</span>
+<span class="n">myProjects</span>   <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getProjectByUser</span><span class="p">(</span><span class="s">&#39;current&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can list all the analyses and samples for these projects</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">singleProject</span> <span class="ow">in</span> <span class="n">myProjects</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;# &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">singleProject</span><span class="p">)</span>
+    <span class="n">analyses</span> <span class="o">=</span> <span class="n">singleProject</span><span class="o">.</span><span class="n">getAnalyses</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;    The analysis for project &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">singleProject</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; are </span><span class="se">\n\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">analyses</span><span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">singleProject</span><span class="o">.</span><span class="n">getSamples</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;    The samples for project &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">singleProject</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; are </span><span class="se">\n\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="c"># HiSeq 2500</span>
+    <span class="n">The</span> <span class="n">analysis</span> <span class="k">for</span> <span class="n">project</span> <span class="n">HiSeq</span> <span class="mi">2500</span> <span class="n">are</span>
+        <span class="p">[</span><span class="n">Resequencing</span> <span class="o">-</span> <span class="n">Completed</span><span class="p">]</span>
+    <span class="n">The</span> <span class="n">samples</span> <span class="k">for</span> <span class="n">project</span> <span class="n">HiSeq</span> <span class="mi">2500</span> <span class="n">are</span>
+        <span class="p">[</span><span class="n">NA18507</span><span class="p">]</span>
+<span class="c"># Bolt</span>
+    <span class="n">The</span> <span class="n">analysis</span> <span class="k">for</span> <span class="n">project</span> <span class="n">Bolt</span> <span class="n">are</span>
+        <span class="p">[</span><span class="n">Amplicon</span> <span class="o">-</span> <span class="n">Completed</span><span class="p">,</span> <span class="n">Amplicon</span> <span class="o">-</span> <span class="n">Completed</span><span class="p">,</span> <span class="n">Amplicon</span> <span class="o">...</span>
+    <span class="n">The</span> <span class="n">samples</span> <span class="k">for</span> <span class="n">project</span> <span class="n">Bolt</span> <span class="n">are</span>
+        <span class="p">[</span><span class="n">sample_1</span><span class="p">,</span> <span class="n">sample_2</span><span class="p">,</span> <span class="n">sample_3</span><span class="p">,</span> <span class="o">...</span>
+
+<span class="o">......</span>
+</pre></div>
+</div>
+<p>We&#8217;ll take a further look at the files belonging to the sample from the last project in the loop above:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;Sample &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">ff</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getFiles</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">ff</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">Sample</span> <span class="n">Ecoli</span>
+<span class="p">[</span><span class="n">s_G1_L001_R1_001</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="mf">1.</span><span class="n">gz</span><span class="p">,</span> <span class="n">s_G1_L001_R1_002</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="mf">1.</span><span class="n">gz</span><span class="p">,</span> <span class="n">s_G1_L001_R2_001</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="mf">1.</span><span class="n">gz</span><span class="p">,</span> <span class="n">s_G1_L001_R2_002</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="mf">1.</span><span class="n">gz</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Now, have a look at some of the methods calls specific to <tt class="docutils literal"><span class="pre">Bam</span></tt> and <tt class="docutils literal"><span class="pre">VCF</span></tt> files. First, we will get a <tt class="docutils literal"><span class="pre">Bam</span></tt>-file and then retrieve the coverage information available for chromosome 2 between positions 1 and 20000:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Now do some work with files</span>
+<span class="c"># we&#39;ll grab a BAM by id and get the coverage for an interval + accompanying meta-data</span>
+<span class="n">myBam</span> <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getFileById</span><span class="p">(</span><span class="s">&#39;2150156&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">myBam</span>
+<span class="n">cov</span>     <span class="o">=</span> <span class="n">myBam</span><span class="o">.</span><span class="n">getIntervalCoverage</span><span class="p">(</span><span class="n">myAPI</span><span class="p">,</span><span class="s">&#39;chr2&#39;</span><span class="p">,</span><span class="s">&#39;1&#39;</span><span class="p">,</span><span class="s">&#39;20000&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">cov</span>
+<span class="n">covMeta</span> <span class="o">=</span> <span class="n">myBam</span><span class="o">.</span><span class="n">getCoverageMeta</span><span class="p">(</span><span class="n">myAPI</span><span class="p">,</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">covMeta</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="nb">sorted</span><span class="o">.</span><span class="n">bam</span>
+<span class="n">Chrchr2</span><span class="p">:</span> <span class="mi">1</span><span class="o">-</span><span class="mi">20096</span><span class="p">:</span> <span class="n">BucketSize</span><span class="o">=</span><span class="mi">16</span>
+<span class="n">CoverageMeta</span><span class="p">:</span> <span class="nb">max</span><span class="o">=</span><span class="mi">20483</span> <span class="n">gran</span><span class="o">=</span><span class="mi">128</span>
+</pre></div>
+</div>
+<p>For <tt class="docutils literal"><span class="pre">VCF</span></tt>-files we can filter variant calls based on chromosome and location as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># and a vcf file</span>
+<span class="n">myVCF</span> <span class="o">=</span> <span class="n">myAPI</span><span class="o">.</span><span class="n">getFileById</span><span class="p">(</span><span class="s">&#39;2150158&#39;</span><span class="p">)</span>
+<span class="c"># Get the variant meta info</span>
+<span class="n">varMeta</span> <span class="o">=</span> <span class="n">myVCF</span><span class="o">.</span><span class="n">getVariantMeta</span><span class="p">(</span><span class="n">myAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">varMeta</span>
+<span class="n">var</span>     <span class="o">=</span> <span class="n">myVCF</span><span class="o">.</span><span class="n">filterVariant</span><span class="p">(</span><span class="n">myAPI</span><span class="p">,</span><span class="s">&#39;2&#39;</span><span class="p">,</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="s">&#39;11000&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">var</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">VariantHeader</span><span class="p">:</span> <span class="n">SampleCount</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">[</span><span class="n">Variant</span> <span class="o">-</span> <span class="n">chr2</span><span class="p">:</span> <span class="mi">10236</span> <span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;.&#39;</span><span class="p">],</span> <span class="n">Variant</span> <span class="o">-</span> <span class="n">chr2</span><span class="p">:</span> <span class="mi">10249</span> <span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;.&#39;</span><span class="p">],</span> <span class="o">....</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-an-analysis-and-uploading-results">
+<h2>Creating an analysis and uploading results<a class="headerlink" href="#creating-an-analysis-and-uploading-results" title="Permalink to this headline">¶</a></h2>
+<p>In this section we will see how to create a new analysis object, change its state
+and upload result files to it as well as retrieve files from it.</p>
+<p>First, create a client for making calls for this user session:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">myBaseSpaceAPI</span>   <span class="o">=</span> <span class="n">BaseSpaceAPI</span><span class="p">(</span><span class="n">AccessToken</span><span class="o">=</span><span class="n">access_token</span><span class="p">,</span><span class="n">apiServer</span><span class="o">=</span> <span class="n">server</span> <span class="o">+</span> <span class="n">version</span><span class="p">)</span>
+<span class="c">#</span>
+<span class="c">## Now we&#39;ll do some work of our own. First get a project to work on</span>
+<span class="c">## we&#39;ll need write permission, for the project we are working on</span>
+<span class="c">## meaning we will need get a new token and instantiate a new BaseSpaceAPI</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">myBaseSpaceAPI</span><span class="o">.</span><span class="n">getProjectById</span><span class="p">(</span><span class="s">&#39;89&#39;</span><span class="p">)</span>
+<span class="c"># A short-cut for getting a scope string if we already have a project-instance:</span>
+<span class="k">print</span> <span class="n">p</span><span class="o">.</span><span class="n">getAccessStr</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s">&#39;write&#39;</span><span class="p">)</span>
+<span class="c"># or simply</span>
+<span class="n">p</span><span class="o">.</span><span class="n">getAccessStr</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">write</span> <span class="n">project</span> <span class="mi">89</span>
+</pre></div>
+</div>
+<p>Assuming we now have write access for the project, we will list the current analyses for the project:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ana</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">getAnalyses</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The current analyses are </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ana</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">The</span> <span class="n">current</span> <span class="n">analyses</span> <span class="n">are</span>
+<span class="p">[</span><span class="n">Results</span> <span class="k">for</span> <span class="n">sample</span> <span class="mi">123</span> <span class="o">-</span> <span class="n">Working</span><span class="p">,</span> <span class="n">Results</span> <span class="k">for</span> <span class="n">sample</span> <span class="mi">124</span> <span class="o">-</span> <span class="n">Working</span><span class="o">...</span>
+</pre></div>
+</div>
+<p>To create an analysis for a project, simply give the name and description to the <tt class="docutils literal"><span class="pre">createAnalysis</span></tt>-method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">analysis</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">createAnalysis</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">,</span><span class="s">&quot;My very first analysis!!&quot;</span><span class="p">,</span><span class="s">&quot;This is my analysis&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Some info about our new analysis&quot;</span>
+<span class="k">print</span> <span class="n">analysis</span>
+<span class="k">print</span> <span class="n">analysis</span><span class="o">.</span><span class="n">Id</span>
+<span class="k">print</span> <span class="n">analysis</span><span class="o">.</span><span class="n">Status</span>
+<span class="c"># we can change the status of out analysis and add a status-summary as follows</span>
+<span class="n">analysis</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">,</span><span class="s">&#39;completed&#39;</span><span class="p">,</span><span class="s">&quot;We worked hard.&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">After a change of status we get</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">analysis</span><span class="p">)</span>
+
+<span class="c">### List the analyses again and see if our new object shows up</span>
+<span class="n">ana</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">getAnalyses</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">The updated analyses are </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ana</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><pre>Output[]:
+
+Some info about our new analysis
+My very first analysis!! - Working
+94094
+Working
+
+After a change of status we get
+My very first analysis!! - Completed
+
+The updated analyses are
+[Results for sample 123 - Working, Results for sample 124 - Working, Results for sample 124 - Working, ...</pre>
+</div>
+<p>Now we will make another analysis and try to upload some files to it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">analysis2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">createAnalysis</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">,</span><span class="s">&quot;My second analysis&quot;</span><span class="p">,</span><span class="s">&quot;This one I will upload to&quot;</span><span class="p">)</span>
+<span class="n">analysis2</span><span class="o">.</span><span class="n">uploadFile</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">,</span> <span class="s">&#39;/my/file/dir/testFile2.txt&#39;</span><span class="p">,</span> <span class="s">&#39;BaseSpaceTestFile.txt&#39;</span><span class="p">,</span> <span class="s">&#39;/mydir/&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">My analysis number 2 </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">analysis2</span><span class="p">)</span>
+<span class="c">#</span>
+<span class="c">## Check to see if our new file made it</span>
+<span class="n">analysisFiles</span> <span class="o">=</span> <span class="n">analysis2</span><span class="o">.</span><span class="n">getFiles</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">These are the files in the analysis&quot;</span>
+<span class="k">print</span> <span class="n">analysisFiles</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">analysisFiles</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Output</span><span class="p">[]:</span>
+
+<span class="n">My</span> <span class="n">analysis</span> <span class="n">number</span> <span class="mi">2</span>
+<span class="n">My</span> <span class="n">second</span> <span class="n">analysis</span> <span class="o">-</span> <span class="n">Working</span>
+
+<span class="n">These</span> <span class="n">are</span> <span class="n">the</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">analysis</span>
+<span class="p">[</span><span class="n">BaseSpaceTestFile</span><span class="o">.</span><span class="n">txt</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>We can even download our newly uploaded file in the following manner:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">f</span><span class="o">.</span><span class="n">downloadFile</span><span class="p">(</span><span class="n">myBaseSpaceAPI</span><span class="p">,</span><span class="s">&#39;/path/to/place/file/in/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#availability">Availability</a></li>
+<li><a class="reference internal" href="#setup">Setup</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-triggering">Application triggering</a></li>
+<li><a class="reference internal" href="#requesting-an-access-token-for-data-browsing">Requesting an access-token for data browsing</a></li>
+<li><a class="reference internal" href="#browsing-data-with-global-browse-access">Browsing data with <tt class="docutils literal"><span class="pre">global</span> <span class="pre">browse</span></tt>-access</a></li>
+<li><a class="reference internal" href="#accessing-file-trees-and-querying-bam-vcf-files">Accessing file-trees and querying BAM/VCF files</a></li>
+<li><a class="reference internal" href="#creating-an-analysis-and-uploading-results">Creating an analysis and uploading results</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">BaseSpacePy</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Advanced examples.html"
+                        title="next chapter">Advanced examples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Getting Started.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Advanced examples.html" title="Advanced examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="BaseSpacePy"
+             >previous</a> |</li>
+        <li><a href="index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Morten Kallberg.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

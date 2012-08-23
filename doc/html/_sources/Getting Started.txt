@@ -1,0 +1,548 @@
+Getting Started
+=======================================
+
+Introduction
+---------------------------------------
+
+``BaseSpacePy`` is a Python based SDK to be used in the development of Apps and scripts for working with Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis. 
+The primary purpose of the SDK is to provide an easy-to-use Python environment enabling developers to authenticate a user, retrieve data, and upload data/results from their own analysis to BaseSpace.
+
+If you haven't already done so, you may wish to familiarize yourself with the BaseSpace developer documentation (`https://developer.basespace.illumina.com/ 
+<https://developer.basespace.illumina.com/>`_) prior to working through the example scripts below. 
+
+.. note:: It will be necessary to have created a BaseSpace account with a new App and have the ``client_key`` and ``client_secret`` codes for the App available to run a number of the following examples.
+
+
+Availability
+###################
+
+Version 0.1 of ``BaseSpacePy`` can be checked out here:
+
+.. code-block:: python
+
+	svn checkout svn://ilmnhw-biolinsd.hwus.illumina.com:/data/tmann/svn/svnrepos/BaseSpacePy_v0.1
+
+Setup
+###################
+
+*Requirements:* Python 2.6 with the packages 'urllib2', 'pycurl', and 'shutil' available. 
+
+To install 'BaseSpacePy' run the 'setup.py' script in the ``src`` directory (for a global install you will need to run this command with root privileges):
+
+.. code-block:: python
+
+	cd BaseSpacePy_v0.1/src
+	python setup.py install
+	
+If you do not have root access, you may use the ``--prefix`` option to specify the install directory (make sure this directory is in you PYTHONPATH):
+
+.. code-block:: python
+
+	python setup.py install --prefix=/folder/in/my/pythonpath
+	
+
+For more install options type: 
+
+.. code-block:: python
+
+	python setup.py --help
+
+Altenatively you may include the src directory in your PYTHONPATH by doing the following export:
+
+.. code-block:: python
+
+	export PYTHONPATH=$PYTHONPATH:/my/path/BaseSpacePy_vx.x/src
+
+or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:
+
+.. code-block:: python
+
+	import sys
+	sys.path.append('/my/path/BaseSpacePy_vx.x/src')
+	import BaseSpacePy
+
+To test that everything is working as expected, launch a Python prompt and try importing 'BaseSpacePy': 
+
+.. code-block:: python
+
+	mkallberg@ubuntu:~/$ python
+	>>> import BaseSpacePy
+
+Application triggering
+---------------------------------------
+This section demonstrates how to retrieve the ``AppLaunch`` object produced when a user triggers a BaseSpace App. 
+Further, we cover how to automatically generate the scope strings to request access to the data object (be it a project, a sample, or an analysis)
+that the App was triggered to analyze.
+
+The initial http request to our App from BaseSpace is identified by an ``ApplicationActionId``, using this piece of information 
+we are able to obtain information about the user who launched the App and the data that is sought analyzed by the App. 
+First, we instantiate a BaseSpaceAuth object using the ``client_key`` and ``client_secret`` codes provided on the BaseSpace developers website when registering our App: 
+
+.. code-block:: python
+	
+	from BaseSpacePy.api.BaseSpaceAuth import BaseSpaceAuth
+	
+	# initialize an authentication object using the key and secret from your app
+	# Fill in with your own values
+	client_key                 = <my key>
+	client_secret              = <my secret>
+	ApplicationActionId        = <my action id>
+	BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
+	version                    = 'v1pre2/'
+	
+	# First we will initialize a BaseSpace authentication object
+	BSauth = BaseSpaceAuth(client_key,client_secret,BaseSpaceUrl,version)
+	
+	# By supplying the application trigger id we can get out an AppLaunch object
+	triggerObj = BSauth.getAppTrigger(ApplicationActionId)
+	print str(triggerObj)
+	
+.. code-block:: python
+
+	Output[]:
+	
+	https://api.cloud-endor.illumina.com/v1pre2/applicationactions/<my action id>
+
+
+We can get the type of object the app was triggered on from the ``getLaunchType``-method in the ``BaseSpaceAuth`` instance:
+
+.. code-block:: python
+
+	# The trigger type is a list with two items, the first a string taking the one of the values ('Projects','Samples','Analyses')
+	# and the second a list of the objects of that type
+	triggerType = triggerObj.getLaunchType()
+	print "\nType of data the app was triggered on"
+	print triggerType
+	print "\nWe can get a handle for the user who triggered the app\n" + str(triggerObj.User)
+
+.. code-block:: python
+
+	Output[]:
+	
+	Type of data the app was triggered on
+	['Projects', [YourProject]]
+	
+	We can get a handle for the user who triggered the app
+	152152: Morten Kallberg
+	
+To start working, we will want to expand our permission scope for the trigger object so we can read and write data. The details of this process is the subject of the next section. 
+We end this section by demonstrating how one can easily obtain the so-called "scope string," used when requesting further access, from the trigger object:
+
+.. code-block:: python
+
+	triggerObj = triggerType[1][-1]
+	print "\nThe scope string for requesting write access to the trigger object is:"
+	print triggerObj.getAccessStr(scope='write')
+
+.. code-block:: python
+
+	Output[]:
+	
+	The scope string for requesting write access to the trigger object is:
+	write project 89
+	
+
+Requesting an access-token for data browsing
+---------------------------------------
+Here we demonstrate the basic BaseSpace authentication process. The work-flow outlined here is
+
+1. Request of access to a specific data-scope 
+2. User approval of access request 
+3. Browsing data
+
+.. note:: It will be useful if you are logged in to the BaseSpace web-site before launching this example to make the access grant procedure faster.
+
+Again we will start out by initializing a ``BaseSpaceAuth`` object:
+
+.. code-block:: python
+
+	from BaseSpacePy.api.BaseSpaceAuth import BaseSpaceAuth
+	import time
+
+	# initialize an authentication object using the key and secret from your app
+	client_key                 = <my key>
+	client_secret              = <my secret>
+	BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
+	version                    = 'v1pre2/'
+	BSauth = BaseSpaceAuth(client_key,client_secret,BaseSpaceUrl,version)
+
+
+First get verification code and uri for scope 'browse global'
+
+.. code-block:: python
+
+	deviceInfo = BSauth.getVerificationCode('browse global')
+
+At this point the user must visit the verification uri to grant us access
+
+.. code-block:: python
+
+	## PAUSE HERE
+	# Have the user visit the verification uri to grant us access
+	print "Please visit the uri within 30 seconds and grant access"
+	print deviceInfo['verification_with_code_uri']
+	time.sleep(30)
+	## PAUSE HERE
+
+.. code-block:: python
+
+	Output[]:
+	
+	Please visit the uri within 10 seconds and grant access
+	https://cloud-endor.illumina.com/oauth/device?code=<my device code>
+
+There are two options for obtaining the access-token and instantiating a ``BaseSpaceAPI`` object:
+
+.. code-block:: python
+
+	# Get the access-token directly and instantiate an api yourself
+	#token = BSauth.getAccessToken(deviceInfo['device_code'])
+	#print "My token " + str(token)
+	
+	# Alternatively we can generate an access-token and request a BaseSpaceApi instance 
+	# with the newly generated token in one step
+	myAPI = BSauth.getBaseSpaceApi(deviceInfo['device_code'])
+	print myAPI
+
+.. code-block:: python
+
+	Output[]:
+	
+	BaseSpaceAPI instance - using token=<my access token>
+
+At this point we can start using the ``BaseSpaceAPI`` instance to browse the available data for the current user, the details of this process is the subject of the next section. Here we will end with showing how the API object can be used to list all BaseSpace genome instances: 
+
+.. code-block:: python
+
+	# We will get all available genomes with our new api! 
+	allGenomes  = myAPI.getAvailableGenomes()
+	print "\nGenomes \n" + str(allGenomes)
+
+.. code-block:: python
+
+	Output[]:
+		
+	Genomes 
+	[Arabidopsis thaliana, Bos Taurus, Escherichia coli, Homo sapiens, Mus musculus, Phix,\
+	 Rhodobacter sphaeroides, Rattus norvegicus, Saccharomyces cerevisiae, Staphylococcus aureus, Bacillus Cereus]
+
+Browsing data with ``global browse``-access
+------------------------------------------------
+
+This section demonstrates basic browsing of BaseSpace objects once an access-token for global browsing has been obtained. We will see how 
+objects can be retrieved using either the ``BaseSpaceAPI`` class or by use of method calls on related object instances (for example once 
+a ``user`` instance we can use it to retrieve all project belonging to that user).
+
+First we will initialize a ``BaseSpaceAPI`` using our access-token for ``global browse``:
+
+.. code-block:: python
+
+	from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
+	
+	# REST server information and user access token 
+	server          = 'https://api.cloud-endor.illumina.com/'
+	version         = 'v1pre2'
+	access_token    = <my access token>
+	
+	# First, create a client for making calls for this user session 
+	myAPI   = BaseSpaceAPI(AccessToken=access_token,apiServer= server + version)
+
+First we will try to retrieve a genome object:
+
+.. code-block:: python
+
+	# Now grab the genome with id=4
+	myGenome    = myAPI.getGenomeById('4')
+	print "\nThe Genome is " + str(myGenome)
+	print "We can get more information from the genome object"
+	print 'Id: ' + myGenome.Id
+	print 'Href: ' + myGenome.Href
+	print 'DisplayName: ' + myGenome.DisplayName
+
+.. code-block:: python
+
+	Output[]:
+
+	The Genome is Homo sapiens
+	We can get more information from the genome object
+	Id: 4
+	Href: v1pre2/genomes/4
+	DisplayName: Homo Sapiens - UCSC (hg19)
+
+Using a comparable method we can get a list of all available genomes:
+
+.. code-block:: python
+
+	# Get a list of all genomes
+	allGenomes  = myAPI.getAvailableGenomes()
+	print "\nGenomes \n" + str(allGenomes)
+
+.. code-block:: python
+
+	Output[]:
+	
+	Genomes 
+	[Arabidopsis thaliana, Bos Taurus, Escherichia coli, Homo sapiens, Mus musculus, Phix,\
+	 Rhodobacter sphaeroides, Rattus norvegicus, Saccharomyces cerevisiae, Staphylococcus aureus, Bacillus Cereus]
+
+Now, let us retrieve the ``User`` objects for the current user, and list all projects for this user:
+
+.. code-block:: python
+
+	# Take a look at the current user
+	user        = myAPI.getUserById('current')
+	print "\nThe current user is \n" + str(user)
+	
+	# Now list the projects for this user
+	myProjects   = myAPI.getProjectByUser('current')
+	print "\nThe projects for this user are \n" + str(myProjects)
+
+.. code-block:: python
+
+	Output[]:
+	
+	The current user is 
+	152152: Morten Kallberg
+	
+	The projects for this user are 
+	[HiSeq 2500, Bolt, YourProject, 2X151 Rhodobacter Resequencing, EColi resequencing]
+
+
+We can also achieve this by making a call using the ``user`` instance. Notice that these calls take an instance of ``BaseSpaceAPI`` with apporpriate 
+priviliges to complete the transaction as parameter, this true for all retrieval method calls made on data objects:
+
+.. code-block:: python
+
+	myProjects2 = user.getProjects(myAPI)
+	print "\nProjects retrieved from the user instance \n" + str(myProjects2)
+	
+	# List the runs available for the current user
+	runs = user.getRuns(myAPI)
+	print "\nThe runs for this user are \n" + str(runs)
+
+.. code-block:: python
+
+	Output[]:
+	
+	Projects retrieved from the user instance 
+	[HiSeq 2500, Bolt, YourProject, 2X151 Rhodobacter Resequencing, EColi resequencing]
+	
+	The runs for this user are 
+	[2X151 Rhodobacter Resequencing, 2x26 Validation Human 4-Plex, EColi resequencing]
+
+In the same manner we can get a list of accessible user runs:
+
+.. code-block:: python
+
+	runs = user.getRuns(myAPI)
+	print "\nRuns retrieved from user instance \n" + str(runs)
+
+.. code-block:: python
+
+	Output[]:
+	
+	Runs retrieved from user instance 
+	[2X151 Rhodobacter Resequencing, 2x26 Validation Human 4-Plex, EColi resequencing]
+	
+Accessing file-trees and querying BAM/VCF files
+------------------------------------------------
+
+In this section we demonstrate how to access samples and analysis from a projects and how to work with the available file data for such instances.
+In addition, we take a look at some of the special queuring methods associated with BAM- and VCF-files. 
+
+Again, start out by initializing a ``BaseSpacePy`` instance and retrieving all projects belonging to the current user:
+
+.. code-block:: python
+
+	# First, create a client for making calls for this user session 
+	myAPI   = BaseSpaceAPI(AccessToken=access_token,apiServer= server + version)
+	user        = myAPI.getUserById('current')
+	myProjects   = myAPI.getProjectByUser('current')
+
+Now we can list all the analyses and samples for these projects
+
+.. code-block:: python
+
+	for singleProject in myProjects:
+	    print "# " + str(singleProject)
+	    analyses = singleProject.getAnalyses(myAPI)
+	    print "    The analysis for project " + str(singleProject) + " are \n\t" + str(analyses)
+	    samples = singleProject.getSamples(myAPI)
+	    print "    The samples for project " + str(singleProject) + " are \n\t" + str(samples)
+
+.. code-block:: python
+
+	Output[]:
+	
+	# HiSeq 2500
+	    The analysis for project HiSeq 2500 are 
+		[Resequencing - Completed]
+	    The samples for project HiSeq 2500 are 
+		[NA18507]
+	# Bolt
+	    The analysis for project Bolt are 
+		[Amplicon - Completed, Amplicon - Completed, Amplicon ...
+	    The samples for project Bolt are 
+		[sample_1, sample_2, sample_3, ...
+
+	......
+	
+
+We'll take a further look at the files belonging to the sample from the last project in the loop above:
+
+.. code-block:: python
+
+	for s in samples:
+	    print "Sample " + str(s)
+	    ff = s.getFiles(myAPI)
+	    print ff
+
+.. code-block:: python
+
+	Output[]:
+	
+	Sample Ecoli
+	[s_G1_L001_R1_001.fastq.1.gz, s_G1_L001_R1_002.fastq.1.gz, s_G1_L001_R2_001.fastq.1.gz, s_G1_L001_R2_002.fastq.1.gz]
+
+Now, have a look at some of the methods calls specific to ``Bam`` and ``VCF`` files. First, we will get a ``Bam``-file and then retrieve the coverage information available for chromosome 2 between positions 1 and 20000: 
+
+.. code-block:: python
+
+	# Now do some work with files 
+	# we'll grab a BAM by id and get the coverage for an interval + accompanying meta-data 
+	myBam = myAPI.getFileById('2150156')
+	print myBam
+	cov     = myBam.getIntervalCoverage(myAPI,'chr2','1','20000')
+	print cov 
+	covMeta = myBam.getCoverageMeta(myAPI,'chr2')
+	print covMeta
+
+.. code-block:: python
+
+	Output[]:
+	
+	sorted.bam
+	Chrchr2: 1-20096: BucketSize=16
+	CoverageMeta: max=20483 gran=128
+
+For ``VCF``-files we can filter variant calls based on chromosome and location as well:
+
+.. code-block:: python
+
+	# and a vcf file
+	myVCF = myAPI.getFileById('2150158')
+	# Get the variant meta info 
+	varMeta = myVCF.getVariantMeta(myAPI)
+	print varMeta
+	var     = myVCF.filterVariant(myAPI,'2','1', '11000') 
+	print var
+
+.. code-block:: python
+
+	Output[]:
+	
+	VariantHeader: SampleCount=1
+	[Variant - chr2: 10236 id=['.'], Variant - chr2: 10249 id=['.'], ....
+
+Creating an analysis and uploading results
+------------------------------------------------
+
+In this section we will see how to create a new analysis object, change its state
+and upload result files to it as well as retrieve files from it. 
+
+First, create a client for making calls for this user session:
+
+.. code-block:: python
+ 
+	myBaseSpaceAPI   = BaseSpaceAPI(AccessToken=access_token,apiServer= server + version)
+	#
+	## Now we'll do some work of our own. First get a project to work on
+	## we'll need write permission, for the project we are working on
+	## meaning we will need get a new token and instantiate a new BaseSpaceAPI  
+	p = myBaseSpaceAPI.getProjectById('89')
+	# A short-cut for getting a scope string if we already have a project-instance:
+	print p.getAccessStr(scope='write')
+	# or simply
+	p.getAccessStr()
+
+.. code-block:: python
+
+	Output[]:
+	
+	write project 89
+
+Assuming we now have write access for the project, we will list the current analyses for the project:
+
+.. code-block:: python
+
+	ana = p.getAnalyses(myBaseSpaceAPI)
+	print "\nThe current analyses are \n" + str(ana)
+
+.. code-block:: python
+
+	Output[]:
+	
+	The current analyses are 
+	[Results for sample 123 - Working, Results for sample 124 - Working...
+
+To create an analysis for a project, simply give the name and description to the ``createAnalysis``-method:
+
+.. code-block:: python
+
+	analysis = p.createAnalysis(myBaseSpaceAPI,"My very first analysis!!","This is my analysis")
+	print "\nSome info about our new analysis"
+	print analysis
+	print analysis.Id
+	print analysis.Status
+	# we can change the status of out analysis and add a status-summary as follows
+	analysis.setStatus(myBaseSpaceAPI,'completed',"We worked hard.")
+	print "\nAfter a change of status we get\n" + str(analysis)
+	
+	### List the analyses again and see if our new object shows up 
+	ana = p.getAnalyses(myBaseSpaceAPI)
+	print "\nThe updated analyses are \n" + str(ana)
+
+.. code-block:: python
+
+	Output[]:
+
+	Some info about our new analysis
+	My very first analysis!! - Working
+	94094
+	Working
+	
+	After a change of status we get
+	My very first analysis!! - Completed
+	
+	The updated analyses are 
+	[Results for sample 123 - Working, Results for sample 124 - Working, Results for sample 124 - Working, ...	
+
+Now we will make another analysis and try to upload some files to it:	
+
+.. code-block:: python
+
+	analysis2 = p.createAnalysis(myBaseSpaceAPI,"My second analysis","This one I will upload to")
+	analysis2.uploadFile(myBaseSpaceAPI, '/my/file/dir/testFile2.txt', 'BaseSpaceTestFile.txt', '/mydir/', 'text/plain')
+	print "\nMy analysis number 2 \n" + str(analysis2)
+	#
+	## Check to see if our new file made it
+	analysisFiles = analysis2.getFiles(myBaseSpaceAPI)
+	print "\nThese are the files in the analysis"
+	print analysisFiles
+	f = analysisFiles[-1]
+
+.. code-block:: python
+
+	Output[]:
+
+	My analysis number 2 
+	My second analysis - Working
+	
+	These are the files in the analysis
+	[BaseSpaceTestFile.txt]
+
+We can even download our newly uploaded file in the following manner:
+
+.. code-block:: python
+
+	f.downloadFile(myBaseSpaceAPI,'/path/to/place/file/in/')
