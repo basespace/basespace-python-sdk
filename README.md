@@ -17,7 +17,9 @@ Morten Kallberg
 REQUIREMENTS
 =========================================
 
-Python 2.6 with the packages 'urllib2', 'pycurl', and 'shutil' available.
+Python 2.6 with the packages 'urllib2', 'pycurl', 'multiprocessing' and 'shutil' available.
+
+The multi-part file upload will currently only run on a unix setup.
 
 
 INSTALL
