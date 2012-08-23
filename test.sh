@@ -1,1 +1,0 @@
-split -d -n 10/220 /home/mkallberg/Desktop/multi/chr21_test.bam | curl -H "x-access-token:31af080b256e4433bbf3e75a26a4aa12" -H "Content-MD5:ttpjA5vWo8xAg1iFUiXbWA==" -d @- -X POST https://api.cloud-endor.illumina.com/v1pre2/files/7870175/parts/10
