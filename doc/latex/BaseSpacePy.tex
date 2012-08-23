@@ -13,7 +13,7 @@
 
 
 \title{BaseSpacePy Documentation}
-\date{August 15, 2012}
+\date{August 23, 2012}
 \release{0.1}
 \author{Morten Kallberg}
 \newcommand{\sphinxlogo}{}
@@ -669,19 +669,6 @@ We can even download our newly uploaded file in the following manner:
 \end{Verbatim}
 
 
-\chapter{Advanced examples}
-\label{Advanced examples:advanced-examples}\label{Advanced examples::doc}
-
-\section{Multi-part upload}
-\label{Advanced examples:multi-part-upload}
-To-do
-
-
-\section{Example server}
-\label{Advanced examples:example-server}
-To-do
-
-
 \chapter{Available modules}
 \label{Available modules:available-modules}\label{Available modules::doc}
 
@@ -694,7 +681,7 @@ The main API class used for all communication with with the REST server
 \index{analysisFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.analysisFileUpload}\pysiglinewithargsret{\bfcode{analysisFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.analysisFileUpload}\pysiglinewithargsret{\bfcode{analysisFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{multipart=0}}{}
 Uploads a file associated with an analysis to BaseSpace and returns the corresponding file object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1083,14 +1070,6 @@ Returns a VariantMetadata object for the variant file
 
 \end{fulllineitems}
 
-\index{largeFileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.largeFileDownload}\pysiglinewithargsret{\bfcode{largeFileDownload}}{}{}
-Not yet implemented
-
-\end{fulllineitems}
-
 \index{markAnalysisState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
@@ -1116,33 +1095,36 @@ Set the status of an Analysis object
 \index{multipartFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileUpload}\pysiglinewithargsret{\bfcode{multipartFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{cpuCount=1}, \emph{splits=10}, \emph{partSize=10}}{}
-Not Yet implemented
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileUpload}\pysiglinewithargsret{\bfcode{multipartFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{tempdir='`}, \emph{cpuCount=2}, \emph{partSize=25}, \emph{verbose=0}}{}
+Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- 
+\textbf{Id} -- The analysis ID
 
 \item {} 
-\textbf{localPath} -- 
+\textbf{localPath} -- The local path of the file to be uploaded
 
 \item {} 
-\textbf{fileName} -- 
+\textbf{fileName} -- The desired filename on the server
 
 \item {} 
-\textbf{directory} -- 
+\textbf{directory} -- The server directory to place the file in (empty string will place it in the root directory)
 
 \item {} 
-\textbf{contentType} -- 
+\textbf{contentType} -- The content type of the file
 
 \item {} 
-\textbf{cpuCount} -- 
+\textbf{tempdir} -- Temp directory to use, if blank the directory for `localPath' will be used
 
 \item {} 
-\textbf{splits} -- 
+\textbf{cpuCount} -- The number of CPUs to be used
 
 \item {} 
-\textbf{partSize} -- 
+\textbf{partSize} -- The size of individual upload parts (must be between 5 and 25mb)
+
+\item {} 
+\textbf{verbose} -- Write process output to stdout as upload progresses
 
 \end{itemize}
 
@@ -1353,7 +1335,7 @@ Uploads a local file to the BaseSpace analysis
 \textbf{directory} -- The remote directory to upload to
 
 \item {} 
-\textbf{contentType} -- The contentype of the file
+\textbf{contentType} -- The content-type of the file
 
 \end{itemize}
 
@@ -1364,8 +1346,16 @@ Uploads a local file to the BaseSpace analysis
 \index{uploadMultipartFile() (BaseSpacePy.model.Analysis.Analysis method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.uploadMultipartFile}\pysiglinewithargsret{\bfcode{uploadMultipartFile}}{}{}
-NOT YET IMPLMENTED.
+\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.uploadMultipartFile}\pysiglinewithargsret{\bfcode{uploadMultipartFile}}{\emph{api}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{tempDir='`}, \emph{cpuCount=1}, \emph{partSize=10}, \emph{verbose=0}}{}
+Upload a file in multi-part mode. Returns an object of type MultipartUpload used for managing the upload.
+
+:param api:An instance of BaseSpaceAPI
+:param localPath: The local path of the file
+:param fileName: The filename
+:param directory: The remote directory to upload to
+:param contentType: The content-type of the file
+:param cpuCount: The number of CPUs to used for the upload
+:param partSize:
 
 \end{fulllineitems}
 

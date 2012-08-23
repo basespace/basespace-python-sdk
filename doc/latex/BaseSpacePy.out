@@ -5,11 +5,8 @@
 \BOOKMARK [1][-]{section.1.4}{Browsing data with global browse-access}{chapter.1}
 \BOOKMARK [1][-]{section.1.5}{Accessing file-trees and querying BAM/VCF files}{chapter.1}
 \BOOKMARK [1][-]{section.1.6}{Creating an analysis and uploading results}{chapter.1}
-\BOOKMARK [0][-]{chapter.2}{Advanced examples}{}
-\BOOKMARK [1][-]{section.2.1}{Multi-part upload}{chapter.2}
-\BOOKMARK [1][-]{section.2.2}{Example server}{chapter.2}
-\BOOKMARK [0][-]{chapter.3}{Available modules}{}
-\BOOKMARK [1][-]{section.3.1}{API}{chapter.3}
-\BOOKMARK [1][-]{section.3.2}{Models}{chapter.3}
-\BOOKMARK [0][-]{chapter.4}{Indices and tables}{}
-\BOOKMARK [0][-]{section*.57}{Index}{}
+\BOOKMARK [0][-]{chapter.2}{Available modules}{}
+\BOOKMARK [1][-]{section.2.1}{API}{chapter.2}
+\BOOKMARK [1][-]{section.2.2}{Models}{chapter.2}
+\BOOKMARK [0][-]{chapter.3}{Indices and tables}{}
+\BOOKMARK [0][-]{section*.56}{Index}{}

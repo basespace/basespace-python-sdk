@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.6)  15 AUG 2012 13:35
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.6)  23 AUG 2012 09:16
 entering extended mode
  %&-line parsing enabled.
 **BaseSpacePy.tex
@@ -900,20 +900,16 @@ LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
 
 ]
 Chapter 2.
-[11] [12
-
-]
-Chapter 3.
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 701.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 688.
 
 (/usr/share/texmf-texlive/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-) [13] [14] [15] [16]
-[17] [18] [19] [20
+) [11] [12] [13] [14]
+[15] [16] [17] [18
 
 ]
-Chapter 4.
-(./BaseSpacePy.ind [21] [22
+Chapter 3.
+(./BaseSpacePy.ind [19] [20
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 6--7
@@ -1115,7 +1111,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 51--52
 \T1/ptm/m/n/10 pacePy.model.AppLaunch.AppLaunch
  []
 
-[23
+[21
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 52--53
@@ -1189,7 +1185,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 68--69
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 72--73
-[]\T1/ptm/m/n/10 largeFileDownload() (BaseS-
+[]\T1/ptm/m/n/10 markAnalysisState() (BaseS-
  []
 
 
@@ -1198,59 +1194,49 @@ Underfull \hbox (badness 10000) in paragraph at lines 72--73
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 76--77
-[]\T1/ptm/m/n/10 markAnalysisState() (BaseS-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 76--77
-\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 77--78
+Underfull \hbox (badness 10000) in paragraph at lines 73--74
 []\T1/ptm/m/n/10 multipartFileUpload() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 77--78
+Underfull \hbox (badness 10000) in paragraph at lines 73--74
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 85--86
+Underfull \hbox (badness 10000) in paragraph at lines 81--82
 []\T1/ptm/m/n/10 QueryParameters (class in BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 90--91
+Underfull \hbox (badness 10000) in paragraph at lines 86--87
 []\T1/ptm/m/n/10 setStatus() (BaseS-pacePy.model.Analysis.Analysis
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 94--95
+Underfull \hbox (badness 10000) in paragraph at lines 90--91
 []\T1/ptm/m/n/10 uploadFile() (BaseS-pacePy.model.Analysis.Analysis
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 95--96
+Underfull \hbox (badness 10000) in paragraph at lines 91--92
 []\T1/ptm/m/n/10 uploadMultipartFile() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 95--96
+Underfull \hbox (badness 10000) in paragraph at lines 91--92
 \T1/ptm/m/n/10 pacePy.model.Analysis.Analysis method),
  []
 
-[24]) (./BaseSpacePy.aux) ) 
+[22]) (./BaseSpacePy.aux) ) 
 Here is how much of TeX's memory you used:
- 8111 strings out of 495061
- 112609 string characters out of 1182622
- 197750 words of memory out of 3000000
- 10979 multiletter control sequences out of 15000+50000
+ 8097 strings out of 495061
+ 112305 string characters out of 1182622
+ 197545 words of memory out of 3000000
+ 10971 multiletter control sequences out of 15000+50000
  59888 words of font info for 71 fonts, out of 3000000 for 9000
  29 hyphenation exceptions out of 8191
- 45i,11n,45p,560b,607s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 45i,11n,45p,560b,609s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.en
 c}</usr/share/texmf-texlive/fonts/type1/urw/courier/ucrb8a.pfb></usr/share/texm
 f-texlive/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-texlive/fonts/ty
@@ -1259,9 +1245,9 @@ uhvb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/helvetic/uhvbo8a.pfb></usr
 /share/texmf-texlive/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texmf-texl
 ive/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/
 times/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
-Output written on BaseSpacePy.pdf (28 pages, 199616 bytes).
+Output written on BaseSpacePy.pdf (26 pages, 196845 bytes).
 PDF statistics:
- 380 PDF objects out of 1000 (max. 8388607)
- 109 named destinations out of 1000 (max. 500000)
- 121 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 353 PDF objects out of 1000 (max. 8388607)
+ 103 named destinations out of 1000 (max. 500000)
+ 97 words of extra memory for PDF output out of 10000 (max. 10000000)
 
