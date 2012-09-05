@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/mkallberg/workspace/BaseSpacePy_v0.1/src/')
+sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
 from BaseSpacePy.api.BaseSpaceAuth import BaseSpaceAuth
 import helper
 import webbrowser 

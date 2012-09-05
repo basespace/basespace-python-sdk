@@ -65,7 +65,7 @@ v0.1.1
 -----------------------------------------
 Update to support changes in BaseSpace REST specification version v1pre3. Specific changes are:
 - AppLaunchResponse is now AppSessionResponse
-- AppLaunch is now AppSession
+- AppLaunch is now AppSession and has been updated to include the fields additional fields
 - Analysis is now AppResult
 - An Application object has been added to the data model as part of the new AppSession   
 

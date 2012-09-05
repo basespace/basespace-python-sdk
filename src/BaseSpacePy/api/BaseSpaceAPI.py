@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import sys
-sys.path.append('/home/mkallberg/workspace/BaseSpacePy_v0.1/src/')
+#import sys
+#sys.path.append('/home/mkallberg/workspace/BaseSpacePy_v0.1/src/')
 from pprint import pprint
 import urllib2
 import shutil
@@ -15,6 +15,12 @@ from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model.MultipartUpload import MultipartUpload as mpu #@UnresolvedImport
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@UnresolvedImport
 from BaseSpacePy.model import * #@UnusedWildImport
+
+# Uris for obtaining a access token, user verification code, and app trigger information
+tokenURL                   = 'oauthv2/token'
+deviceURL                  = "oauthv2/deviceauthorization"
+webAuthorize               = 'oauth/authorize'
+
 
 class BaseSpaceAPI(object):
     '''
@@ -88,17 +94,97 @@ class BaseSpaceAPI(object):
         return convertet
     # test if 
 
+    def __makeCurlRequest__(self, data, url):
+        post = urllib.urlencode(data)
+        response = cStringIO.StringIO()
+        c = pycurl.Curl()
+        c.setopt(pycurl.URL,url)
+        c.setopt(pycurl.POST, 1)
+        c.setopt(pycurl.POSTFIELDS, post)
+        c.setopt(c.WRITEFUNCTION, response.write)
+        c.perform()
+        c.close()
+        obj = json.loads(response.getvalue())
+        if obj.has_key('error'):
+            raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
+        return obj
+
     def __str__(self):
         return "BaseSpaceAPI instance - using token=" + self.getAccessToken()
     
     def __repr__(self):
         return str(self)  
 
+    def getAppSession(self):
+        '''
+        Returns an app launch object containing user and datatype the app was triggered by/on 
+        :param ApplicationActionId: The applicationActionId that triggered the app
+        '''
+        # This is a dummy BaseSpaceAPI initialized w/o access_token, 
+        # should not be used for any further calls
+        resourcePath = self.apiServer + 'appsessions/{AppSessionId}'
+        resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
+#        print resourcePath
+        response = cStringIO.StringIO()
+        c = pycurl.Curl()
+        c.setopt(pycurl.URL,resourcePath)
+        c.setopt(pycurl.USERPWD,self.key + ":" + self.secret)
+        c.setopt(c.WRITEFUNCTION, response.write)
+        c.perform()
+        c.close()
+        obj = json.loads(response.getvalue())
+#        pprint(obj)
+        return self.__getTriggerObject__(obj) 
+
+    def getVerificationCode(self,scope,device=1,redirect=''):
+        '''
+        Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve
+        access to a specific data scope.  
+        
+        Corresponding curl call:
+        curlCall = 'curl -d "response_type=device_code" -d "client_id=' + client_key + '" -d "scope=' + scope + '" ' + deviceURL
+        
+        For details see:
+        https://developer.basespace.illumina.com/docs/content/documentation/authentication/obtaining-access-tokens
+            
+        :param scope: The scope that access is requested for
+        '''
+        data = [('client_id',self.key),('scope', scope),('response_type','device_code')]
+        return self.__makeCurlRequest__(data,self.apiServer + deviceURL)
+
+    def getWebVerificationCode(self,scope,redirectURL,state=''):
+        '''
+        Generates the URL the user should be redirected to for web-based authentication
+         
+        :param scope: The scope that access is requested for
+        :param redirectURL: The redirect URL
+        :state: An optional state paramter that will passed through to redirect response
+        '''
+        data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
+        return self.baseUrl + webAuthorize + '?' + urllib.urlencode(data)
+
+    def obtainAccessToken(self,deviceCode):
+        '''
+        Returns a user specific access token.    
+        :param deviceCode: The device code returned by the verification code method
+        '''
+        data = [('client_id',self.key),('client_secret', self.secret),('code',deviceCode),('grant_type','device'),('redirect_uri','google.com')]
+        dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
+        return dict['access_token']
+
+    def updatePrivileges(self,code):
+        token = self.obtainAccessToken(code)
+        self.setAccessToken(token)
+        
+        
+    
     def getAccessToken(self):
         '''
         Returns the access-token that was used to initialize the BaseSpaceAPI object.
         '''
-        return self.apiClient.apiKey
+        if self.apiClient:
+            return self.apiClient.apiKey
+        return ""
     
     def getServerUri(self):
         '''
@@ -579,15 +665,25 @@ class BaseSpaceAPI(object):
     def __getTriggerObject__(self,obj):
         '''
         Warning this method is not for general use and should only be called 
-        from the BaseSpaceAuth module method.
+        from the getAppSession.
         :param obj: The appTrigger json 
         '''
-        
         response = obj
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-         
-        response  = self.apiClient.deserialize(obj, AppLaunchResponse.AppLaunchResponse) #@UndefinedVariable
+        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
+        response  = tempApi.deserialize(obj, AppSessionResponse.AppSessionResponse) #@UndefinedVariable
+        res = response.Response
+        res = res.__serializeReferences__(self)
+        return res
+    
+    def __serializeObject__(self,d,type):
+        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
+        if type.lower()=='project':
+            return tempApi.deserialize(d, Project.Project)
+        if type.lower()=='sample':
+            return tempApi.deserialize(d, Sample.Sample)        
+        return d
         
-        return response.Response
+    
         

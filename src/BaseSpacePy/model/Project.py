@@ -18,7 +18,7 @@ class Project:
         }
     
     def __str__(self):
-        return self.Name
+        return self.Name + ' - id=' + str(self.Id)
     def __repr__(self):
         return str(self)
     

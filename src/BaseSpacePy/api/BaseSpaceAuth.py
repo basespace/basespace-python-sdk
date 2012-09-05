@@ -25,20 +25,6 @@ class BaseSpaceAuth():
         self.url    = baseSpaceUrl + version
 #        self.api    = APIClient('',self.url)
 
-    def __makeCurlRequest__(self, data, url):
-        post = urllib.urlencode(data)
-        response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL,url)
-        c.setopt(pycurl.POST, 1)
-        c.setopt(pycurl.POSTFIELDS, post)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        obj = json.loads(response.getvalue())
-        if obj.has_key('error'):
-            raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
-        return obj
     
     def getVerificationCode(self,scope,device=1,redirect=''):
         '''
@@ -84,25 +70,5 @@ class BaseSpaceAuth():
         token  = self.getAccessToken(deviceCode)
         return BaseSpaceAPI(AccessToken=token,apiServer= self.url)
     
-    def getAppTrigger(self,ApplicationActionId):
-        '''
-        Returns an app launch object containing user and datatype the app was triggered by/on 
-        :param ApplicationActionId: The applicationActionId that triggered the app
-        '''
-        # This is a dummy BaseSpaceAPI initialized w/o access_token, 
-        # should not be used for any further calls
-        resourcePath = self.url + 'applicationactions/{ApplicationActionId}'
-        resourcePath = resourcePath.replace('{ApplicationActionId}', ApplicationActionId)
-        print resourcePath
-        api = BaseSpaceAPI(AccessToken='',apiServer = self.url)
-        response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL,resourcePath)
-        c.setopt(pycurl.USERPWD,self.key + ":" + self.secret)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        obj = json.loads(response.getvalue())
-        return api.__getTriggerObject__(obj)
                                     
         

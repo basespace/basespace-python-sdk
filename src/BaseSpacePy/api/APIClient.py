@@ -180,6 +180,7 @@ class APIClient:
 #                print '@@@@ ' + str(attr)
 #                print '@@@@ ' + str(attrType)
                 value = obj[attr]
+#                print value
                 if attrType in ['str', 'int', 'float', 'bool']:
                     attrType = eval(attrType)
                     try:

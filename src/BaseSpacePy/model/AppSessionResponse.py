@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-class AppLaunchResponse:
+class AppSessionResponse:
 
     def __init__(self):
         self.swaggerTypes = {

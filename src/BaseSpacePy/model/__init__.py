@@ -26,6 +26,8 @@ __all__= [
  'Variant',
  'VariantInfo',
  'MultipartUpload',
- 'AppLaunchResponse',
- 'AppLaunch'
+ 'AppSessionResponse',
+ 'AppSession',
+ 'AppSessionLaunchObject',
+ 'Application'
  ]
