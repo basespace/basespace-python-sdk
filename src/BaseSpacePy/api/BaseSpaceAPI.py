@@ -4,6 +4,12 @@ sys.path.append('/home/mkallberg/workspace/BaseSpacePy_v0.1/src/')
 from pprint import pprint
 import urllib2
 import shutil
+import urllib
+import pycurl
+import httplib
+import cStringIO
+import json
+
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model.MultipartUpload import MultipartUpload as mpu #@UnresolvedImport
@@ -15,25 +21,27 @@ class BaseSpaceAPI(object):
     The main API class used for all communication with with the REST server
     '''
 
-    def __init__(self, apiServer,AccessToken=''):
-        '''
+    def __init__(self, clientKey, clientSecret, apiServer, appSessionId, AccessToken=''):
         
-        :param AccessToken:
-        :param apiServer:
-        '''
-        apiClient      = None
-        if apiClient      = APIClient(AccessToken=AccessToken,apiServer=apiServer)
-        self.apiClient = apiClient
-        self.apiServer = apiServer 
+        self.appSessionId   = appSessionId
+        self.key            = clientKey
+        self.secret         = clientSecret
+        self.apiServer      = apiServer
+        self.setAccessToken(AccessToken)        # logic for setting the access-token 
 
     def __updateAccessToken__(self,AccessToken):
         self.apiClient.apiKey = AccessToken
 
-    def setAccessToken(self):
-        pass
+    def setAccessToken(self,token):
+        self.apiClient      = None
+        if token: 
+            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer)
+            self.apiClient = apiClient
 
-    def __singleRequest__(self,myModel,resourcePath, method, queryParams, headerParams,postData=None,verbose=0,forcePost=0):
-
+    def __singleRequest__(self,myModel,resourcePath, method, queryParams, headerParams,postData=None,verbose=0,forcePost=0,noAPI=1):
+        # test if access-token has been set
+        if not self.apiClient and noAPI:
+            raise Exception('Access-token not set, use the "setAccessToken"-method to supply a token value')
         if verbose: print "    # " + str(resourcePath)
         
         # Make the API Call
@@ -53,7 +61,11 @@ class BaseSpaceAPI(object):
         responseObject = self.apiClient.deserialize(response,myModel)
         return responseObject.Response
 
-    def __listRequest__(self,myModel,resourcePath, method, queryParams, headerParams,verbose=0):
+    def __listRequest__(self,myModel,resourcePath, method, queryParams, headerParams,verbose=0,noAPI=1):
+        # test if access-token has been set
+        if not self.apiClient and noAPI:
+            raise Exception('Access-token not set, use the "setAccessToken"-method to supply a token value')
+        
         # Make the API Call
         if verbose: 
             print '    # Path: ' + str(resourcePath)
