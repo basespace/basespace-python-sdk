@@ -4,7 +4,7 @@ class AppLaunchResponse:
     def __init__(self):
         self.swaggerTypes = {
             'ResponseStatus': 'ResponseStatus',
-            'Response': 'AppLaunch',
+            'Response': 'AppSession',
             'Notifications': 'list<Str>'
         }
 

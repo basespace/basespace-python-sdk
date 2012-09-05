@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/home/mkallberg/workspace/BaseSpacePy_v0.1/src/')
 from BaseSpacePy.api.BaseSpaceAuth import BaseSpaceAuth
 import helper
 import webbrowser 
@@ -15,7 +17,7 @@ client_secret              = ""
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre2/'
 
-helper.checkClientVars({'client_key':client_key,'client_secret':client_secret}) 
+#helper.checkClientVars({'client_key':client_key,'client_secret':client_secret}) 
 
 BSauth = BaseSpaceAuth(client_key,client_secret,BaseSpaceUrl,version)
 userUrl= BSauth.getWebVerificationCode('browse global','http://localhost',state='myState')

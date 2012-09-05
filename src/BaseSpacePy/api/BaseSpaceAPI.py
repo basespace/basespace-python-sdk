@@ -15,18 +15,22 @@ class BaseSpaceAPI(object):
     The main API class used for all communication with with the REST server
     '''
 
-    def __init__(self, AccessToken, apiServer):
+    def __init__(self, apiServer,AccessToken=''):
         '''
         
         :param AccessToken:
         :param apiServer:
         '''
-        apiClient      = APIClient(AccessToken=AccessToken,apiServer=apiServer)
+        apiClient      = None
+        if apiClient      = APIClient(AccessToken=AccessToken,apiServer=apiServer)
         self.apiClient = apiClient
         self.apiServer = apiServer 
 
     def __updateAccessToken__(self,AccessToken):
         self.apiClient.apiKey = AccessToken
+
+    def setAccessToken(self):
+        pass
 
     def __singleRequest__(self,myModel,resourcePath, method, queryParams, headerParams,postData=None,verbose=0,forcePost=0):
 

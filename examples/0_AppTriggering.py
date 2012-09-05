@@ -18,7 +18,7 @@ client_secret              = ""
 ApplicationActionId        = ""
 
 # test if client variables have been set
-helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'ApplicationActionId':ApplicationActionId}) 
+helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre2/'

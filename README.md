@@ -61,7 +61,16 @@ To test that everything is working as expected, launch a Python prompt and try i
 CHANGELOG
 =========================================
 
-v0.1
+v0.1.1
+-----------------------------------------
+Update to support changes in BaseSpace REST specification version v1pre3. Specific changes are:
+- AppLaunchResponse is now AppSessionResponse
+- AppLaunch is now AppSession
+- Analysis is now AppResult
+- An Application object has been added to the data model as part of the new AppSession   
+
+
+v 0.1
 -----------------------------------------
  
 Initial release of BaseSpacePy

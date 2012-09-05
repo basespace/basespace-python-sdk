@@ -36,7 +36,7 @@ print "Status is " + myMpu.Status
 
 
 # Unlike a single part upload, we need to explicitly start the transfer
-# returnOnFinish=1
+# returnOnFinish=1 
 myMpu.startUpload(returnOnFinish=1)
 
 # alter
