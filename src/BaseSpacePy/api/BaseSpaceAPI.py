@@ -27,12 +27,15 @@ class BaseSpaceAPI(object):
     The main API class used for all communication with with the REST server
     '''
 
-    def __init__(self, clientKey, clientSecret, apiServer, appSessionId, AccessToken=''):
+    def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId, AccessToken=''):
+        if not apiServer[-1]=='/': apiServer = apiServer + '/'
+        if not version[-1]=='/': version = version + '/'
         
         self.appSessionId   = appSessionId
         self.key            = clientKey
         self.secret         = clientSecret
-        self.apiServer      = apiServer
+        self.apiServer      = apiServer + version
+        self.weburl         = apiServer.replace('api.','')
         self.setAccessToken(AccessToken)        # logic for setting the access-token 
 
     def __updateAccessToken__(self,AccessToken):
@@ -115,15 +118,17 @@ class BaseSpaceAPI(object):
     def __repr__(self):
         return str(self)  
 
-    def getAppSession(self):
+    def getAppSession(self,Id=''):
         '''
-        Returns an app launch object containing user and datatype the app was triggered by/on 
-        :param ApplicationActionId: The applicationActionId that triggered the app
+        Returns an AppSession instance containing user and data-type the app was triggered by/on 
+        :param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating
+        the BaseSpaceAPI instance.
         '''
-        # This is a dummy BaseSpaceAPI initialized w/o access_token, 
-        # should not be used for any further calls
         resourcePath = self.apiServer + 'appsessions/{AppSessionId}'
-        resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
+        if not Id:
+            resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
+        else:
+            resourcePath = resourcePath.replace('{AppSessionId}', Id)
 #        print resourcePath
         response = cStringIO.StringIO()
         c = pycurl.Curl()
@@ -161,7 +166,7 @@ class BaseSpaceAPI(object):
         :state: An optional state paramter that will passed through to redirect response
         '''
         data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
-        return self.baseUrl + webAuthorize + '?' + urllib.urlencode(data)
+        return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
 
     def obtainAccessToken(self,deviceCode):
         '''
