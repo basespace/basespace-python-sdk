@@ -252,7 +252,7 @@ class BaseSpaceAPI(object):
         '''
         Returns a list of File object for the Analysis with id  = Id
         
-        :param Id: The id of the analysis.
+        :param Id: The id of the appresult.
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
         # Parse inputs

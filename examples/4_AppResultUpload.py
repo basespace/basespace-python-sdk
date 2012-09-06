@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import os
 import helper #@UnresolvedImport
@@ -19,13 +17,15 @@ accessToken                = "31af080b256e4433bbf3e75a26a4aa12"
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com'
 version                    = 'v1pre3'
 
-## First, create a client for making calls for this user session 
+# First, create a client for making calls for this user session 
 myBaseSpaceAPI   = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, appSessionId,AccessToken=accessToken)
-#
-## Now we'll do some work of our own. First get a project to work on
-## we'll need write permission, for the project we are working on
-## meaning we will need get a new token and instantiate a new BaseSpaceAPI  
+
+
+# Now we'll do some work of our own. First get a project to work on
+# we'll need write permission, for the project we are working on
+# meaning we will need get a new token and instantiate a new BaseSpaceAPI  
 p = myBaseSpaceAPI.getProjectById('89')
+
 # A short-cut for getting a scope string if we already have a project-instance:
 print p.getAccessStr(scope='write')
 # or simply
@@ -65,10 +65,10 @@ print "\nMy analysis number 2 \n" + str(appResults2)
 
 ## let's see if our new file made it
 appResultFiles = appResults2.getFiles(myBaseSpaceAPI)
-print "\nThese are the files in the analysis"
+print "\nThese are the files in the appResult"
 print appResultFiles
 f = appResultFiles[-1]
 
 # we can even download our newly uploaded file
-#f = myBaseSpaceAPI.getFileById('7331136')
-#f.downloadFile(myBaseSpaceAPI,'/home/mkallberg/Desktop/')
+f = myBaseSpaceAPI.getFileById(f.Id)
+f.downloadFile(myBaseSpaceAPI,'/home/mkallberg/Desktop/')

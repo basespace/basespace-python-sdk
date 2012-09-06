@@ -50,7 +50,7 @@ class AppResult:
         :param myQp: (Optional) QueryParameters for sorting and filtering the file list 
         '''
         self.isInit()
-        return api.getAnalysisFiles(self.Id,queryPars=qp(myQp))
+        return api.getAppResultFiles(self.Id,queryPars=qp(myQp))
        
     def uploadFile(self, api, localPath, fileName, directory, contentType):
         '''
