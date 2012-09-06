@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(name='BaseSpacePy',
       summary='A Python SDK for connecting to Illumina BaseSpace data',
       author='Morten Kallberg',
-      version='0.1',
+      version='0.1.1',
       description="BaseSpacePy is a Python based SDK to be used in the development of Apps and scripts for working with \
        Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis.\
       The primary purpose of the SDK is to provide an easy-to-use Python environment enabling\

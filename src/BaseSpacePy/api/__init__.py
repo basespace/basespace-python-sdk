@@ -1,1 +1,1 @@
-__all__ = ['APIClient','BaseSpaceAPI','BaseSpaceException','Authentication']
+__all__ = ['APIClient','BaseSpaceAPI','BaseSpaceException']
