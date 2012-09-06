@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import helper
 

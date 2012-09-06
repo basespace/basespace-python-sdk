@@ -21,7 +21,6 @@ NOTE: You will need to fill client values for your app below
 client_key                 = "16497134b4a84b9bb86df6c00087ba5b"
 client_secret              = "907b6800ae4f4020807baf9eef0d5164"
 AppSessionId               = "fc4e7338c4ed4a809ecb813d951c4b50"
-
 # test if client variables have been set
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 

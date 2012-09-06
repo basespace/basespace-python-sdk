@@ -180,9 +180,7 @@ class BaseSpaceAPI(object):
     def updatePrivileges(self,code):
         token = self.obtainAccessToken(code)
         self.setAccessToken(token)
-        
-        
-    
+            
     def getAccessToken(self):
         '''
         Returns the access-token that was used to initialize the BaseSpaceAPI object.
@@ -235,7 +233,7 @@ class BaseSpaceAPI(object):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
         # Parse inputs
-        resourcePath = '/analyses/{Id}/files'
+        resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         queryPars.validate()
@@ -293,7 +291,7 @@ class BaseSpaceAPI(object):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(RunCompact.RunCompact,resourcePath, method, queryParams, headerParams)
     
-    def getAnalysisByProject(self, Id, queryPars=qp()):
+    def getAppResultsByProject(self, Id, queryPars=qp()):
         '''
         Returns a list of Analysis object associated with the project with Id
         
@@ -301,14 +299,14 @@ class BaseSpaceAPI(object):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         # Parse inputs
-        resourcePath = '/projects/{Id}/analyses'
+        resourcePath = '/projects/{Id}/appresults'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
-        return self.__listRequest__(Analysis.Analysis,resourcePath, method, queryParams, headerParams)
+        return self.__listRequest__(AppResult.AppResult,resourcePath, method, queryParams, headerParams,verbose=0)
 
     def getSamplesByProject(self, Id, queryPars=qp()):
         '''
@@ -643,7 +641,7 @@ class BaseSpaceAPI(object):
     def markFileState(self,Id):
         pass
         
-    def markAnalysisState(self,Id,Status,Summary):
+    def setAppsessionState(self,Id,Status,Summary):
         '''
         Set the status of an Analysis object
         
@@ -659,12 +657,12 @@ class BaseSpaceAPI(object):
         queryParams = {}
         headerParams = {}
         postData = {}
-        statusAllowed = ['working', 'completed', 'blocked', 'aborted']
+        statusAllowed = ['running', 'complete', 'needattention', 'aborted','error']
         if not Status.lower() in statusAllowed:
             raise Exception("Analysis state must be in " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
-        return self.__singleRequest__(AnalysisResponse.AnalysisResponse,resourcePath, method,\
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
         
     def __getTriggerObject__(self,obj):

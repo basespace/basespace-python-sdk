@@ -40,14 +40,14 @@ class Project:
         self.isInit()
         return scope + ' project ' + str(self.Id)
     
-    def getAnalyses(self,api):
+    def getAppResults(self,api):
         '''
         Returns a list of Analysis objects.
         
         :param api: An instance of BaseSpaceAPI
         '''
         self.isInit()
-        return api.getAnalysisByProject(self.Id)
+        return api.getAppResultsByProject(self.Id)
         
     def getSamples(self,api):
         '''
@@ -69,23 +69,10 @@ class Project:
         self.isInit()
         return api.createAnalyses(self.Id,name,desc)
 
-        # 
-        self.Name = None # str
-
-        # 
-        self.HrefSamples = None # str
-
-        # 
-        self.HrefAnalyses = None # str
-
-        # 
-        self.DateCreated = None # str
-
-        # 
-        self.Id = None # str
-
-        # 
-        self.Href = None # str
-
-        # 
-        self.UserOwnedBy = None # UserCompact
+        self.Name           = None # str
+        self.HrefSamples    = None # str
+        self.HrefAnalyses   = None # str
+        self.DateCreated    = None # str
+        self.Id             = None # str
+        self.Href           = None # str
+        self.UserOwnedBy    = None # UserCompact

@@ -8,9 +8,8 @@ __all__= [
  'FileResponse',
  'ProjectResponse',
  'CoverageMetaResponse',
- 'Analysis',
  'Coverage',
- 'AnalysisResponse',
+ 'AppResultResponse',
  'UserResponse',
  'QueryParameters',
  'VariantsHeaderResponse',
@@ -28,6 +27,7 @@ __all__= [
  'MultipartUpload',
  'AppSessionResponse',
  'AppSession',
+ 'AppResult',
  'AppSessionLaunchObject',
  'Application'
  ]
