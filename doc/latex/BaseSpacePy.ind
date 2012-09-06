@@ -2,92 +2,92 @@
 \def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
 
   \bigletter A
-  \item Analysis (class in BaseSpacePy.model.Analysis), \hyperpage{15}
-  \item analysisFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{11}
-  \item AppLaunch (class in BaseSpacePy.model.AppLaunch), \hyperpage{14}
+  \item AppResult (class in BaseSpacePy.model.AppResult), \hyperpage{5}
+  \item appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
+  \item AppSession (class in BaseSpacePy.model.AppSession), \hyperpage{5}
 
   \indexspace
   \bigletter B
-  \item BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI), \hyperpage{11}
+  \item BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI), \hyperpage{1}
 
   \indexspace
   \bigletter C
-  \item createAnalyses() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{11}
-  \item createAnalysis() (BaseSpacePy.model.Project.Project method), \hyperpage{14}
+  \item createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
+  \item createAppResult() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
 
   \indexspace
   \bigletter D
-  \item downloadFile() (BaseSpacePy.model.File.File method), \hyperpage{16}
+  \item downloadFile() (BaseSpacePy.model.File.File method), \hyperpage{6}
 
   \indexspace
   \bigletter F
-  \item File (class in BaseSpacePy.model.File), \hyperpage{16}
-  \item fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{11}
-  \item filterVariant() (BaseSpacePy.model.File.File method), \hyperpage{16}
-  \item filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{11}
+  \item File (class in BaseSpacePy.model.File), \hyperpage{6}
+  \item fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
+  \item filterVariant() (BaseSpacePy.model.File.File method), \hyperpage{7}
+  \item filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
 
   \indexspace
   \bigletter G
-  \item getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), 
-		\hyperpage{12}
-  \item getAccessStr() (BaseSpacePy.model.Analysis.Analysis method), \hyperpage{15}
-  \item getAccessStr() (BaseSpacePy.model.Project.Project method), \hyperpage{15}
-  \item getAccessStr() (BaseSpacePy.model.Sample.Sample method), \hyperpage{16}
-  \item getAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getAnalyses() (BaseSpacePy.model.Project.Project method), \hyperpage{15}
-  \item getAnalysisById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getAnalysisByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getAnalysisFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getAvailableGenomes() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getCoverageMeta() (BaseSpacePy.model.File.File method), \hyperpage{17}
-  \item getCoverageMetaInfo() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getFileById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getFiles() (BaseSpacePy.model.Analysis.Analysis method), \hyperpage{15}
-  \item getFiles() (BaseSpacePy.model.Sample.Sample method), \hyperpage{16}
-  \item getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{12}
-  \item getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getIntervalCoverage() (BaseSpacePy.model.File.File method), \hyperpage{17}
-  \item getLaunchType() (BaseSpacePy.model.AppLaunch.AppLaunch method), \hyperpage{14}
-  \item getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getSamples() (BaseSpacePy.model.Project.Project method), \hyperpage{15}
-  \item getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getServerUri() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getUserById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
-  \item getVariantMeta() (BaseSpacePy.model.File.File method), \hyperpage{17}
-  \item getVariantMetadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{13}
+  \item getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getAccessStr() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{5}
+  \item getAccessStr() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
+  \item getAccessStr() (BaseSpacePy.model.Sample.Sample method), \hyperpage{6}
+  \item getAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getAppResultById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getAppResultFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getAppResults() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
+  \item getAppResultsByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getAppSession() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getAvailableGenomes() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
+  \item getCoverageMeta() (BaseSpacePy.model.File.File method), \hyperpage{7}
+  \item getCoverageMetaInfo() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getFileById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getFiles() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
+  \item getFiles() (BaseSpacePy.model.Sample.Sample method), \hyperpage{6}
+  \item getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getIntervalCoverage() (BaseSpacePy.model.File.File method), \hyperpage{7}
+  \item getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getSamples() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
+  \item getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getServerUri() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item getUserById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item getVariantMeta() (BaseSpacePy.model.File.File method), \hyperpage{7}
+  \item getVariantMetadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item getVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item getWebVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
 
   \indexspace
   \bigletter I
-  \item isInit() (BaseSpacePy.model.Analysis.Analysis method), \hyperpage{15}
-  \item isInit() (BaseSpacePy.model.File.File method), \hyperpage{17}
-  \item isInit() (BaseSpacePy.model.Project.Project method), \hyperpage{15}
-  \item isInit() (BaseSpacePy.model.Sample.Sample method), \hyperpage{16}
-  \item isValidFileOption() (BaseSpacePy.model.File.File method), \hyperpage{17}
+  \item isInit() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
+  \item isInit() (BaseSpacePy.model.File.File method), \hyperpage{7}
+  \item isInit() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
+  \item isInit() (BaseSpacePy.model.Sample.Sample method), \hyperpage{6}
+  \item isValidFileOption() (BaseSpacePy.model.File.File method), \hyperpage{7}
 
   \indexspace
-  \bigletter M
-  \item markAnalysisState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{14}
-  \item multipartFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{14}
+  \bigletter O
+  \item obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
 
   \indexspace
   \bigletter P
-  \item Project (class in BaseSpacePy.model.Project), \hyperpage{14}
+  \item Project (class in BaseSpacePy.model.Project), \hyperpage{5}
 
   \indexspace
   \bigletter Q
-  \item QueryParameters (class in BaseSpacePy.model.QueryParameters), \hyperpage{17}
+  \item QueryParameters (class in BaseSpacePy.model.QueryParameters), \hyperpage{8}
 
   \indexspace
   \bigletter S
-  \item Sample (class in BaseSpacePy.model.Sample), \hyperpage{16}
-  \item setStatus() (BaseSpacePy.model.Analysis.Analysis method), \hyperpage{15}
+  \item Sample (class in BaseSpacePy.model.Sample), \hyperpage{6}
+  \item setAppSessionState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item setStatus() (BaseSpacePy.model.AppSession.AppSession method), \hyperpage{5}
 
   \indexspace
   \bigletter U
-  \item uploadFile() (BaseSpacePy.model.Analysis.Analysis method), \hyperpage{15}
-  \item uploadMultipartFile() (BaseSpacePy.model.Analysis.Analysis method), \hyperpage{16}
+  \item uploadFile() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
 
 \end{theindex}

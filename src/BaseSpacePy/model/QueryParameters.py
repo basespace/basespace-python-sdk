@@ -5,7 +5,7 @@ legal    = {'Statuses':[],'SortBy':['Id', 'Name', 'DateCreated','Path','Position
 
 class QueryParameters:
     '''
-    The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, analysis, or variants)
+    The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, AppResult, or variants)
     '''
     def __init__(self,pars={}, required = ['SortBy','Offset','Limit','SortDir']):
         self.passed = {'SortBy':'Id','Offset':'0','Limit':'100','SortDir':'Asc'}

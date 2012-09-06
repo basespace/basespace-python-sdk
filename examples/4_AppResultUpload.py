@@ -56,11 +56,11 @@ print "\nThe updated app results are \n" + str(appRes)
 appResult2 = myBaseSpaceAPI.getAppResultById(appResults.Id)
 print appResult2
 
-## Now we will make another analysis 
+## Now we will make another AppResult 
 ## and try to upload a file to it
-appResults2 = p.createAppResult(myBaseSpaceAPI,"My second analysis","This one I will upload to")
+appResults2 = p.createAppResult(myBaseSpaceAPI,"My second AppResult","This one I will upload to")
 appResults2.uploadFile(myBaseSpaceAPI, '/home/mkallberg/Desktop/testFile2.txt', 'BaseSpaceTestFile.txt', '/mydir/', 'text/plain')
-print "\nMy analysis number 2 \n" + str(appResults2)
+print "\nMy AppResult number 2 \n" + str(appResults2)
 
 ## let's see if our new file made it
 appResultFiles = appResults2.getFiles(myBaseSpaceAPI)

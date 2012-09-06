@@ -9,7 +9,6 @@ BaseSpacePy
 .. toctree::
    :maxdepth: 4
    
-   Getting Started
    Available modules
 
 Indices and tables

@@ -16,9 +16,6 @@ class AppSession:
             'StatusSummary': 'str',
             'Application':'Application',
             'References':'list<AppSessionLaunchObject>'
-#            'Projects': 'list<Project>',
-#            'Samples': 'list<Sample>',
-#            'Analyses': 'list<Analysis>',
         }
         
     def __str__(self):
@@ -47,7 +44,7 @@ class AppSession:
             raise Exception('The status of analyis=' + str(self) + " is " + self.Status + ",\
              no further status changes are allowed.")
         
-        # To prevent the analysis object from being in an inconsistent state
+        # To prevent the AppResult object from being in an inconsistent state
         # and having two identical objects floating around, we update the current object
         # and discard the returned object
         newSession = api.setAppSessionState(self.Id, Status, Summary)

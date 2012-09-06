@@ -42,7 +42,7 @@ class Project:
     
     def getAppResults(self,api,statuses=[]):
         '''
-        Returns a list of Analysis objects.
+        Returns a list of AppResult objects.
         
         :param api: An instance of BaseSpaceAPI
         :param statuses: An optional list of statuses

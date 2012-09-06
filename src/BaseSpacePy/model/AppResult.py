@@ -30,7 +30,7 @@ class AppResult:
         :param scope: The scope-type that is request (write|read)
         '''
         self.isInit()
-        return scope + ' analysis ' + str(self.Id) 
+        return scope + ' appresult ' + str(self.Id) 
         
     def isInit(self):
         '''
@@ -40,7 +40,7 @@ class AppResult:
             ModelNotInitializedException  - if the instance has not been populated.
         '''
         try: self.Id
-        except: raise ModelNotInitializedException('The Analysis model has not been initialized yet')
+        except: raise ModelNotInitializedException('The AppResult model has not been initialized yet')
     
     def getFiles(self,api,myQp={}):
         '''
@@ -54,7 +54,7 @@ class AppResult:
        
     def uploadFile(self, api, localPath, fileName, directory, contentType):
         '''
-        Uploads a local file to the BaseSpace analysis
+        Uploads a local file to the BaseSpace AppResult
         
         :param api: An instance of BaseSpaceAPI
         :param localPath: The local path of the file
@@ -65,47 +65,22 @@ class AppResult:
         self.isInit()
         return api.appResultFileUpload(self.Id,localPath, fileName, directory, contentType)
 
-# deprecated
-#    def setStatus(self,api,Status,Summary):
+#    def uploadMultipartFile(self, api, localPath, fileName, directory, contentType,tempDir='',cpuCount=1,partSize=10,verbose=0):
 #        '''
-#        Sets the status of the AppResults (note: once set to 'completed' or 'aborted' no more work can be done to the instance)
+#        Upload a file in multi-part mode. Returns an object of type MultipartUpload used for managing the upload.
 #        
-#        :param api: An instance of BaseSpaceAPI
-#        :param Status: The status value, must be completed, aborted, working, or suspended
-#        :param Summary: The status summary
+#        :param api:An instance of BaseSpaceAPI
+#        :param localPath: The local path of the file
+#        :param fileName: The filename
+#        :param directory: The remote directory to upload to
+#        :param contentType: The content-type of the file
+#        :param cpuCount: The number of CPUs to used for the upload
+#        :param partSize:
 #        '''
 #        self.isInit()
-#        if self.Status.lower()=='complete' or self.Status.lower()=='aborted':
-#            raise Exception('The status of analyis=' + str(self) + " is " + self.Status + ",\
-#             no further status changes are allowed.")
-#        
-#        # To prevent the analysis object from being in an inconsistent state
-#        # and having two identical objects floating around, we update the current object
-#        # and discard the returned object
-#        newSession = api.setAppResultState(self.Id, Status, Summary)
-#        self.Status         = newSession.Status
-#        self.StatusSummary  = newSession.StatusSummary
-#        return self
-
-
-
-    def uploadMultipartFile(self, api, localPath, fileName, directory, contentType,tempDir='',cpuCount=1,partSize=10,verbose=0):
-        '''
-        Upload a file in multi-part mode. Returns an object of type MultipartUpload used for managing the upload.
-        
-        :param api:An instance of BaseSpaceAPI
-        :param localPath: The local path of the file
-        :param fileName: The filename
-        :param directory: The remote directory to upload to
-        :param contentType: The content-type of the file
-        :param cpuCount: The number of CPUs to used for the upload
-        :param partSize:
-        '''
-        self.isInit()
-        return api.multipartFileUpload(self.Id, localPath, fileName, directory, contentType, tempDir,cpuCount,partSize,verbose=verbose)
+#        return api.multipartFileUpload(self.Id, localPath, fileName, directory, contentType, tempDir,cpuCount,partSize,verbose=verbose)
 
         self.Name               = None
-        #self.Status             = None # will be deprecated
         self.Description        = None
         self.StatusSummary      = None
         self.HrefFiles          = None

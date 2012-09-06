@@ -146,6 +146,8 @@ class BaseSpaceAPI(object):
         Returns an AppSession instance containing user and data-type the app was triggered by/on 
         :param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating
         the BaseSpaceAPI instance.
+        
+        :param Id: (Optional) AppSession id, if not supplied the AppSession id used to initialize the 
         '''
         resourcePath = self.apiServer + 'appsessions/{AppSessionId}'
         if not Id:
@@ -194,6 +196,7 @@ class BaseSpaceAPI(object):
     def obtainAccessToken(self,deviceCode):
         '''
         Returns a user specific access token.    
+        
         :param deviceCode: The device code returned by the verification code method
         '''
         data = [('client_id',self.key),('client_secret', self.secret),('code',deviceCode),('grant_type','device'),('redirect_uri','google.com')]
@@ -235,9 +238,9 @@ class BaseSpaceAPI(object):
            
     def getAppResultById(self, Id, ):
         '''
-        Returns an Analysis object corresponding to Id
+        Returns an AppResult object corresponding to Id
         
-        :param Id: The Id of the Analysis
+        :param Id: The Id of the AppResult
         '''
         # Parse inputs
         resourcePath = '/appresults/{Id}'
@@ -250,7 +253,7 @@ class BaseSpaceAPI(object):
 
     def getAppResultFiles(self, Id, queryPars=qp()):
         '''
-        Returns a list of File object for the Analysis with id  = Id
+        Returns a list of File object for the AppResult with id  = Id
         
         :param Id: The id of the appresult.
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
@@ -316,7 +319,7 @@ class BaseSpaceAPI(object):
     
     def getAppResultsByProject(self, Id, queryPars=qp(),statuses=[]):
         '''
-        Returns a list of Analysis object associated with the project with Id
+        Returns a list of AppResult object associated with the project with Id
         
         :param Id: The project id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
@@ -519,11 +522,11 @@ class BaseSpaceAPI(object):
      
     def createAppResult(self,Id,name,desc,appSessionId=None):
         '''
-        Create an analysis object
+        Create an AppResult object
         
-        :param Id: The id for the project in which the analysis is to be added
-        :param name: The name of the analysis
-        :param desc: A describtion of the analysis
+        :param Id: The id for the project in which the AppResult is to be added
+        :param name: The name of the AppResult
+        :param desc: A describtion of the AppResult
         :param appSessionId: (Optional) If not appSessionId is used the one used to initialize the BaseSpaceAPI instance
         will be used. If appSessionId is set equal an empty string, a new appsession we be created for the 
         '''
@@ -543,11 +546,11 @@ class BaseSpaceAPI(object):
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''
-        Uploads a file associated with an analysis to BaseSpace and returns the corresponding file object  
+        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object  
         
-        :param Id: Analysis id.
+        :param Id: AppResult id.
         :param localPath: The local path to the file to be uploaded.
-        :param fileName: The desired filename in the Analysis folder on the BaseSpace server.
+        :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in.
         :param contentType: The content-type of the file.
          
@@ -641,37 +644,37 @@ class BaseSpaceAPI(object):
 #        -T reportarchive.zipaa \
 #        -X PUT https://api.cloud-endor.illumina.com/v1pre2/files/7094087/parts/1
     
-    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,verbose=0):
-        '''
-        Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
-        
-        
-        :param Id: The analysis ID
-        :param localPath: The local path of the file to be uploaded
-        :param fileName: The desired filename on the server
-        :param directory: The server directory to place the file in (empty string will place it in the root directory)
-        :param contentType: The content type of the file
-        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
-        :param cpuCount: The number of CPUs to be used
-        :param partSize: The size of individual upload parts (must be between 5 and 25mb)
-        :param verbose: Write process output to stdout as upload progresses
-        '''
- 
-        # Create file object on server
-        myFile = self.analysisFileUpload(Id, localPath, fileName, directory, contentType,multipart=1)
-        
-        # prepare multi-par upload objects
-        myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,verbose=verbose)
-        return myMpu
+#    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,verbose=0):
+#        '''
+#        Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
+#        
+#        
+#        :param Id: The AppResult ID
+#        :param localPath: The local path of the file to be uploaded
+#        :param fileName: The desired filename on the server
+#        :param directory: The server directory to place the file in (empty string will place it in the root directory)
+#        :param contentType: The content type of the file
+#        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
+#        :param cpuCount: The number of CPUs to be used
+#        :param partSize: The size of individual upload parts (must be between 5 and 25mb)
+#        :param verbose: Write process output to stdout as upload progresses
+#        '''
+# 
+#        # Create file object on server
+#        myFile = self.AppResultFileUpload(Id, localPath, fileName, directory, contentType,multipart=1)
+#        
+#        # prepare multi-par upload objects
+#        myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,verbose=verbose)
+#        return myMpu
 
     def markFileState(self,Id):
         pass
 
     def setAppSessionState(self,Id,Status,Summary):
         '''
-        Set the status of an Analysis object
+        Set the status of an AppResult object
         
-        :param Id: The id of the analysis
+        :param Id: The id of the AppResult
         :param Status: The status assignment string must
         :param Summary: The summary string
         '''
@@ -685,7 +688,7 @@ class BaseSpaceAPI(object):
         postData = {}
         statusAllowed = ['running', 'complete', 'needsattention', 'aborted','error']
         if not Status.lower() in statusAllowed:
-            raise Exception("Analysis state must be in " + str(statusAllowed))
+            raise Exception("AppResult state must be in " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
@@ -694,9 +697,9 @@ class BaseSpaceAPI(object):
 #        deprecated        
 #    def setAppResultState(self,Id,Status,Summary):
 #        '''
-#        Set the status of an Analysis object
+#        Set the status of an AppResult object
 #        
-#        :param Id: The id of the analysis
+#        :param Id: The id of the AppResult
 #        :param Status: The status assignment string must
 #        :param Summary: The summary string
 #        '''
@@ -710,7 +713,7 @@ class BaseSpaceAPI(object):
 #        postData = {}
 #        statusAllowed = ['running', 'complete', 'needattention', 'aborted','error']
 #        if not Status.lower() in statusAllowed:
-#            raise Exception("Analysis state must be in " + str(statusAllowed))
+#            raise Exception("AppResult state must be in " + str(statusAllowed))
 #        postData['status'] = Status.lower()
 #        postData['statussummary'] = Summary
 #        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method,\

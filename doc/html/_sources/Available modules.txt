@@ -10,22 +10,19 @@ API
 Models
 --------------------------------
 
-AppLaunch
-*************
-
-.. autoclass:: BaseSpacePy.model.AppLaunch.AppLaunch
-    :members:    
-
 Project
 *************
 
 .. autoclass:: BaseSpacePy.model.Project.Project
     :members:
 
-Analysis
+AppSession and AppResult
 *************
     
-.. autoclass:: BaseSpacePy.model.Analysis.Analysis
+.. autoclass:: BaseSpacePy.model.AppSession.AppSession
+    :members:
+
+.. autoclass:: BaseSpacePy.model.AppResult.AppResult
     :members:
 
 Sample
