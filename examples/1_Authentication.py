@@ -6,9 +6,8 @@ import cPickle as Pickle
 import os
 
 """
-Demonstrates the basic BaseSpace authentication process
-The work-flow is as follows: scope-request -> user grants access -> browsing data. The scenartio is demonstrated both for device and
-web-based apps.
+Demonstrates the basic BaseSpace authentication process The work-flow is as follows: 
+scope-request -> user grants access -> browsing data. The scenario is demonstrated both for device and web-based apps.
 
 Further we demonstrate how a BaseSpaceAPI instance may be preserved across multiple http-request for the same app session using 
 python's pickle module.
@@ -18,21 +17,18 @@ NOTE: You will need to fill client values for your app below
 
 
 # FILL IN WITH YOUR APP VALUES HERE!
-client_key                 = "16497134b4a84b9bb86df6c00087ba5b"
-client_secret              = "907b6800ae4f4020807baf9eef0d5164"
-AppSessionId               = "fc4e7338c4ed4a809ecb813d951c4b50"
+client_key                 = ""
+client_secret              = ""
+AppSessionId               = ""
 # test if client variables have been set
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre3'
 
-
-helper.checkClientVars({'client_key':client_key,'client_secret':client_secret}) 
-
 BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId)
 
-# First get verification code and uri for scope 'browse global'
+# First, get the verification code and uri for scope 'browse global'
 deviceInfo = BSapi.getVerificationCode('browse global')
 print "\n URL for user to visit and grant access: "
 print deviceInfo['verification_with_code_uri']
@@ -62,7 +58,8 @@ print "\nGenomes \n" + str(allGenomes)
 
 
 # If at a later stage we wish to initialize a BaseSpaceAPI object when we already have
-# an access-token from a previous sessions.
+# an access-token from a previous sessions, this may simply be done by initializing the BaseSpaceAPI
+# object using the key-word AccessToken.
 myToken = BSapi.getAccessToken()
 BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId, AccessToken=myToken)
 print "\nA BaseSpaceAPI instance initialized with an access-token: "
@@ -89,13 +86,14 @@ BSapi.updatePrivileges(myCode)
 
 #################### Storing BaseSpaceApi using python pickle #################################
 """
-It may sometimes be useful to preserve certain api objects across a series of http requests from the same user
-and for the same App. Here we demonstrate how the Python pickle module may be used to achieve this end.
+It may sometimes be useful to preserve certain api objects across a series of http requests from the same user-session. 
+Here we demonstrate how the Python pickle module may be used to achieve this end.
+
 The example will be for an instance of BaseSpaceAPI, but the same technique may be used for BaseSpaceAuth.
 In fact, a single instance of BaseSpaceAuth would be enough for a single App and could be shared by all http-requests, as the identity of 
 this object is only given by the client_key and client_secret. 
 
-(There is, of course, no problem in having multiple identical BaseSpaceAuth instances)
+(There is, of course, no problem in having multiple identical BaseSpaceAuth instances).
 """
 
 # Get current user
@@ -105,7 +103,7 @@ print BSapi
 
 #### Here some work goes on
 
-# now we wish to store the api object for the next time we get a request in this session
+# now we wish to store the API object for the next time we get a request in this session
 # make a file to store the BaseSpaceAPi instance in, for easy identification we will name this by any id that may be used for identifying
 # the session again.
 mySessionId = BSapi.appSessionId + '.pickle'

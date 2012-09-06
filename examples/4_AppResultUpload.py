@@ -7,10 +7,10 @@ This script demonstrates how to create a new AppResults object, change its state
 and upload result files to it and download files from it.  
 """
 # FILL IN WITH YOUR APP VALUES HERE!
-client_key                 = "16497134b4a84b9bb86df6c00087ba5b"
-client_secret              = "907b6800ae4f4020807baf9eef0d5164"
-appSessionId               = "1be9430827a64e9ab1f4d24dfa31f46b"
-accessToken                = "31af080b256e4433bbf3e75a26a4aa12"
+client_key                 = ""
+client_secret              = ""
+appSessionId               = ""
+accessToken                = ""
 # test if client variables have been set
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 
@@ -42,16 +42,15 @@ appResults = p.createAppResult(myBaseSpaceAPI,"### testing","this is my results"
 print "\nSome info about our new app results"
 print appResults
 print appResults.Id
-#print appResults.Status
+print "\nThe app results also comes with a reference to our AppSession"
 myAppSession = appResults.AppSession
+print myAppSession
 
-print myAppSession   # by default we supply the app-session the
-
-# we can change the status of out analysis and add a status-summary as follows
+# we can change the status of our AppSession and add a status-summary as follows
 myAppSession.setStatus(myBaseSpaceAPI,'needsattention',"We worked hard, but encountered some trouble.")
 print "\nAfter a change of status of the app sessions we get\n" + str(myAppSession)
 
-### Let's list the analyses again and see if our new object shows up 
+### Let's list all AppResults again and see if our new object shows up 
 appRes = p.getAppResults(myBaseSpaceAPI,statuses=['Running'])
 print "\nThe updated app results are \n" + str(appRes)
 appResult2 = myBaseSpaceAPI.getAppResultById(appResults.Id)

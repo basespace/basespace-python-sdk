@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="BaseSpacePy 0.1 documentation" href="index.html" />
-    <link rel="next" title="Advanced examples" href="Advanced examples.html" />
+    <link rel="next" title="Available modules" href="Available modules.html" />
     <link rel="prev" title="BaseSpacePy" href="index.html" /> 
   </head>
   <body>
@@ -37,7 +37,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="Advanced examples.html" title="Advanced examples"
+          <a href="Available modules.html" title="Available modules"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="BaseSpacePy"
@@ -65,15 +65,16 @@ The primary purpose of the SDK is to provide an easy-to-use Python environment e
 <div class="section" id="availability">
 <h3>Availability<a class="headerlink" href="#availability" title="Permalink to this headline">¶</a></h3>
 <p>Version 0.1 of <tt class="docutils literal"><span class="pre">BaseSpacePy</span></tt> can be checked out here:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">svn</span> <span class="n">checkout</span> <span class="n">svn</span><span class="p">:</span><span class="o">//</span><span class="n">ilmnhw</span><span class="o">-</span><span class="n">biolinsd</span><span class="o">.</span><span class="n">hwus</span><span class="o">.</span><span class="n">illumina</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">tmann</span><span class="o">/</span><span class="n">svn</span><span class="o">/</span><span class="n">svnrepos</span><span class="o">/</span><span class="n">BaseSpacePy_v0</span><span class="o">.</span><span class="mi">1</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github.com</span><span class="p">:</span><span class="n">basespace</span><span class="o">/</span><span class="n">basespace</span><span class="o">-</span><span class="n">python</span><span class="o">-</span><span class="n">sdk</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="setup">
 <h3>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h3>
-<p><em>Requirements:</em> Python 2.6 with the packages &#8216;urllib2&#8217;, &#8216;pycurl&#8217;, and &#8216;shutil&#8217; available.</p>
+<p><em>Requirements:</em> Python 2.6 with the packages &#8216;urllib2&#8217;, &#8216;pycurl&#8217;, &#8216;multiprocessing&#8217; and &#8216;shutil&#8217; available.</p>
+<p>The multi-part file upload will currently only run on a unix setup.</p>
 <p>To install &#8216;BaseSpacePy&#8217; run the &#8216;setup.py&#8217; script in the <tt class="docutils literal"><span class="pre">src</span></tt> directory (for a global install you will need to run this command with root privileges):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">cd</span> <span class="n">BaseSpacePy_v0</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">src</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cd</span> <span class="n">basespace</span><span class="o">-</span><span class="n">python</span><span class="o">-</span><span class="n">sdk</span><span class="o">/</span><span class="n">src</span>
 <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
@@ -86,7 +87,7 @@ The primary purpose of the SDK is to provide an easy-to-use Python environment e
 </pre></div>
 </div>
 <p>Altenatively you may include the src directory in your PYTHONPATH by doing the following export:</p>
-<div class="highlight-python"><pre>export PYTHONPATH=$PYTHONPATH:/my/path/BaseSpacePy_vx.x/src</pre>
+<div class="highlight-python"><pre>export PYTHONPATH=$PYTHONPATH:/my/path/basespace-python-sdk/src</pre>
 </div>
 <p>or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
@@ -531,8 +532,8 @@ The updated analyses are
   <p class="topless"><a href="index.html"
                         title="previous chapter">BaseSpacePy</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="Advanced examples.html"
-                        title="next chapter">Advanced examples</a></p>
+  <p class="topless"><a href="Available modules.html"
+                        title="next chapter">Available modules</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/Getting Started.txt"
@@ -562,7 +563,7 @@ The updated analyses are
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="Advanced examples.html" title="Advanced examples"
+          <a href="Available modules.html" title="Available modules"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="BaseSpacePy"

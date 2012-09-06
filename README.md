@@ -61,13 +61,14 @@ To test that everything is working as expected, launch a Python prompt and try i
 CHANGELOG
 =========================================
 
-v0.1.1
+v 0.1.1
 -----------------------------------------
 Update to support changes in BaseSpace REST specification version v1pre3. Specific changes are:
 - AppLaunchResponse is now AppSessionResponse
 - AppLaunch is now AppSession and has been updated to include the fields additional fields
 - Analysis is now AppResult
-- An Application object has been added to the data model as part of the new AppSession   
+- An Application object has been added to the data model as part of the new AppSession
+- AppResults (previously Analysis) do no longer have a setStatus method, this logic has been moved to the AppSession class   
 
 
 v 0.1

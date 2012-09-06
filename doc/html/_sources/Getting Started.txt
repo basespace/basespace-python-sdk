@@ -20,18 +20,20 @@ Version 0.1 of ``BaseSpacePy`` can be checked out here:
 
 .. code-block:: python
 
-	svn checkout svn://ilmnhw-biolinsd.hwus.illumina.com:/data/tmann/svn/svnrepos/BaseSpacePy_v0.1
+	git clone git@github.com:basespace/basespace-python-sdk.git
 
 Setup
 ###################
 
-*Requirements:* Python 2.6 with the packages 'urllib2', 'pycurl', and 'shutil' available. 
+*Requirements:* Python 2.6 with the packages 'urllib2', 'pycurl', 'multiprocessing' and 'shutil' available.
+
+The multi-part file upload will currently only run on a unix setup.
 
 To install 'BaseSpacePy' run the 'setup.py' script in the ``src`` directory (for a global install you will need to run this command with root privileges):
 
 .. code-block:: python
 
-	cd BaseSpacePy_v0.1/src
+	cd basespace-python-sdk/src
 	python setup.py install
 	
 If you do not have root access, you may use the ``--prefix`` option to specify the install directory (make sure this directory is in you PYTHONPATH):
@@ -51,7 +53,7 @@ Altenatively you may include the src directory in your PYTHONPATH by doing the f
 
 .. code-block:: python
 
-	export PYTHONPATH=$PYTHONPATH:/my/path/BaseSpacePy_vx.x/src
+	export PYTHONPATH=$PYTHONPATH:/my/path/basespace-python-sdk/src
 
 or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:
 

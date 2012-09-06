@@ -10,8 +10,6 @@ BaseSpacePy
    :maxdepth: 4
    
    Getting Started
-   Advanced examples
-   Example application using the Django web-framework
    Available modules
 
 Indices and tables

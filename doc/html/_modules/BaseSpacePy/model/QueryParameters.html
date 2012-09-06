@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <link rel="top" title="BaseSpacePy 0.1 documentation" href="../../../index.html" />
-    <link rel="up" title="BaseSpacePy.model" href="../model.html" /> 
+    <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,8 +36,7 @@
           <a href="../../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li><a href="../../../index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../model.html" accesskey="U">BaseSpacePy.model</a> &raquo;</li> 
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,9 +49,12 @@
 <span class="kn">from</span> <span class="nn">BaseSpacePy.api.BaseSpaceException</span> <span class="kn">import</span> <span class="n">UndefinedParameterException</span><span class="p">,</span><span class="n">UnknownParameterException</span><span class="p">,</span><span class="n">IllegalParameterException</span>
 
 <span class="c"># not very strict parameters testing</span>
-<span class="n">legal</span>    <span class="o">=</span> <span class="p">{</span><span class="s">&#39;SortBy&#39;</span><span class="p">:[</span><span class="s">&#39;Id&#39;</span><span class="p">,</span> <span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="s">&#39;DateCreated&#39;</span><span class="p">,</span><span class="s">&#39;Path&#39;</span><span class="p">,</span><span class="s">&#39;Position&#39;</span><span class="p">],</span><span class="s">&#39;Format&#39;</span><span class="p">:[</span><span class="s">&#39;txt&#39;</span><span class="p">],</span> <span class="s">&#39;Offset&#39;</span><span class="p">:[],</span><span class="s">&#39;Limit&#39;</span><span class="p">:[],</span><span class="s">&#39;SortDir&#39;</span><span class="p">:[</span><span class="s">&#39;Asc&#39;</span><span class="p">,</span> <span class="s">&#39;Desc&#39;</span><span class="p">]}</span>
+<span class="n">legal</span>    <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Statuses&#39;</span><span class="p">:[],</span><span class="s">&#39;SortBy&#39;</span><span class="p">:[</span><span class="s">&#39;Id&#39;</span><span class="p">,</span> <span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="s">&#39;DateCreated&#39;</span><span class="p">,</span><span class="s">&#39;Path&#39;</span><span class="p">,</span><span class="s">&#39;Position&#39;</span><span class="p">],</span><span class="s">&#39;Format&#39;</span><span class="p">:[</span><span class="s">&#39;txt&#39;</span><span class="p">],</span> <span class="s">&#39;Extensions&#39;</span><span class="p">:[],</span><span class="s">&#39;Offset&#39;</span><span class="p">:[],</span><span class="s">&#39;Limit&#39;</span><span class="p">:[],</span><span class="s">&#39;SortDir&#39;</span><span class="p">:[</span><span class="s">&#39;Asc&#39;</span><span class="p">,</span> <span class="s">&#39;Desc&#39;</span><span class="p">]}</span>
 
 <div class="viewcode-block" id="QueryParameters"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.QueryParameters.QueryParameters">[docs]</a><span class="k">class</span> <span class="nc">QueryParameters</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, analysis, or variants)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pars</span><span class="o">=</span><span class="p">{},</span> <span class="n">required</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;SortBy&#39;</span><span class="p">,</span><span class="s">&#39;Offset&#39;</span><span class="p">,</span><span class="s">&#39;Limit&#39;</span><span class="p">,</span><span class="s">&#39;SortDir&#39;</span><span class="p">]):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">passed</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;SortBy&#39;</span><span class="p">:</span><span class="s">&#39;Id&#39;</span><span class="p">,</span><span class="s">&#39;Offset&#39;</span><span class="p">:</span><span class="s">&#39;0&#39;</span><span class="p">,</span><span class="s">&#39;Limit&#39;</span><span class="p">:</span><span class="s">&#39;100&#39;</span><span class="p">,</span><span class="s">&#39;SortDir&#39;</span><span class="p">:</span><span class="s">&#39;Asc&#39;</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pars</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -105,8 +107,7 @@
           <a href="../../../genindex.html" title="General Index"
              >index</a></li>
         <li><a href="../../../index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../model.html" >BaseSpacePy.model</a> &raquo;</li> 
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

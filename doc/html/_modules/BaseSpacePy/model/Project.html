@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <link rel="top" title="BaseSpacePy 0.1 documentation" href="../../../index.html" />
-    <link rel="up" title="BaseSpacePy.model" href="../model.html" /> 
+    <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,8 +36,7 @@
           <a href="../../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li><a href="../../../index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../model.html" accesskey="U">BaseSpacePy.model</a> &raquo;</li> 
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -51,12 +50,15 @@
 <span class="kn">from</span> <span class="nn">BaseSpacePy.api.BaseSpaceException</span> <span class="kn">import</span> <span class="n">ModelNotInitializedException</span>
 
 <div class="viewcode-block" id="Project"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project">[docs]</a><span class="k">class</span> <span class="nc">Project</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Represents a BaseSpace Project object.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">swaggerTypes</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;Name&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;HrefSamples&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
-            <span class="s">&#39;HrefAnalyses&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;HrefAppResults&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;DateCreated&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;Id&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;Href&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
@@ -64,58 +66,65 @@
         <span class="p">}</span>
     
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span> <span class="o">+</span> <span class="s">&#39; - id=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     
 <div class="viewcode-block" id="Project.isInit"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.isInit">[docs]</a>    <span class="k">def</span> <span class="nf">isInit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Is called to test if the Project instance has been initialized</span>
-<span class="sd">        Throws ModelNotInitializedException if the Id variable is not set</span>
+<span class="sd">        Is called to test if the Project instance has been initialized.</span>
+<span class="sd">        </span>
+<span class="sd">        Throws:</span>
+<span class="sd">            ModelNotInitializedException - Indicates the object has not been populated yet.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ModelNotInitializedException</span><span class="p">(</span><span class="s">&#39;The project model has not been initialized yet&#39;</span><span class="p">)</span>
     </div>
 <div class="viewcode-block" id="Project.getAccessStr"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.getAccessStr">[docs]</a>    <span class="k">def</span> <span class="nf">getAccessStr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">scope</span><span class="o">=</span><span class="s">&#39;write&#39;</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns the scope-string to used for requesting BaseSpace access to the object</span>
-<span class="sd">        :param scope: The type that is request (write|read)</span>
+<span class="sd">        </span>
+<span class="sd">        :param scope: The scope-type that is request (write|read)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">scope</span> <span class="o">+</span> <span class="s">&#39; project &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
     </div>
-<div class="viewcode-block" id="Project.getAnalyses"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.getAnalyses">[docs]</a>    <span class="k">def</span> <span class="nf">getAnalyses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">):</span>
+<div class="viewcode-block" id="Project.getAppResults"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.getAppResults">[docs]</a>    <span class="k">def</span> <span class="nf">getAppResults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">statuses</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of Analysis objects.</span>
+<span class="sd">        </span>
+<span class="sd">        :param api: An instance of BaseSpaceAPI</span>
+<span class="sd">        :param statuses: An optional list of statuses</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getAnalysisByProject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getAppResultsByProject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span><span class="n">statuses</span><span class="o">=</span><span class="n">statuses</span><span class="p">)</span>
         </div>
 <div class="viewcode-block" id="Project.getSamples"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.getSamples">[docs]</a>    <span class="k">def</span> <span class="nf">getSamples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of Sample objects.</span>
+<span class="sd">        </span>
+<span class="sd">        :param api: An instance of BaseSpaceAPI</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getSamplesByProject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
-    
-    <span class="c"># TODO</span></div>
-<div class="viewcode-block" id="Project.createAnalysis"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.createAnalysis">[docs]</a>    <span class="k">def</span> <span class="nf">createAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">desc</span><span class="p">):</span>
+    </div>
+<div class="viewcode-block" id="Project.createAppResult"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Project.Project.createAppResult">[docs]</a>    <span class="k">def</span> <span class="nf">createAppResult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">appSessionId</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return a newly created app result object</span>
+<span class="sd">        </span>
+<span class="sd">        :param api: An instance of BaseSpaceAPI</span>
+<span class="sd">        :param name: The name of the app result</span>
+<span class="sd">        :param desc: A describtion of the app result</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">createAnalyses</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">createAppResult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">appSessionId</span><span class="o">=</span><span class="n">appSessionId</span><span class="p">)</span>
 
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HrefSamples</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HrefAnalyses</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Id</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Href</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">UserOwnedBy</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># UserCompact</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span>           <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefSamples</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefAppResults</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Id</span>             <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Href</span>           <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UserOwnedBy</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># UserCompact</span></div></div>
 </pre></div>
 
           </div>
@@ -147,8 +156,7 @@
           <a href="../../../genindex.html" title="General Index"
              >index</a></li>
         <li><a href="../../../index.html">BaseSpacePy 0.1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../model.html" >BaseSpacePy.model</a> &raquo;</li> 
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

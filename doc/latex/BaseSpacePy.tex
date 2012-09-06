@@ -13,7 +13,7 @@
 
 
 \title{BaseSpacePy Documentation}
-\date{August 23, 2012}
+\date{September 06, 2012}
 \release{0.1}
 \author{Morten Kallberg}
 \newcommand{\sphinxlogo}{}
@@ -135,18 +135,20 @@ It will be necessary to have created a BaseSpace account with a new App and have
 Version 0.1 of \code{BaseSpacePy} can be checked out here:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-\PYG{n}{svn} \PYG{n}{checkout} \PYG{n}{svn}\PYG{p}{:}\PYG{o}{/}\PYG{o}{/}\PYG{n}{ilmnhw}\PYG{o}{-}\PYG{n}{biolinsd}\PYG{o}{.}\PYG{n}{hwus}\PYG{o}{.}\PYG{n}{illumina}\PYG{o}{.}\PYG{n}{com}\PYG{p}{:}\PYG{o}{/}\PYG{n}{data}\PYG{o}{/}\PYG{n}{tmann}\PYG{o}{/}\PYG{n}{svn}\PYG{o}{/}\PYG{n}{svnrepos}\PYG{o}{/}\PYG{n}{BaseSpacePy\PYGZus{}v0}\PYG{o}{.}\PYG{l+m+mi}{1}
+\PYG{n}{git} \PYG{n}{clone} \PYG{n}{git}\PYG{n+nd}{@github.com}\PYG{p}{:}\PYG{n}{basespace}\PYG{o}{/}\PYG{n}{basespace}\PYG{o}{-}\PYG{n}{python}\PYG{o}{-}\PYG{n}{sdk}\PYG{o}{.}\PYG{n}{git}
 \end{Verbatim}
 
 
 \subsection{Setup}
 \label{Getting Started:setup}
-\emph{Requirements:} Python 2.6 with the packages `urllib2', `pycurl', and `shutil' available.
+\emph{Requirements:} Python 2.6 with the packages `urllib2', `pycurl', `multiprocessing' and `shutil' available.
+
+The multi-part file upload will currently only run on a unix setup.
 
 To install `BaseSpacePy' run the `setup.py' script in the \code{src} directory (for a global install you will need to run this command with root privileges):
 
 \begin{Verbatim}[commandchars=\\\{\}]
-\PYG{n}{cd} \PYG{n}{BaseSpacePy\PYGZus{}v0}\PYG{o}{.}\PYG{l+m+mi}{1}\PYG{o}{/}\PYG{n}{src}
+\PYG{n}{cd} \PYG{n}{basespace}\PYG{o}{-}\PYG{n}{python}\PYG{o}{-}\PYG{n}{sdk}\PYG{o}{/}\PYG{n}{src}
 \PYG{n}{python} \PYG{n}{setup}\PYG{o}{.}\PYG{n}{py} \PYG{n}{install}
 \end{Verbatim}
 
@@ -165,7 +167,7 @@ For more install options type:
 Altenatively you may include the src directory in your PYTHONPATH by doing the following export:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-export PYTHONPATH=\$PYTHONPATH:/my/path/BaseSpacePy\_vx.x/src
+export PYTHONPATH=\$PYTHONPATH:/my/path/basespace-python-sdk/src
 \end{Verbatim}
 
 or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:
@@ -676,12 +678,12 @@ We can even download our newly uploaded file in the following manner:
 \label{Available modules:api}\index{BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{AccessToken}, \emph{apiServer}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey}, \emph{clientSecret}, \emph{apiServer}, \emph{version}, \emph{appSessionId}, \emph{AccessToken='`}}{}
 The main API class used for all communication with with the REST server
-\index{analysisFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+\index{appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.analysisFileUpload}\pysiglinewithargsret{\bfcode{analysisFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{multipart=0}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload}\pysiglinewithargsret{\bfcode{appResultFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{multipart=0}}{}
 Uploads a file associated with an analysis to BaseSpace and returns the corresponding file object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -706,10 +708,10 @@ Uploads a file associated with an analysis to BaseSpace and returns the correspo
 
 \end{fulllineitems}
 
-\index{createAnalyses() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+\index{createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAnalyses}\pysiglinewithargsret{\bfcode{createAnalyses}}{\emph{Id}, \emph{name}, \emph{desc}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{Id}, \emph{name}, \emph{desc}, \emph{appSessionId=None}}{}
 Create an analysis object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -722,9 +724,14 @@ Create an analysis object
 \item {} 
 \textbf{desc} -- A describtion of the analysis
 
+\item {} 
+\textbf{appSessionId} -- (Optional) If not appSessionId is used the one used to initialize the BaseSpaceAPI instance
+
 \end{itemize}
 
 \end{description}\end{quote}
+
+will be used. If appSessionId is set equal an empty string, a new appsession we be created for the
 
 \end{fulllineitems}
 
@@ -811,10 +818,10 @@ Returns a list of accessible runs for the User with id=Id
 
 \end{fulllineitems}
 
-\index{getAnalysisById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+\index{getAppResultById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAnalysisById}\pysiglinewithargsret{\bfcode{getAnalysisById}}{\emph{Id}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultById}\pysiglinewithargsret{\bfcode{getAppResultById}}{\emph{Id}}{}
 Returns an Analysis object corresponding to Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -824,15 +831,15 @@ Returns an Analysis object corresponding to Id
 
 \end{fulllineitems}
 
-\index{getAnalysisByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+\index{getAppResultFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAnalysisByProject}\pysiglinewithargsret{\bfcode{getAnalysisByProject}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
-Returns a list of Analysis object associated with the project with Id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles}\pysiglinewithargsret{\bfcode{getAppResultFiles}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+Returns a list of File object for the Analysis with id  = Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The project id
+\textbf{Id} -- The id of the appresult.
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
@@ -843,22 +850,35 @@ Returns a list of Analysis object associated with the project with Id
 
 \end{fulllineitems}
 
-\index{getAnalysisFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+\index{getAppResultsByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAnalysisFiles}\pysiglinewithargsret{\bfcode{getAnalysisFiles}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
-Returns a list of File object for the Analysis with id  = Id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultsByProject}\pysiglinewithargsret{\bfcode{getAppResultsByProject}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}, \emph{statuses=}\optional{}}{}
+Returns a list of Analysis object associated with the project with Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The id of the analysis.
+\textbf{Id} -- The project id
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
+\item {} 
+\textbf{statuses} -- An (optional) list of AppResult statuses to filter by
+
 \end{itemize}
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getAppSession() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSession}\pysiglinewithargsret{\bfcode{getAppSession}}{\emph{Id='`}}{}
+Returns an AppSession instance containing user and data-type the app was triggered by/on 
+:param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating
+the BaseSpaceAPI instance.
 
 \end{fulllineitems}
 
@@ -1070,23 +1090,43 @@ Returns a VariantMetadata object for the variant file
 
 \end{fulllineitems}
 
-\index{markAnalysisState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+\index{getVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.markAnalysisState}\pysiglinewithargsret{\bfcode{markAnalysisState}}{\emph{Id}, \emph{Status}, \emph{Summary}}{}
-Set the status of an Analysis object
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVerificationCode}\pysiglinewithargsret{\bfcode{getVerificationCode}}{\emph{scope}, \emph{device=1}, \emph{redirect='`}}{}
+Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve
+access to a specific data scope.
+
+Corresponding curl call:
+curlCall = `curl -d ``response\_type=device\_code'' -d ``client\_id=' + client\_key + `'' -d ``scope=' + scope + `'' ` + deviceURL
+
+For details see:
+\href{https://developer.basespace.illumina.com/docs/content/documentation/authentication/obtaining-access-tokens}{https://developer.basespace.illumina.com/docs/content/documentation/authentication/obtaining-access-tokens}
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{scope} -- The scope that access is requested for
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getWebVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getWebVerificationCode}\pysiglinewithargsret{\bfcode{getWebVerificationCode}}{\emph{scope}, \emph{redirectURL}, \emph{state='`}}{}
+Generates the URL the user should be redirected to for web-based authentication
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The id of the analysis
+\textbf{scope} -- The scope that access is requested for
 
 \item {} 
-\textbf{Status} -- The status assignment string must
-
-\item {} 
-\textbf{Summary} -- The summary string
+\textbf{redirectURL} -- The redirect URL
 
 \end{itemize}
+
+\item[{State }] \leavevmode
+An optional state paramter that will passed through to redirect response
 
 \end{description}\end{quote}
 
@@ -1132,6 +1172,37 @@ Method for multi-threaded file-upload for parallel transfer of very large files 
 
 \end{fulllineitems}
 
+\index{obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken}\pysiglinewithargsret{\bfcode{obtainAccessToken}}{\emph{deviceCode}}{}
+Returns a user specific access token.    
+:param deviceCode: The device code returned by the verification code method
+
+\end{fulllineitems}
+
+\index{setAppSessionState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState}\pysiglinewithargsret{\bfcode{setAppSessionState}}{\emph{Id}, \emph{Status}, \emph{Summary}}{}
+Set the status of an Analysis object
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The id of the analysis
+
+\item {} 
+\textbf{Status} -- The status assignment string must
+
+\item {} 
+\textbf{Summary} -- The summary string
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 
 \end{fulllineitems}
 
@@ -1141,23 +1212,7 @@ Method for multi-threaded file-upload for parallel transfer of very large files 
 \label{Available modules:models}
 
 \subsection{AppLaunch}
-\label{Available modules:applaunch}\index{AppLaunch (class in BaseSpacePy.model.AppLaunch)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.AppLaunch.AppLaunch}\pysigline{\strong{class }\code{BaseSpacePy.model.AppLaunch.}\bfcode{AppLaunch}}
-AppLaunch contains the data returned
-\index{getLaunchType() (BaseSpacePy.model.AppLaunch.AppLaunch method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.AppLaunch.AppLaunch.getLaunchType}\pysiglinewithargsret{\bfcode{getLaunchType}}{}{}
-Returns a list {[}\textless{}launch type name\textgreater{}, list of objects{]} where \textless{}launch type name\textgreater{} is one of Projects, Samples, Analyses
-
-\end{fulllineitems}
-
-
-\end{fulllineitems}
-
-
+\label{Available modules:applaunch}
 
 \subsection{Project}
 \label{Available modules:project}\index{Project (class in BaseSpacePy.model.Project)}
@@ -1165,21 +1220,21 @@ Returns a list {[}\textless{}launch type name\textgreater{}, list of objects{]} 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.Project.Project}\pysigline{\strong{class }\code{BaseSpacePy.model.Project.}\bfcode{Project}}
 Represents a BaseSpace Project object.
-\index{createAnalysis() (BaseSpacePy.model.Project.Project method)}
+\index{createAppResult() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.createAnalysis}\pysiglinewithargsret{\bfcode{createAnalysis}}{\emph{api}, \emph{name}, \emph{desc}}{}
-Return a newly created Analysis object
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{api}, \emph{name}, \emph{desc}, \emph{appSessionId=None}}{}
+Return a newly created app result object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{name} -- The name of the analysis
+\textbf{name} -- The name of the app result
 
 \item {} 
-\textbf{desc} -- A describtion of the analysis
+\textbf{desc} -- A describtion of the app result
 
 \end{itemize}
 
@@ -1200,14 +1255,20 @@ Returns the scope-string to used for requesting BaseSpace access to the object
 
 \end{fulllineitems}
 
-\index{getAnalyses() (BaseSpacePy.model.Project.Project method)}
+\index{getAppResults() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getAnalyses}\pysiglinewithargsret{\bfcode{getAnalyses}}{\emph{api}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getAppResults}\pysiglinewithargsret{\bfcode{getAppResults}}{\emph{api}, \emph{statuses=}\optional{}}{}
 Returns a list of Analysis objects.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{api} -- An instance of BaseSpaceAPI
+
+\item {} 
+\textbf{statuses} -- An optional list of statuses
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -1245,124 +1306,7 @@ ModelNotInitializedException - Indicates the object has not been populated yet.
 
 
 \subsection{Analysis}
-\label{Available modules:analysis}\index{Analysis (class in BaseSpacePy.model.Analysis)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis}\pysigline{\strong{class }\code{BaseSpacePy.model.Analysis.}\bfcode{Analysis}}~\index{getAccessStr() (BaseSpacePy.model.Analysis.Analysis method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.getAccessStr}\pysiglinewithargsret{\bfcode{getAccessStr}}{\emph{scope='write'}}{}
-Returns the scope-string to be used for requesting BaseSpace access to the object
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
-\textbf{scope} -- The scope-type that is request (write\textbar{}read)
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{getFiles() (BaseSpacePy.model.Analysis.Analysis method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{myQp=\{\}}}{}
-Returns a list of file objects
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{api} -- An instance of BaseSpaceAPI
-
-\item {} 
-\textbf{myQp} -- (Optional) QueryParameters for sorting and filtering the file list
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{isInit() (BaseSpacePy.model.Analysis.Analysis method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
-Is called to test if the Project instance has been initialized
-\begin{description}
-\item[{Throws:}] \leavevmode
-ModelNotInitializedException  - if the instance has not been populated.
-
-\end{description}
-
-\end{fulllineitems}
-
-\index{setStatus() (BaseSpacePy.model.Analysis.Analysis method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.setStatus}\pysiglinewithargsret{\bfcode{setStatus}}{\emph{api}, \emph{Status}, \emph{Summary}}{}
-Sets the status of the analysis (note: once set to `completed' or `aborted' no more work can be done to the instance)
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{api} -- An instance of BaseSpaceAPI
-
-\item {} 
-\textbf{Status} -- The status value, must be completed, aborted, working, or suspended
-
-\item {} 
-\textbf{Summary} -- The status summary
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{uploadFile() (BaseSpacePy.model.Analysis.Analysis method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.uploadFile}\pysiglinewithargsret{\bfcode{uploadFile}}{\emph{api}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}}{}
-Uploads a local file to the BaseSpace analysis
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{api} -- An instance of BaseSpaceAPI
-
-\item {} 
-\textbf{localPath} -- The local path of the file
-
-\item {} 
-\textbf{fileName} -- The filename
-
-\item {} 
-\textbf{directory} -- The remote directory to upload to
-
-\item {} 
-\textbf{contentType} -- The content-type of the file
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{uploadMultipartFile() (BaseSpacePy.model.Analysis.Analysis method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Analysis.Analysis.uploadMultipartFile}\pysiglinewithargsret{\bfcode{uploadMultipartFile}}{\emph{api}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{tempDir='`}, \emph{cpuCount=1}, \emph{partSize=10}, \emph{verbose=0}}{}
-Upload a file in multi-part mode. Returns an object of type MultipartUpload used for managing the upload.
-
-:param api:An instance of BaseSpaceAPI
-:param localPath: The local path of the file
-:param fileName: The filename
-:param directory: The remote directory to upload to
-:param contentType: The content-type of the file
-:param cpuCount: The number of CPUs to used for the upload
-:param partSize:
-
-\end{fulllineitems}
-
-
-\end{fulllineitems}
-
-
+\label{Available modules:analysis}
 
 \subsection{Sample}
 \label{Available modules:sample}\index{Sample (class in BaseSpacePy.model.Sample)}
