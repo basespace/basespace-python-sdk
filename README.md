@@ -25,7 +25,7 @@ The multi-part file upload will currently only run on a unix setup.
 INSTALL
 =========================================
 
-Version 0.1 of BaseSpacePy can be checked out here:
+Version 0.1.1 of BaseSpacePy can be checked out here:
 
 	git clone git@github.com:basespace/basespace-python-sdk.git
 
