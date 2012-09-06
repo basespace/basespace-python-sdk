@@ -46,25 +46,28 @@ print appResults.Id
 myAppSession = appResults.AppSession
 
 print myAppSession   # by default we supply the app-session the
+
 # we can change the status of out analysis and add a status-summary as follows
 myAppSession.setStatus(myBaseSpaceAPI,'needsattention',"We worked hard, but encountered some trouble.")
 print "\nAfter a change of status of the app sessions we get\n" + str(myAppSession)
 
 ### Let's list the analyses again and see if our new object shows up 
-appRes = p.getAppResults(myBaseSpaceAPI)
-print "\nThe updated analyses are \n" + str(appRes)
+appRes = p.getAppResults(myBaseSpaceAPI,statuses=['Running'])
+print "\nThe updated app results are \n" + str(appRes)
+appResult2 = myBaseSpaceAPI.getAppResultById(appResults.Id)
+print appResult2
 
 ## Now we will make another analysis 
-## and try to upload some files to it
-#analysis2 = p.createAnalysis(myBaseSpaceAPI,"My second analysis","This one I will upload to")
-#analysis2.uploadFile(myBaseSpaceAPI, '/home/mkallberg/Desktop/testFile2.txt', 'BaseSpaceTestFile.txt', '/mydir/', 'text/plain')
-#print "\nMy analysis number 2 \n" + str(analysis2)
-#
+## and try to upload a file to it
+appResults2 = p.createAppResult(myBaseSpaceAPI,"My second analysis","This one I will upload to")
+appResults2.uploadFile(myBaseSpaceAPI, '/home/mkallberg/Desktop/testFile2.txt', 'BaseSpaceTestFile.txt', '/mydir/', 'text/plain')
+print "\nMy analysis number 2 \n" + str(appResults2)
+
 ## let's see if our new file made it
-#analysisFiles = analysis2.getFiles(myBaseSpaceAPI)
-#print "\nThese are the files in the analysis"
-#print analysisFiles
-#f = analysisFiles[-1]
+appResultFiles = appResults2.getFiles(myBaseSpaceAPI)
+print "\nThese are the files in the analysis"
+print appResultFiles
+f = appResultFiles[-1]
 
 # we can even download our newly uploaded file
 #f = myBaseSpaceAPI.getFileById('7331136')

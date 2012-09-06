@@ -6,7 +6,7 @@ class AppResult:
     def __init__(self):
         self.swaggerTypes = {
             'Name': 'str',
-            'Status': 'str',
+            #'Status': 'str',        # will be deprecated
             'Description': 'str',
             'StatusSummary': 'str',
             'HrefFiles': 'str',
@@ -19,7 +19,7 @@ class AppResult:
             'AppSession':'AppSession'
         }
     def __str__(self):
-        return self.Name + " - " + str(self.Status)
+        return "AppResult: " + self.Name #+ " - " + str(self.Status)
     def __repr__(self):
         return str(self)
     
@@ -63,7 +63,7 @@ class AppResult:
         :param contentType: The content-type of the file
         '''
         self.isInit()
-        return api.analysisFileUpload(self.Id,localPath, fileName, directory, contentType)
+        return api.appResultFileUpload(self.Id,localPath, fileName, directory, contentType)
 
 # deprecated
 #    def setStatus(self,api,Status,Summary):
@@ -104,25 +104,14 @@ class AppResult:
         self.isInit()
         return api.multipartFileUpload(self.Id, localPath, fileName, directory, contentType, tempDir,cpuCount,partSize,verbose=verbose)
 
-        # 
-        self.Name = None # str
-        # 
-        self.Status = None # str
-        # 
-        self.Description = None # str
-        # 
-        self.StatusSummary = None # str
-        # 
-        self.HrefFiles = None # str
-        # 
-        self.DateCreated = None # str
-        # 
-        self.Id = None # str
-        # 
-        self.Href = None # str
-        # 
-        self.UserOwnedBy = None # UserCompact
-        # 
-        self.StatusDetail = None # str
-        # 
-        self.HrefGenome = None # str
+        self.Name               = None
+        #self.Status             = None # will be deprecated
+        self.Description        = None
+        self.StatusSummary      = None
+        self.HrefFiles          = None
+        self.DateCreated        = None
+        self.Id                 = None
+        self.Href               = None
+        self.UserOwnedBy        = None # UserCompact
+        self.StatusDetail       = None
+        self.HrefGenome         = None

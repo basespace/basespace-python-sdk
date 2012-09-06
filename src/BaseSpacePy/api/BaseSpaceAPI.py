@@ -111,7 +111,30 @@ class BaseSpaceAPI(object):
         if obj.has_key('error'):
             raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
         return obj
-
+      
+    def __getTriggerObject__(self,obj):
+        '''
+        Warning this method is not for general use and should only be called 
+        from the getAppSession.
+        :param obj: The appTrigger json 
+        '''
+        response = obj
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
+        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
+        response  = tempApi.deserialize(obj, AppSessionResponse.AppSessionResponse) #@UndefinedVariable
+        res = response.Response
+        res = res.__serializeReferences__(self)
+        return res
+    
+    def __serializeObject__(self,d,type):
+        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
+        if type.lower()=='project':
+            return tempApi.deserialize(d, Project.Project)
+        if type.lower()=='sample':
+            return tempApi.deserialize(d, Sample.Sample)        
+        return d
+        
     def __str__(self):
         return "BaseSpaceAPI instance - using token=" + self.getAccessToken()
     
@@ -210,22 +233,22 @@ class BaseSpaceAPI(object):
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse,resourcePath, method, queryParams, headerParams)
            
-    def getAnalysisById(self, Id, ):
+    def getAppResultById(self, Id, ):
         '''
         Returns an Analysis object corresponding to Id
         
         :param Id: The Id of the Analysis
         '''
         # Parse inputs
-        resourcePath = '/analyses/{Id}'
+        resourcePath = '/appresults/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(AnalysisResponse.AnalysisResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams)
 
-    def getAnalysisFiles(self, Id, queryPars=qp()):
+    def getAppResultFiles(self, Id, queryPars=qp()):
         '''
         Returns a list of File object for the Analysis with id  = Id
         
@@ -518,7 +541,7 @@ class BaseSpaceAPI(object):
         postData['Description'] = desc
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
-    def analysisFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
+    def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''
         Uploads a file associated with an analysis to BaseSpace and returns the corresponding file object  
         
@@ -529,7 +552,7 @@ class BaseSpaceAPI(object):
         :param contentType: The content-type of the file.
          
         '''
-        resourcePath = '/analyses/{Id}/files'
+        resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'POST'
         resourcePath                 = resourcePath.replace('{Id}', Id)
@@ -692,29 +715,3 @@ class BaseSpaceAPI(object):
 #        postData['statussummary'] = Summary
 #        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method,\
 #                                      queryParams, headerParams,postData=postData,verbose=0)
-        
-    def __getTriggerObject__(self,obj):
-        '''
-        Warning this method is not for general use and should only be called 
-        from the getAppSession.
-        :param obj: The appTrigger json 
-        '''
-        response = obj
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
-        response  = tempApi.deserialize(obj, AppSessionResponse.AppSessionResponse) #@UndefinedVariable
-        res = response.Response
-        res = res.__serializeReferences__(self)
-        return res
-    
-    def __serializeObject__(self,d,type):
-        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
-        if type.lower()=='project':
-            return tempApi.deserialize(d, Project.Project)
-        if type.lower()=='sample':
-            return tempApi.deserialize(d, Sample.Sample)        
-        return d
-        
-    
-        
