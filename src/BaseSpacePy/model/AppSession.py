@@ -22,7 +22,7 @@ class AppSession:
         }
         
     def __str__(self):
-        return "App Launch by " + str(self.UserCreatedBy) + " on " + str(self.References)
+        return "App session by " + str(self.UserCreatedBy) + " - Id: " + str(self.Id) + " - status: " + self.Status
     def __repr__(self):
         return str(self)
     
@@ -33,7 +33,8 @@ class AppSession:
             ref.append(res)
         self.References =  ref
         return self
-             
+    
+    
     def setStatus(self,api,Status,Summary):
         '''
         Sets the status of the AppSession (note: once set to 'completed' or 'aborted' no more work can be done to the instance)
@@ -42,7 +43,6 @@ class AppSession:
         :param Status: The status value, must be completed, aborted, working, or suspended
         :param Summary: The status summary
         '''
-        self.isInit()
         if self.Status.lower()=='complete' or self.Status.lower()=='aborted':
             raise Exception('The status of analyis=' + str(self) + " is " + self.Status + ",\
              no further status changes are allowed.")
@@ -50,11 +50,12 @@ class AppSession:
         # To prevent the analysis object from being in an inconsistent state
         # and having two identical objects floating around, we update the current object
         # and discard the returned object
-        newSession = api.setAppsessionState(self.Id, Status, Summary)
+        newSession = api.setAppSessionState(self.Id, Status, Summary)
         self.Status         = newSession.Status
         self.StatusSummary  = newSession.StatusSummary
         return self
-
+ 
+             
 # deprecated
 #    def getLaunchType(self):
 #        '''

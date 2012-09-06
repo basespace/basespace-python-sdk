@@ -10,7 +10,7 @@ class Project:
         self.swaggerTypes = {
             'Name': 'str',
             'HrefSamples': 'str',
-            'HrefAnalyses': 'str',
+            'HrefAppResults': 'str',
             'DateCreated': 'str',
             'Id': 'str',
             'Href': 'str',
@@ -40,14 +40,15 @@ class Project:
         self.isInit()
         return scope + ' project ' + str(self.Id)
     
-    def getAppResults(self,api):
+    def getAppResults(self,api,statuses=[]):
         '''
         Returns a list of Analysis objects.
         
         :param api: An instance of BaseSpaceAPI
+        :param statuses: An optional list of statuses
         '''
         self.isInit()
-        return api.getAppResultsByProject(self.Id)
+        return api.getAppResultsByProject(self.Id,statuses=statuses)
         
     def getSamples(self,api):
         '''
@@ -58,20 +59,20 @@ class Project:
         self.isInit()
         return api.getSamplesByProject(self.Id)
     
-    def createAnalysis(self,api,name,desc):
+    def createAppResult(self,api,name,desc,appSessionId=None):
         '''
-        Return a newly created Analysis object
+        Return a newly created app result object
         
         :param api: An instance of BaseSpaceAPI
-        :param name: The name of the analysis
-        :param desc: A describtion of the analysis
+        :param name: The name of the app result
+        :param desc: A describtion of the app result
         '''
         self.isInit()
-        return api.createAnalyses(self.Id,name,desc)
+        return api.createAppResult(self.Id,name,desc,appSessionId=appSessionId)
 
         self.Name           = None # str
         self.HrefSamples    = None # str
-        self.HrefAnalyses   = None # str
+        self.HrefAppResults = None # str
         self.DateCreated    = None # str
         self.Id             = None # str
         self.Href           = None # str

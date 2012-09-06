@@ -25,7 +25,7 @@ AppSessionId               = "fc4e7338c4ed4a809ecb813d951c4b50"
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
-version                    = 'v1pre3/'
+version                    = 'v1pre3'
 
 
 helper.checkClientVars({'client_key':client_key,'client_secret':client_secret}) 

@@ -3,7 +3,7 @@ class AppResultResponse:
     def __init__(self):
         self.swaggerTypes = {
             'ResponseStatus': 'ResponseStatus',
-            'Response': 'Analysis',
+            'Response': 'AppResult',
             'Notifications': 'list<Str>'
         }
 

@@ -29,7 +29,7 @@ class BaseSpaceAPI(object):
 
     def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId, AccessToken=''):
         if not apiServer[-1]=='/': apiServer = apiServer + '/'
-        if not version[-1]=='/': version = version + '/'
+        #if not version[-1]=='/': version = version + '/'
         
         self.appSessionId   = appSessionId
         self.key            = clientKey
@@ -291,12 +291,13 @@ class BaseSpaceAPI(object):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(RunCompact.RunCompact,resourcePath, method, queryParams, headerParams)
     
-    def getAppResultsByProject(self, Id, queryPars=qp()):
+    def getAppResultsByProject(self, Id, queryPars=qp(),statuses=[]):
         '''
         Returns a list of Analysis object associated with the project with Id
         
         :param Id: The project id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :param statuses: An (optional) list of AppResult statuses to filter by
         '''
         # Parse inputs
         resourcePath = '/projects/{Id}/appresults'
@@ -304,6 +305,7 @@ class BaseSpaceAPI(object):
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
+        if len(statuses): queryParams['Statuses'] = ",".join(statuses)
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(AppResult.AppResult,resourcePath, method, queryParams, headerParams,verbose=0)
@@ -492,29 +494,30 @@ class BaseSpaceAPI(object):
         return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse,resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
      
-    def createAnalyses(self,Id,name,desc):
+    def createAppResult(self,Id,name,desc,appSessionId=None):
         '''
         Create an analysis object
         
         :param Id: The id for the project in which the analysis is to be added
         :param name: The name of the analysis
         :param desc: A describtion of the analysis
+        :param appSessionId: (Optional) If not appSessionId is used the one used to initialize the BaseSpaceAPI instance
+        will be used. If appSessionId is set equal an empty string, a new appsession we be created for the 
         '''
         # Parse inputs
-        resourcePath = '/projects/{ProjectId}/analyses'
+        resourcePath = '/projects/{ProjectId}/appresults'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'POST'
         resourcePath = resourcePath.replace('{ProjectId}', Id)
         queryParams = {}
+        if appSessionId: queryParams['appsessionid'] = appSessionId
+        if appSessionId==None: queryParams['appsessionid'] = self.appSessionId # default case
         headerParams = {}
         postData = {}
         postData['Name'] = name
         postData['Description'] = desc
-        return self.__singleRequest__(AnalysisResponse.AnalysisResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
-  
-    #TODO
-    
     def analysisFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''
         Uploads a file associated with an analysis to BaseSpace and returns the corresponding file object  
@@ -640,8 +643,8 @@ class BaseSpaceAPI(object):
 
     def markFileState(self,Id):
         pass
-        
-    def setAppsessionState(self,Id,Status,Summary):
+
+    def setAppSessionState(self,Id,Status,Summary):
         '''
         Set the status of an Analysis object
         
@@ -650,20 +653,45 @@ class BaseSpaceAPI(object):
         :param Summary: The summary string
         '''
         # Parse inputs
-        resourcePath = '/analyses/{Id}'
+        resourcePath = '/appsessions/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'POST'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
         postData = {}
-        statusAllowed = ['running', 'complete', 'needattention', 'aborted','error']
+        statusAllowed = ['running', 'complete', 'needsattention', 'aborted','error']
         if not Status.lower() in statusAllowed:
             raise Exception("Analysis state must be in " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
-        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method,\
+        return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
+
+#        deprecated        
+#    def setAppResultState(self,Id,Status,Summary):
+#        '''
+#        Set the status of an Analysis object
+#        
+#        :param Id: The id of the analysis
+#        :param Status: The status assignment string must
+#        :param Summary: The summary string
+#        '''
+#        # Parse inputs
+#        resourcePath = '/appresults/{Id}'
+#        resourcePath = resourcePath.replace('{format}', 'json')
+#        method = 'POST'
+#        resourcePath = resourcePath.replace('{Id}', Id)
+#        queryParams = {}
+#        headerParams = {}
+#        postData = {}
+#        statusAllowed = ['running', 'complete', 'needattention', 'aborted','error']
+#        if not Status.lower() in statusAllowed:
+#            raise Exception("Analysis state must be in " + str(statusAllowed))
+#        postData['status'] = Status.lower()
+#        postData['statussummary'] = Summary
+#        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method,\
+#                                      queryParams, headerParams,postData=postData,verbose=0)
         
     def __getTriggerObject__(self,obj):
         '''

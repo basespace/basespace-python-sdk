@@ -126,7 +126,7 @@ class APIClient:
 
         # Make the request, request may raise 403 forbidden, or 404 non-response
         if not forcePost and not method in ['PUT', 'DELETE']:                                      # the normal case
-            #print url
+            print url
             #print request
             response = urllib2.urlopen(request).read()
             

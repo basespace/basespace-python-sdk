@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
@@ -16,7 +15,8 @@ class AppResult:
             'Href': 'str',
             'UserOwnedBy': 'UserCompact',
             'StatusDetail': 'str',
-            'HrefGenome': 'str'
+            'HrefGenome': 'str',
+            'AppSession':'AppSession'
         }
     def __str__(self):
         return self.Name + " - " + str(self.Status)
@@ -64,7 +64,31 @@ class AppResult:
         '''
         self.isInit()
         return api.analysisFileUpload(self.Id,localPath, fileName, directory, contentType)
-         
+
+# deprecated
+#    def setStatus(self,api,Status,Summary):
+#        '''
+#        Sets the status of the AppResults (note: once set to 'completed' or 'aborted' no more work can be done to the instance)
+#        
+#        :param api: An instance of BaseSpaceAPI
+#        :param Status: The status value, must be completed, aborted, working, or suspended
+#        :param Summary: The status summary
+#        '''
+#        self.isInit()
+#        if self.Status.lower()=='complete' or self.Status.lower()=='aborted':
+#            raise Exception('The status of analyis=' + str(self) + " is " + self.Status + ",\
+#             no further status changes are allowed.")
+#        
+#        # To prevent the analysis object from being in an inconsistent state
+#        # and having two identical objects floating around, we update the current object
+#        # and discard the returned object
+#        newSession = api.setAppResultState(self.Id, Status, Summary)
+#        self.Status         = newSession.Status
+#        self.StatusSummary  = newSession.StatusSummary
+#        return self
+
+
+
     def uploadMultipartFile(self, api, localPath, fileName, directory, contentType,tempDir='',cpuCount=1,partSize=10,verbose=0):
         '''
         Upload a file in multi-part mode. Returns an object of type MultipartUpload used for managing the upload.

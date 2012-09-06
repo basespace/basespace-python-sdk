@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import helper
 import os
@@ -17,7 +15,7 @@ accessToken                = "31af080b256e4433bbf3e75a26a4aa12"
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
-version                    = 'v1pre3/'
+version                    = 'v1pre3'
 
 # First, create a client for making calls for this user session 
 myAPI   = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, appSessionId,AccessToken=accessToken)
@@ -27,22 +25,22 @@ myProjects   = myAPI.getProjectByUser('current')
 
 # Let's list all the analyses and samples for these projects
 for singleProject in myProjects:
-    #print "# " + str(singleProject)
+    print "# " + str(singleProject)
     appResults = singleProject.getAppResults(myAPI)
-    #print "    The App results for project " + str(singleProject) + " are \n\t" + str(appResults)
+    print "    The App results for project " + str(singleProject) + " are \n\t" + str(appResults)
     samples = singleProject.getSamples(myAPI)
-    #print "    The samples for project " + str(singleProject) + " are \n\t" + str(samples)
+    print "    The samples for project " + str(singleProject) + " are \n\t" + str(samples)
 #
 ## we'll take a further look at the files belonging to the sample and 
 ##analyses from the last project in the loop above 
-#for a in appResults:
-#    print "# " + a.Id
-#    ff = a.getFiles(myAPI)
-#    print ff
-#for s in samples:
-#    print "Sample " + str(s)
-#    ff = s.getFiles(myAPI)
-#    print ff
+for a in appResults:
+    print "# " + a.Id
+    ff = a.getFiles(myAPI)
+    print ff
+for s in samples:
+    print "Sample " + str(s)
+    ff = s.getFiles(myAPI)
+    print ff
 
 
 ## Now let's do some work with files 

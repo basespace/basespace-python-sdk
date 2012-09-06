@@ -16,7 +16,7 @@ accessToken                = "31af080b256e4433bbf3e75a26a4aa12"
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
-version                    = 'v1pre3/'
+version                    = 'v1pre3'
 
 # First, create a client for making calls for this user session 
 myAPI   = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, appSessionId,AccessToken=accessToken)
