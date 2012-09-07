@@ -31,6 +31,8 @@ class AppSession:
         self.References =  ref
         return self
     
+    def canWorkOn(self):
+        return self.Status.lower() in ['running']
     
     def setStatus(self,api,Status,Summary):
         '''
@@ -41,7 +43,7 @@ class AppSession:
         :param Summary: The status summary
         '''
         if self.Status.lower()=='complete' or self.Status.lower()=='aborted':
-            raise Exception('The status of analyis=' + str(self) + " is " + self.Status + ",\
+            raise Exception('The status of AppSession=' + str(self) + " is " + self.Status + ",\
              no further status changes are allowed.")
         
         # To prevent the AppResult object from being in an inconsistent state

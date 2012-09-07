@@ -1,5 +1,4 @@
-import sys
-sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
+
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import os
 import helper #@UnresolvedImport
@@ -9,10 +8,10 @@ This script demonstrates how to create a new AppResults object, change its state
 and upload result files to it and download files from it.  
 """
 # FILL IN WITH YOUR APP VALUES HERE!
-client_key                 = "16497134b4a84b9bb86df6c00087ba5b"
-client_secret              = "907b6800ae4f4020807baf9eef0d5164"
-AppSessionId               = "fc4e7338c4ed4a809ecb813d951c4b50"
-accessToken                = "dc48fad2edf9416d805315cff418d89a"
+client_key                 = ""
+client_secret              = ""
+AppSessionId               = ""
+accessToken                = ""
 # test if client variables have been set
 helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
@@ -35,7 +34,7 @@ print "\nThe current running AppResults are \n" + str(appRes)
 
 # now let's do some work!
 # to create an appResults for a project, simply give the name and description
-appResults = p.createAppResult(myBaseSpaceAPI,"testing","this is my results")
+appResults = p.createAppResult(myBaseSpaceAPI,"testing","this is my results",appSessionId='')
 print "\nSome info about our new app results"
 print appResults
 print appResults.Id
@@ -46,6 +45,9 @@ print myAppSession
 # we can change the status of our AppSession and add a status-summary as follows
 myAppSession.setStatus(myBaseSpaceAPI,'needsattention',"We worked hard, but encountered some trouble.")
 print "\nAfter a change of status of the app sessions we get\n" + str(myAppSession)
+# we'll set our appSession back to running so we can do some more work
+myAppSession.setStatus(myBaseSpaceAPI,'running',"Back on track")
+
 
 ### Let's list all AppResults again and see if our new object shows up 
 appRes = p.getAppResults(myBaseSpaceAPI,statuses=['Running'])

@@ -38,12 +38,6 @@ class BaseSpaceAPI(object):
     def __updateAccessToken__(self,AccessToken):
         self.apiClient.apiKey = AccessToken
 
-    def setAccessToken(self,token):
-        self.apiClient      = None
-        if token: 
-            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer)
-            self.apiClient = apiClient
-
     def __singleRequest__(self,myModel,resourcePath, method, queryParams, headerParams,postData=None,verbose=0,forcePost=0,noAPI=1):
         # test if access-token has been set
         if not self.apiClient and noAPI:
@@ -138,6 +132,12 @@ class BaseSpaceAPI(object):
     def __repr__(self):
         return str(self)  
 
+    def setAccessToken(self,token):
+        self.apiClient      = None
+        if token: 
+            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer)
+            self.apiClient = apiClient
+
     def getAppSession(self,Id=''):
         '''
         Returns an AppSession instance containing user and data-type the app was triggered by/on 
@@ -146,12 +146,12 @@ class BaseSpaceAPI(object):
         
         :param Id: (Optional) AppSession id, if not supplied the AppSession id used to initialize the 
         '''
-        resourcePath = self.apiServer + 'appsessions/{AppSessionId}'
+        resourcePath = self.apiServer + '/appsessions/{AppSessionId}'
         if not Id:
             resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
         else:
             resourcePath = resourcePath.replace('{AppSessionId}', Id)
-#        print resourcePath
+        print resourcePath
         response = cStringIO.StringIO()
         c = pycurl.Curl()
         c.setopt(pycurl.URL,resourcePath)
@@ -550,11 +550,18 @@ class BaseSpaceAPI(object):
         queryParams = {}
         if appSessionId: queryParams['appsessionid'] = appSessionId
         if appSessionId==None: queryParams['appsessionid'] = self.appSessionId # default case
+        
+        # case, an appSession is provided, we need to check if
+        if queryParams.has_key('appsessionid'):
+            session = self.getAppSession(Id=queryParams['appsessionid'])
+            if not session.canWorkOn():
+                raise Exception('AppSession status must be "running," to create and AppResults. Current status is ' + session.Status)
+            
         headerParams = {}
         postData = {}
         postData['Name'] = name
         postData['Description'] = desc
-        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=1)
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''

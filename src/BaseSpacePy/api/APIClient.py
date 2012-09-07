@@ -110,7 +110,7 @@ class APIClient:
             if data:
                 if type(postData) not in [str, int, float, bool]:
                     data = json.dumps(postData)
-            print "!!! " + str(url)
+#            print "!!! " + str(url)
 #            print "!!! " + str(data)
             if not forcePost:
                 if data and not len(data): data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
