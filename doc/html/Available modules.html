@@ -140,6 +140,26 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess">
+<tt class="descname">getAccess</tt><big>(</big><em>obj</em>, <em>accessType='write'</em>, <em>web=0</em>, <em>redirectURL=''</em>, <em>state=''</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> &#8211; The data object we wish to get access to</li>
+<li><strong>accessType</strong> &#8211; (Optional) the type of access (read|write), default is write</li>
+<li><strong>web</strong> &#8211; (Optional) true if the App is web-based, default is false meaning a device based app</li>
+<li><strong>redirectURL</strong> &#8211; (Optional) For the web-based case, a</li>
+<li><strong>state</strong> &#8211; (Optional)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessToken">
 <tt class="descname">getAccessToken</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAccessToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessToken" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the access-token that was used to initialize the BaseSpaceAPI object.</p>
@@ -224,7 +244,7 @@ the BaseSpaceAPI instance.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; (Optional) AppSession id, if not supplied</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; (Optional) AppSession id, if not supplied the AppSession id used to initialize the</td>
 </tr>
 </tbody>
 </table>
@@ -433,7 +453,7 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVerificationCode">
-<tt class="descname">getVerificationCode</tt><big>(</big><em>scope</em>, <em>device=1</em>, <em>redirect=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getVerificationCode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVerificationCode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getVerificationCode</tt><big>(</big><em>scope</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getVerificationCode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVerificationCode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve
 access to a specific data scope.</p>
 <p>Corresponding curl call:
@@ -464,7 +484,7 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">State :</th><td class="field-body"><p class="first last">An optional state paramter that will passed through to redirect response</p>
+<tr class="field-even field"><th class="field-name">State :</th><td class="field-body"><p class="first last">An optional state parameter that will passed through to the redirect response</p>
 </td>
 </tr>
 </tbody>
@@ -474,8 +494,15 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken">
 <tt class="descname">obtainAccessToken</tt><big>(</big><em>deviceCode</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.obtainAccessToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a user specific access token.    
-:param deviceCode: The device code returned by the verification code method</p>
+<dd><p>Returns a user specific access token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deviceCode</strong> &#8211; The device code returned by the verification code method</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

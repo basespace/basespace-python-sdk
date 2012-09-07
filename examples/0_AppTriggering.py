@@ -56,7 +56,7 @@ print "\nThe scope string for requesting write access to the reference object is
 print myReference.getAccessStr(scope='write')
 
 # We can easily request write access to the reference object so our App can start contributing analysis
-# by default we ask for write permission to and authentication for a devise
+# by default we ask for write permission and authentication for a device
 accessMap = BSapi.getAccess(myReference)
 print "\nWe get the following access map"
 print accessMap
@@ -69,12 +69,13 @@ webbrowser.open_new(accessMap['verification_with_code_uri'])
 time.sleep(15)
 ## PAUSE HERE
 
-# Once the user has granted us access to objects we requested we can
+# Once the user has granted us the access to the object we requested we can
 # get the basespace access token and start browsing simply by calling updatePriviliges
 # on the baseSpaceApi instance    
 code = accessMap['device_code']
 BSapi.updatePrivileges(code)
 print "\nThe BaseSpaceAPI instance was update with write privileges"
+print BSapi
 
-# for more details on access-requests and authentication and an exmaple of the web-based case see example 1_Authentication.py 
+# for more details on access-requests and authentication and an example of the web-based case see example 1_Authentication.py 
 
