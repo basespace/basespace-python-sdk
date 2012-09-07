@@ -1,5 +1,9 @@
+import sys
+sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import helper
+import webbrowser
+import time
 
 """
 This script demonstrates how to retrieve the AppSession object produced 
@@ -18,13 +22,13 @@ client_secret              = ""
 AppSessionId               = ""
 
 # test if client variables have been set
-#helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
+helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre3/'
 
 # First we will initialize a BaseSpace API object using our app information and the appSessionId
-BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl+ version, AppSessionId)
+BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId)
 
 # Using the basespaceApi we can request the appSession object corresponding to the AppSession id supplied
 myAppSession = BSapi.getAppSession()
@@ -53,4 +57,26 @@ print myReference
 print "\nThe scope string for requesting write access to the reference object is:"
 print myReference.getAccessStr(scope='write')
 
-# We will now demonstate how to request
+# We can easily request write access to the reference object so our App can start contributing analysis
+# by default we ask for write permission to and authentication for a devise
+accessMap = BSapi.getAccess(myReference)
+print "\nWe get the following access map"
+print accessMap
+
+## PAUSE HERE
+# Have the user visit the verification uri to grant us access
+print "\nPlease visit the uri within 15 seconds and grant access"
+print accessMap['verification_with_code_uri']
+webbrowser.open_new(accessMap['verification_with_code_uri'])
+time.sleep(15)
+## PAUSE HERE
+
+# Once the user has granted us access to objects we requested we can
+# get the basespace access token and start browsing simply by calling updatePriviliges
+# on the baseSpaceApi instance    
+code = accessMap['device_code']
+BSapi.updatePrivileges(code)
+print "\nThe BaseSpaceAPI instance was update with write privileges"
+
+# for more details on access-requests and authentication and an exmaple of the web-based case see example 1_Authentication.py 
+
