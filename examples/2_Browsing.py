@@ -10,7 +10,7 @@ for global browsing has been obtained.
 # FILL IN WITH YOUR APP VALUES HERE!
 client_key                 = ""
 client_secret              = ""
-appSessionId               = ""
+AppSessionId               = ""
 accessToken                = ""
 # test if client variables have been set
 #helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
@@ -19,7 +19,7 @@ BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre3'
 
 # First, create a client for making calls for this user session 
-myAPI   = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, appSessionId,AccessToken=accessToken)
+myAPI   = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId,AccessToken=accessToken)
 
 # First, let's grab the genome with id=4
 myGenome    = myAPI.getGenomeById('4')

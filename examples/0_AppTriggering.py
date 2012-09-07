@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/home/mkallberg/workspace/basespace-python-sdk/src/')
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import helper
 import webbrowser
@@ -9,7 +7,7 @@ import time
 This script demonstrates how to retrieve the AppSession object produced 
 when a user initiates an app. Further it's demonstrated how to automatically
 generate the scope strings to request access to the data object (a project or a sample)
-that the app was triggered to analyze. 
+that the app was triggered to analyze.
 
 NOTE: You will need to fill client values for your app below
 """
@@ -25,7 +23,7 @@ AppSessionId               = ""
 helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
-version                    = 'v1pre3/'
+version                    = 'v1pre3'
 
 # First we will initialize a BaseSpace API object using our app information and the appSessionId
 BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId)

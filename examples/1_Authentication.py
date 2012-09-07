@@ -1,4 +1,5 @@
 import sys
+from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import time
 import helper
 import webbrowser 
@@ -21,10 +22,11 @@ client_key                 = ""
 client_secret              = ""
 AppSessionId               = ""
 # test if client variables have been set
-#helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':ApplicationActionId}) 
+helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre3'
+
 
 BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId)
 
@@ -68,8 +70,8 @@ print BSapi
 #################### Web-based verification #################################
 # The scenario where the authentication is done through a web-browser
 
-BSapi = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId)
-userUrl= BSapi.getWebVerificationCode('browse global','http://localhost',state='myState')
+BSapiWeb = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId)
+userUrl= BSapiWeb.getWebVerificationCode('browse global','http://localhost',state='myState')
 
 print "\nHave the user visit:"
 print userUrl
@@ -81,7 +83,7 @@ webbrowser.open_new(userUrl)
 # By getting the code parameter from the above http request we can now get our access-token
 
 myCode = '<MY DEVICE CODE FROM REDICRECT>'
-BSapi.updatePrivileges(myCode)
+#BSapiWeb.updatePrivileges(myCode)
 
 
 #################### Storing BaseSpaceApi using python pickle #################################

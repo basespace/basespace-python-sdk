@@ -9,19 +9,20 @@ file data for such instances.
 # FILL IN WITH YOUR APP VALUES HERE!
 client_key                 = ""
 client_secret              = ""
-appSessionId               = ""
+AppSessionId               = ""
 accessToken                = ""
+helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
 BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
 version                    = 'v1pre3'
 
 # First, create a client for making calls for this user session 
-myAPI           = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, appSessionId,AccessToken=accessToken)
+myAPI           = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId,AccessToken=accessToken)
 user            = myAPI.getUserById('current')
 myProjects      = myAPI.getProjectByUser('current')
 
 
-# Let's list all the analyses and samples for these projects
+# Let's list all the AppResults and samples for these projects
 for singleProject in myProjects:
     print "# " + str(singleProject)
     appResults = singleProject.getAppResults(myAPI)

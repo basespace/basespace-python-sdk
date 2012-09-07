@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-#import sys
-#sys.path.append('/home/mkallberg/workspace/BaseSpacePy_v0.1/src/')
 from pprint import pprint
 import urllib2
 import shutil
@@ -17,9 +14,9 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@Unresolved
 from BaseSpacePy.model import * #@UnusedWildImport
 
 # Uris for obtaining a access token, user verification code, and app trigger information
-tokenURL                   = 'oauthv2/token'
-deviceURL                  = "oauthv2/deviceauthorization"
-webAuthorize               = 'oauth/authorize'
+tokenURL                   = '/oauthv2/token'
+deviceURL                  = "/oauthv2/deviceauthorization"
+webAuthorize               = '/oauth/authorize'
 
 
 class BaseSpaceAPI(object):
@@ -166,12 +163,22 @@ class BaseSpaceAPI(object):
 #        pprint(obj)
         return self.__getTriggerObject__(obj) 
 
-    def getAccess(self,obj,accessType='write',web=0):
-        s = obj.getAccessStr(scope=accessType)
-        print s
+    def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
+        '''
         
-
-    def getVerificationCode(self,scope,device=1,redirect=''):
+        :param obj: The data object we wish to get access to
+        :param accessType: (Optional) the type of access (read|write), default is write
+        :param web: (Optional) true if the App is web-based, default is false meaning a device based app
+        :param redirectURL: (Optional) For the web-based case, a
+        :param state: (Optional)
+        '''
+        scopeStr = obj.getAccessStr(scope=accessType)
+        if web:
+            return self.getWebVerificationCode(scopeStr, redirectURL, state)
+        else:
+            return self.getVerificationCode(scopeStr)
+        
+    def getVerificationCode(self,scope,):
         '''
         Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve
         access to a specific data scope.  
@@ -193,7 +200,7 @@ class BaseSpaceAPI(object):
          
         :param scope: The scope that access is requested for
         :param redirectURL: The redirect URL
-        :state: An optional state paramter that will passed through to redirect response
+        :state: An optional state parameter that will passed through to the redirect response
         '''
         data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
         return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
@@ -547,7 +554,7 @@ class BaseSpaceAPI(object):
         postData = {}
         postData['Name'] = name
         postData['Description'] = desc
-        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=1)
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''
@@ -619,13 +626,7 @@ class BaseSpaceAPI(object):
         with open(localDir + name, 'wb') as fp:
             shutil.copyfileobj(req, fp)
         return 1
-
-#    def largeFileDownload(self):
-#        '''
-#        Not yet implemented
-#        '''
-#        raise Exception('Not yet implemented')
-            
+           
     def __uploadMultipartUnit__(self,Id,partNumber,md5,data):
         '''
         Helper method, do not call
@@ -648,6 +649,13 @@ class BaseSpaceAPI(object):
 #        -H "Content-MD5: 9mvo6qaA+FL1sbsIn1tnTg==" \
 #        -T reportarchive.zipaa \
 #        -X PUT https://api.cloud-endor.illumina.com/v1pre2/files/7094087/parts/1
+
+#    def largeFileDownload(self):
+#        '''
+#        Not yet implemented
+#        '''
+#        raise Exception('Not yet implemented')
+
     
 #    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,verbose=0):
 #        '''
@@ -698,28 +706,3 @@ class BaseSpaceAPI(object):
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
-
-#        deprecated        
-#    def setAppResultState(self,Id,Status,Summary):
-#        '''
-#        Set the status of an AppResult object
-#        
-#        :param Id: The id of the AppResult
-#        :param Status: The status assignment string must
-#        :param Summary: The summary string
-#        '''
-#        # Parse inputs
-#        resourcePath = '/appresults/{Id}'
-#        resourcePath = resourcePath.replace('{format}', 'json')
-#        method = 'POST'
-#        resourcePath = resourcePath.replace('{Id}', Id)
-#        queryParams = {}
-#        headerParams = {}
-#        postData = {}
-#        statusAllowed = ['running', 'complete', 'needattention', 'aborted','error']
-#        if not Status.lower() in statusAllowed:
-#            raise Exception("AppResult state must be in " + str(statusAllowed))
-#        postData['status'] = Status.lower()
-#        postData['statussummary'] = Summary
-#        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method,\
-#                                      queryParams, headerParams,postData=postData,verbose=0)
