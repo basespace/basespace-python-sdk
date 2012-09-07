@@ -78,7 +78,8 @@ Initial release of BaseSpacePy
 
 COPYING / LICENSE
 =========================================
- -
+
+See License.txt in the basespace-python-sdk for details.
 
 KNOWN BUGS
 =========================================
