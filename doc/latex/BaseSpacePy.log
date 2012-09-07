@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.6)  6 SEP 2012 16:01
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.6)  7 SEP 2012 13:32
 entering extended mode
  %&-line parsing enabled.
 **BaseSpacePy.tex
@@ -891,14 +891,15 @@ File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 
 
 ] [2] [3]
-Overfull \hbox (22.42924pt too wide) in paragraph at lines 552--554
+Overfull \hbox (22.42924pt too wide) in paragraph at lines 578--580
 []\T1/ptm/m/n/10 For de-tails see: [][]https://developer.basespace.illumina.com
 /docs/content/documentation/authentication/obtaining-
  []
 
+[4]
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
-(Font)              Font shape `T1/phv/b/n' tried instead on input line 627.
-[4] [5] [6] [7] [8]
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 653.
+ [5] [6] [7] [8]
 Chapter 2.
 (./BaseSpacePy.ind [9
 
@@ -955,43 +956,38 @@ Underfull \hbox (badness 10000) in paragraph at lines 27--28
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 31--32
-[]\T1/ptm/m/n/10 getAccessibleRunsByUser() (BaseS-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 31--32
-\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
+Overfull \hbox (14.35977pt too wide) in paragraph at lines 31--32
+[]\T1/ptm/m/n/10 getAccess() (BaseS-pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 32--33
-[]\T1/ptm/m/n/10 getAccessStr() (BaseS-
+[]\T1/ptm/m/n/10 getAccessibleRunsByUser() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 33--34
-[]\T1/ptm/m/n/10 getAccessStr() (BaseS-pacePy.model.Project.Project
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 34--35
-[]\T1/ptm/m/n/10 getAccessStr() (BaseS-pacePy.model.Sample.Sample
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 35--36
-[]\T1/ptm/m/n/10 getAccessToken() (BaseS-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 35--36
+Underfull \hbox (badness 10000) in paragraph at lines 32--33
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
+Underfull \hbox (badness 10000) in paragraph at lines 33--34
+[]\T1/ptm/m/n/10 getAccessStr() (BaseS-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 34--35
+[]\T1/ptm/m/n/10 getAccessStr() (BaseS-pacePy.model.Project.Project
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 35--36
+[]\T1/ptm/m/n/10 getAccessStr() (BaseS-pacePy.model.Sample.Sample
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 36--37
-[]\T1/ptm/m/n/10 getAppResultById() (BaseS-
+[]\T1/ptm/m/n/10 getAccessToken() (BaseS-
  []
 
 
@@ -1001,7 +997,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 36--37
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 37--38
-[]\T1/ptm/m/n/10 getAppResultFiles() (BaseS-
+[]\T1/ptm/m/n/10 getAppResultById() (BaseS-
  []
 
 
@@ -1011,22 +1007,22 @@ Underfull \hbox (badness 10000) in paragraph at lines 37--38
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 38--39
-[]\T1/ptm/m/n/10 getAppResults() (BaseS-pacePy.model.Project.Project
+[]\T1/ptm/m/n/10 getAppResultFiles() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 39--40
-[]\T1/ptm/m/n/10 getAppResultsByProject() (BaseS-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 39--40
+Underfull \hbox (badness 10000) in paragraph at lines 38--39
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
+Underfull \hbox (badness 10000) in paragraph at lines 39--40
+[]\T1/ptm/m/n/10 getAppResults() (BaseS-pacePy.model.Project.Project
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 40--41
-[]\T1/ptm/m/n/10 getAppSession() (BaseS-
+[]\T1/ptm/m/n/10 getAppResultsByProject() (BaseS-
  []
 
 
@@ -1036,7 +1032,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 40--41
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 41--42
-[]\T1/ptm/m/n/10 getAvailableGenomes() (BaseS-
+[]\T1/ptm/m/n/10 getAppSession() (BaseS-
  []
 
 
@@ -1046,42 +1042,42 @@ Underfull \hbox (badness 10000) in paragraph at lines 41--42
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 42--43
+[]\T1/ptm/m/n/10 getAvailableGenomes() (BaseS-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 42--43
+\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--44
 []\T1/ptm/m/n/10 getCoverageMeta() (BaseS-pacePy.model.File.File
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 43--44
+Underfull \hbox (badness 10000) in paragraph at lines 44--45
 []\T1/ptm/m/n/10 getCoverageMetaInfo() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 43--44
+Underfull \hbox (badness 10000) in paragraph at lines 44--45
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Overfull \hbox (21.59973pt too wide) in paragraph at lines 44--45
+Overfull \hbox (21.59973pt too wide) in paragraph at lines 45--46
 []\T1/ptm/m/n/10 getFileById() (BaseS-pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 45--46
+Underfull \hbox (badness 10000) in paragraph at lines 46--47
 []\T1/ptm/m/n/10 getFiles() (BaseS-pacePy.model.AppResult.AppResult
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 47--48
-[]\T1/ptm/m/n/10 getFilesBySample() (BaseS-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 47--48
-\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
- []
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 48--49
-[]\T1/ptm/m/n/10 getGenomeById() (BaseS-
+[]\T1/ptm/m/n/10 getFilesBySample() (BaseS-
  []
 
 
@@ -1091,7 +1087,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 48--49
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 49--50
-[]\T1/ptm/m/n/10 getIntervalCoverage() (BaseS-
+[]\T1/ptm/m/n/10 getGenomeById() (BaseS-
  []
 
 
@@ -1101,24 +1097,24 @@ Underfull \hbox (badness 10000) in paragraph at lines 49--50
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 50--51
-[]\T1/ptm/m/n/10 getIntervalCoverage() (BaseS-pacePy.model.File.File
+[]\T1/ptm/m/n/10 getIntervalCoverage() (BaseS-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 50--51
+\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 [11
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 51--52
-[]\T1/ptm/m/n/10 getProjectById() (BaseS-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 51--52
-\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
+[]\T1/ptm/m/n/10 getIntervalCoverage() (BaseS-pacePy.model.File.File
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 52--53
-[]\T1/ptm/m/n/10 getProjectByUser() (BaseS-
+[]\T1/ptm/m/n/10 getProjectById() (BaseS-
  []
 
 
@@ -1128,7 +1124,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 52--53
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 53--54
-[]\T1/ptm/m/n/10 getSampleById() (BaseS-
+[]\T1/ptm/m/n/10 getProjectByUser() (BaseS-
  []
 
 
@@ -1138,103 +1134,113 @@ Underfull \hbox (badness 10000) in paragraph at lines 53--54
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 54--55
+[]\T1/ptm/m/n/10 getSampleById() (BaseS-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 54--55
+\T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 55--56
 []\T1/ptm/m/n/10 getSamples() (BaseS-pacePy.model.Project.Project
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 55--56
+Underfull \hbox (badness 10000) in paragraph at lines 56--57
 []\T1/ptm/m/n/10 getSamplesByProject() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 55--56
+Underfull \hbox (badness 10000) in paragraph at lines 56--57
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Overfull \hbox (25.31984pt too wide) in paragraph at lines 56--57
+Overfull \hbox (25.31984pt too wide) in paragraph at lines 57--58
 []\T1/ptm/m/n/10 getServerUri() (BaseS-pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Overfull \hbox (24.91983pt too wide) in paragraph at lines 57--58
+Overfull \hbox (24.91983pt too wide) in paragraph at lines 58--59
 []\T1/ptm/m/n/10 getUserById() (BaseS-pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 59--60
+Underfull \hbox (badness 10000) in paragraph at lines 60--61
 []\T1/ptm/m/n/10 getVariantMetadata() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 59--60
+Underfull \hbox (badness 10000) in paragraph at lines 60--61
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--61
+Underfull \hbox (badness 10000) in paragraph at lines 61--62
 []\T1/ptm/m/n/10 getVerificationCode() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--61
+Underfull \hbox (badness 10000) in paragraph at lines 61--62
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 61--62
+Underfull \hbox (badness 10000) in paragraph at lines 62--63
 []\T1/ptm/m/n/10 getWebVerificationCode() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 61--62
+Underfull \hbox (badness 10000) in paragraph at lines 62--63
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 65--66
+Underfull \hbox (badness 10000) in paragraph at lines 66--67
 []\T1/ptm/m/n/10 isInit() (BaseS-pacePy.model.AppResult.AppResult
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 69--70
+Underfull \hbox (badness 10000) in paragraph at lines 70--71
 []\T1/ptm/m/n/10 isValidFileOption() (BaseS-pacePy.model.File.File
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 73--74
+Underfull \hbox (badness 10000) in paragraph at lines 74--75
 []\T1/ptm/m/n/10 obtainAccessToken() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 73--74
+Underfull \hbox (badness 10000) in paragraph at lines 74--75
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 81--82
+Underfull \hbox (badness 10000) in paragraph at lines 82--83
 []\T1/ptm/m/n/10 QueryParameters (class in BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 86--87
+Underfull \hbox (badness 10000) in paragraph at lines 87--88
 []\T1/ptm/m/n/10 setAppSessionState() (BaseS-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 86--87
+Underfull \hbox (badness 10000) in paragraph at lines 87--88
 \T1/ptm/m/n/10 pacePy.api.BaseSpaceAPI.BaseSpaceAPI
  []
 
 [12]) (./BaseSpacePy.aux) ) 
 Here is how much of TeX's memory you used:
- 8042 strings out of 495061
- 111536 string characters out of 1182622
- 196045 words of memory out of 3000000
- 10943 multiletter control sequences out of 15000+50000
+ 8044 strings out of 495061
+ 111618 string characters out of 1182622
+ 196076 words of memory out of 3000000
+ 10944 multiletter control sequences out of 15000+50000
  55644 words of font info for 62 fonts, out of 3000000 for 9000
  29 hyphenation exceptions out of 8191
- 45i,11n,45p,388b,597s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 45i,11n,45p,388b,607s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.en
 c}</usr/share/texmf-texlive/fonts/type1/urw/courier/ucrb8a.pfb></usr/share/texm
 f-texlive/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-texlive/fonts/ty
@@ -1243,9 +1249,9 @@ uhvbo8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/helvetic/uhvr8a.pfb></usr
 /share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive
 /fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/tim
 es/utmri8a.pfb>
-Output written on BaseSpacePy.pdf (16 pages, 141593 bytes).
+Output written on BaseSpacePy.pdf (16 pages, 142940 bytes).
 PDF statistics:
- 265 PDF objects out of 1000 (max. 8388607)
- 81 named destinations out of 1000 (max. 500000)
+ 267 PDF objects out of 1000 (max. 8388607)
+ 82 named destinations out of 1000 (max. 500000)
  41 words of extra memory for PDF output out of 10000 (max. 10000000)
 
