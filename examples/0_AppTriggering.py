@@ -48,7 +48,9 @@ print myReference.Type
 
 # Now we will want to ask for more permission for the specific reference object
 print "\nWe can get out the specific project objects by using 'content':" 
-myProject =  myReference.Content
-print myProject
+myReference =  myReference.Content
+print myReference
 print "\nThe scope string for requesting write access to the reference object is:"
-print myProject.getAccessStr(scope='write')
+print myReference.getAccessStr(scope='write')
+
+# We will now demonstate how to request

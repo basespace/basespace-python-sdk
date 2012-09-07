@@ -166,6 +166,11 @@ class BaseSpaceAPI(object):
 #        pprint(obj)
         return self.__getTriggerObject__(obj) 
 
+    def getAccess(self,obj,accessType='write',web=0):
+        s = obj.getAccessStr(scope=accessType)
+        print s
+        
+
     def getVerificationCode(self,scope,device=1,redirect=''):
         '''
         Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve

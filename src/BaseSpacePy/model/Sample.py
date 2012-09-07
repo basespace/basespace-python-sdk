@@ -31,6 +31,9 @@ class Sample:
             ModelNotInitializedException - Indicated the Id variable is not set.
         '''
         if not self.Id: raise ModelNotInitializedException('The sample model has not been initialized yet') #@UndefinedVariable
+        
+    def getGenome(self):
+        pass
 
     def getAccessStr(self,scope='write'):
         '''
@@ -51,42 +54,13 @@ class Sample:
         self.isInit()
         return api.getFilesBySample(self.Id,queryPars=qp(myQp))
 
-        # 
         self.Name = None # str
-
-
-        # 
         self.HrefFiles = None # str
-
-
-        # 
         self.DateCreated = None # str
-
-
-        # 
         self.SampleNumber = None # int
-
-
-        # 
         self.Id = None # str
-
-
-        # 
         self.Href = None # str
-
-
-        # 
         self.UserOwnedBy = None # UserCompact
-
-
-        # 
         self.ExperimentName = None # str
-
-
-        # 
         self.Run = None # RunCompact
-
-
-        # 
         self.HrefGenome = None # str
-
