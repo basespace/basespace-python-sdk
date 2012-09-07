@@ -43,9 +43,9 @@ webbrowser.open_new(deviceInfo['verification_with_code_uri'])
 time.sleep(15)
 ## PAUSE HERE
 
-# Once the user has granted us access to objects we requested can
+# Once the user has granted us access to objects we requested, we can
 # get the basespace access token and start browsing simply by calling updatePriviliges
-# on the baseSpaceApi instance    
+# on the baseSpaceApi instance.
 code = deviceInfo['device_code']
 BSapi.updatePrivileges(code)
 
@@ -86,7 +86,7 @@ myCode = '<MY DEVICE CODE FROM REDICRECT>'
 #BSapiWeb.updatePrivileges(myCode)
 
 
-#################### Storing BaseSpaceApi using python pickle #################################
+#################### Storing BaseSpaceApi using python's pickle module #################################
 """
 It may sometimes be useful to preserve certain api objects across a series of http requests from the same user-session. 
 Here we demonstrate how the Python pickle module may be used to achieve this end.
