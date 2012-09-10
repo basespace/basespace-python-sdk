@@ -32,8 +32,8 @@ class Sample:
         '''
         if not self.Id: raise ModelNotInitializedException('The sample model has not been initialized yet') #@UndefinedVariable
         
-    def getGenome(self):
-        pass
+#    def getGenome(self):
+#        pass
 
     def getAccessStr(self,scope='write'):
         '''
