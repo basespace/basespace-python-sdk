@@ -24,7 +24,7 @@ when a user initiates an app. Further it's demonstrated how to automatically
 generate the scope strings to request access to the data object (a project or a sample)
 that the app was triggered to analyze.
 
-NOTE: You will need to fill client values for your app below
+NOTE: You will need to fill in client values for your app below
 """
 
 # initialize an authentication object using the key and secret from your app
