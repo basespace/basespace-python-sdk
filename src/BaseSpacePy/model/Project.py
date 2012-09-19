@@ -14,6 +14,7 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException
+from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
 class Project:
     '''
@@ -54,7 +55,7 @@ class Project:
         self.isInit()
         return scope + ' project ' + str(self.Id)
     
-    def getAppResults(self,api,statuses=[]):
+    def getAppResults(self,api,myQp={},statuses=[]):
         '''
         Returns a list of AppResult objects.
         
@@ -62,7 +63,7 @@ class Project:
         :param statuses: An optional list of statuses
         '''
         self.isInit()
-        return api.getAppResultsByProject(self.Id,statuses=statuses)
+        return api.getAppResultsByProject(self.Id, queryPars=qp(myQp),statuses=statuses)
         
     def getSamples(self,api):
         '''
