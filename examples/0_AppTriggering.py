@@ -67,7 +67,7 @@ print myReference.Type
 print "\nWe can get out the specific project objects by using 'content':" 
 myReference =  myReference.Content
 print myReference
-print "\nThe scope string for requesting write access to the reference object is:"
+print "\nThe scope string for requesting read access to the reference object is:"
 print myReference.getAccessStr(scope='write')
 
 # We can easily request write access to the reference object so our App can start contributing analysis
