@@ -251,6 +251,20 @@ the BaseSpaceAPI instance.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById">
+<tt class="descname">getAppSessionById</tt><big>(</big><em>id</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the appSession identified by id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>id</strong> &#8211; The id of the appSession</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes">
 <tt class="descname">getAvailableGenomes</tt><big>(</big><em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAvailableGenomes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of all available genomes</p>
@@ -524,6 +538,20 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setTimeout">
+<tt class="descname">setTimeout</tt><big>(</big><em>time</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setTimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the timeout in seconds for each request made</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time</strong> &#8211; timeout in second</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -570,7 +598,7 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 
 <dl class="method">
 <dt id="BaseSpacePy.model.Project.Project.getAppResults">
-<tt class="descname">getAppResults</tt><big>(</big><em>api</em>, <em>statuses=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Project.html#Project.getAppResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Project.Project.getAppResults" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAppResults</tt><big>(</big><em>api</em>, <em>myQp={}</em>, <em>statuses=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Project.html#Project.getAppResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Project.Project.getAppResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of AppResult objects.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

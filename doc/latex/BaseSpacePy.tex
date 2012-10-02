@@ -13,7 +13,7 @@
 
 
 \title{BaseSpacePy Documentation}
-\date{September 07, 2012}
+\date{October 02, 2012}
 \release{0.1.1}
 \author{Morten Kallberg}
 \newcommand{\sphinxlogo}{}
@@ -357,6 +357,19 @@ the BaseSpaceAPI instance.
 
 \end{fulllineitems}
 
+\index{getAppSessionById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById}\pysiglinewithargsret{\bfcode{getAppSessionById}}{\emph{id}}{}
+Returns the appSession identified by id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{id} -- The id of the appSession
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{getAvailableGenomes() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
@@ -642,6 +655,19 @@ Set the status of an AppResult object
 
 \end{fulllineitems}
 
+\index{setTimeout() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setTimeout}\pysiglinewithargsret{\bfcode{setTimeout}}{\emph{time}}{}
+Specify the timeout in seconds for each request made
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{time} -- timeout in second
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 
 \end{fulllineitems}
 
@@ -694,7 +720,7 @@ Returns the scope-string to used for requesting BaseSpace access to the object
 \index{getAppResults() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getAppResults}\pysiglinewithargsret{\bfcode{getAppResults}}{\emph{api}, \emph{statuses=}\optional{}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getAppResults}\pysiglinewithargsret{\bfcode{getAppResults}}{\emph{api}, \emph{myQp=\{\}}, \emph{statuses=}\optional{}}{}
 Returns a list of AppResult objects.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
