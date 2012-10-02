@@ -168,6 +168,14 @@ class BaseSpaceAPI(object):
             apiClient = APIClient(AccessToken=token,apiServer=self.apiServer,timeout=self.timeout)
             self.apiClient = apiClient
 
+    def getAppSessionById(self,id):
+        '''
+        Returns the appSession identified by id
+        
+        :param id: The id of the appSession
+        '''
+        return self.getAppSession(Id=id)
+
     def getAppSession(self,Id=''):
         '''
         Returns an AppSession instance containing user and data-type the app was triggered by/on 
