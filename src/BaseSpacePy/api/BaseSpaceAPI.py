@@ -21,6 +21,7 @@ import pycurl
 import httplib
 import cStringIO
 import json
+import os
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
@@ -48,6 +49,8 @@ class BaseSpaceAPI(object):
         self.secret         = clientSecret
         self.apiServer      = apiServer + version
         self.weburl         = apiServer.replace('api.','')
+        self.apiClient      = None
+        self.setTimeout(10)
         self.setAccessToken(AccessToken)        # logic for setting the access-token 
 
     def __updateAccessToken__(self,AccessToken):
@@ -147,10 +150,22 @@ class BaseSpaceAPI(object):
     def __repr__(self):
         return str(self)  
 
+    
+    def setTimeout(self,time):
+        '''
+        Specify the timeout in seconds for each request made
+        
+        :param time: timeout in second
+        '''
+        self.timeout = time
+        if self.apiClient:
+            self.apiClient.timeout = self.timeout
+        
+    
     def setAccessToken(self,token):
         self.apiClient      = None
         if token: 
-            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer)
+            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer,timeout=self.timeout)
             self.apiClient = apiClient
 
     def getAppSession(self,Id=''):
@@ -206,6 +221,8 @@ class BaseSpaceAPI(object):
             
         :param scope: The scope that access is requested for
         '''
+#        curlCall = 'curl -d "response_type=device_code" -d "client_id=' + self.key + '" -d "scope=' + scope + '" ' + self.apiServer + deviceURL
+#        print curlCall
         data = [('client_id',self.key),('scope', scope),('response_type','device_code')]
         return self.__makeCurlRequest__(data,self.apiServer + deviceURL)
 
@@ -645,7 +662,7 @@ class BaseSpaceAPI(object):
             req.headers['Range']='bytes=%s-%s' % (range[0], range[1])
         
         # Do the download
-        with open(localDir + name, 'wb') as fp:
+        with open(os.path.join(localDir,name), 'wb') as fp:
             shutil.copyfileobj(req, fp)
         return 1
            

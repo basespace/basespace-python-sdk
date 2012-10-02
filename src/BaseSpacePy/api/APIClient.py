@@ -31,12 +31,13 @@ from model import *
 
 
 class APIClient:
-    def __init__(self, AccessToken=None, apiServer=None):
+    def __init__(self, AccessToken=None, apiServer=None,timeout=10):
         if AccessToken == None:
             raise Exception('You must pass an access token when instantiating the '
                             'APIClient')
-        self.apiKey = AccessToken
-        self.apiServer = apiServer
+        self.apiKey     = AccessToken
+        self.apiServer  = apiServer
+        self.timeout    = timeout
 
     def __forcePostCall__(self,resourcePath,postData,headers,data=None):
         '''
@@ -127,7 +128,7 @@ class APIClient:
 #            print "!!! " + str(data)
             if not forcePost:
                 if data and not len(data): data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
-                request = urllib2.Request(url=url, headers=headers, data=data)
+                request = urllib2.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:                                    # use pycurl to force a post call, even w/o data
                 response = self.__forcePostCall__(forcePostUrl,sentQueryParams,headers)
             if method in ['PUT', 'DELETE']: #urllib doesnt do put and delete, default to pycurl here
@@ -141,7 +142,8 @@ class APIClient:
         if not forcePost and not method in ['PUT', 'DELETE']:                                      # the normal case
 #            print url
             #print request
-            response = urllib2.urlopen(request).read()
+#            print "request with timeout=" + str(self.timeout)
+            response = urllib2.urlopen(request,timeout=self.timeout).read()
             
         try:
             data = json.loads(response)
