@@ -608,6 +608,9 @@ class BaseSpaceAPI(object):
         method = 'POST'
         resourcePath = resourcePath.replace('{ProjectId}', Id)
         queryParams = {}
+        headerParams = {}
+        postData = {}
+        
         if appSessionId:        queryParams['appsessionid'] = appSessionId
         if appSessionId==None:  queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
         
@@ -617,18 +620,15 @@ class BaseSpaceAPI(object):
             for s in samples:
                 d = {"Rel":"using","Type": "Sample", "HrefContent": self.version + '/samples/' + s.Id}
                 ref.append(d)
-
+            postData['References']  = ref
         # case, an appSession is provided, we need to check if the a
         if queryParams.has_key('appsessionid'):
             session = self.getAppSession(Id=queryParams['appsessionid'])
             if not session.canWorkOn():
                 raise Exception('AppSession status must be "running," to create and AppResults. Current status is ' + session.Status)
             
-        headerParams = {}
-        postData = {}
         postData['Name']        = name
         postData['Description'] = desc
-        postData['References']  = ref
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
