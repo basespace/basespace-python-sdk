@@ -61,6 +61,16 @@ To test that everything is working as expected, launch a Python prompt and try i
 CHANGELOG
 =========================================
 
+v 0.1.2
+-----------------------------------------
+- Added use of os.path.join when forming path in file-download from a Sample
+- Added support for custom http-timeouts in the BaseSpaceAPI class
+- Added link to Sample class in AppResult class
+- Added method 
+- Introduced method getAppSessionByID in BaseSpaceAPI
+- Introduced the new fields IsPairedEnd, Read1, Read2, NumReadsRaw, and NumReadsPF to the Sample class
+- Introduced new date format
+
 v 0.1.1
 -----------------------------------------
 Update to support changes in BaseSpace REST specification version v1pre3. Specific changes are:
