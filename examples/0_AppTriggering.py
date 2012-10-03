@@ -72,8 +72,11 @@ print myReference.getAccessStr(scope='write')
 
 # We can easily request write access to the reference object so our App can start contributing analysis
 # by default we ask for write permission and authentication for a device
-accessMap = BSapi.getAccess(myReference)
-print "\nWe get the following access map"
+accessMap       = BSapi.getAccess(myReference,accessType='write')
+# We may also limit our request ti read access only
+readAccessMaps  = BSapi.getAccess(myReference,accessType='read')
+
+print "\nWe get the following access map for the write request"
 print accessMap
 
 ## PAUSE HERE
