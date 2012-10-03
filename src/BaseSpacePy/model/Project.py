@@ -74,7 +74,7 @@ class Project:
         self.isInit()
         return api.getSamplesByProject(self.Id)
     
-    def createAppResult(self,api,name,desc,appSessionId=None):
+    def createAppResult(self,api,name,desc,appSessionId=None,samples=[]):
         '''
         Return a newly created app result object
         
@@ -83,7 +83,7 @@ class Project:
         :param desc: A describtion of the app result
         '''
         self.isInit()
-        return api.createAppResult(self.Id,name,desc,appSessionId=appSessionId)
+        return api.createAppResult(self.Id,name,desc,appSessionId=appSessionId,samples=samples)
 
         self.Name           = None # str
         self.HrefSamples    = None # str

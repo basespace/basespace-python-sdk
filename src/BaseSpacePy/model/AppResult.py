@@ -31,7 +31,8 @@ class AppResult:
             'UserOwnedBy': 'UserCompact',
             'StatusDetail': 'str',
             'HrefGenome': 'str',
-            'AppSession':'AppSession'
+            'AppSession':'AppSession',
+            'References':'dict'
         }
     def __str__(self):
         return "AppResult: " + self.Name #+ " - " + str(self.Status)
@@ -56,6 +57,22 @@ class AppResult:
         '''
         try: self.Id
         except: raise ModelNotInitializedException('The AppResult model has not been initialized yet')
+    
+    def getReferencedSamples(self,api):
+        '''
+        Returns a list of sample objects references by the AppResult. NOTE this method makes on request to 
+        '''
+        res = []
+        
+        for s in self.References:
+            try:
+                if s['Type']=='Sample':
+                    id = s['HrefContent'].split('/')[-1]
+                    sample = api.getSampleById(id)
+                    res.append(sample)
+            except:
+                e=1
+        return res
     
     def getFiles(self,api,myQp={}):
         '''

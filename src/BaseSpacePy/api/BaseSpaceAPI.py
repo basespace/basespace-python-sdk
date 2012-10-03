@@ -48,6 +48,7 @@ class BaseSpaceAPI(object):
         self.key            = clientKey
         self.secret         = clientSecret
         self.apiServer      = apiServer + version
+        self.version        = version
         self.weburl         = apiServer.replace('api.','')
         self.apiClient      = None
         self.setTimeout(10)
@@ -189,7 +190,7 @@ class BaseSpaceAPI(object):
             resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
         else:
             resourcePath = resourcePath.replace('{AppSessionId}', Id)
-        print resourcePath
+        #print resourcePath
         response = cStringIO.StringIO()
         c = pycurl.Curl()
         c.setopt(pycurl.URL,resourcePath)
@@ -403,7 +404,7 @@ class BaseSpaceAPI(object):
         queryParams = queryPars.getParameterDict()
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
-        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams)
+        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams,verbose=0)
 
     def getSampleById(self, Id, ):
         '''
@@ -572,15 +573,16 @@ class BaseSpaceAPI(object):
         return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse,resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
      
-    def createAppResult(self,Id,name,desc,appSessionId=None):
+    def createAppResult(self,Id,name,desc,samples=[],appSessionId=None):
         '''
         Create an AppResult object
         
-        :param Id: The id for the project in which the AppResult is to be added
+        :param Id: The id of the project in which the AppResult is to be added
         :param name: The name of the AppResult
         :param desc: A describtion of the AppResult
-        :param appSessionId: (Optional) If not appSessionId is used the one used to initialize the BaseSpaceAPI instance
-        will be used. If appSessionId is set equal an empty string, a new appsession we be created for the 
+        :param samples: (Optional) The samples 
+        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance
+        will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the 
         '''
         # Parse inputs
         resourcePath = '/projects/{ProjectId}/appresults'
@@ -588,10 +590,17 @@ class BaseSpaceAPI(object):
         method = 'POST'
         resourcePath = resourcePath.replace('{ProjectId}', Id)
         queryParams = {}
-        if appSessionId: queryParams['appsessionid'] = appSessionId
-        if appSessionId==None: queryParams['appsessionid'] = self.appSessionId # default case
+        if appSessionId:        queryParams['appsessionid'] = appSessionId
+        if appSessionId==None:  queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
         
-        # case, an appSession is provided, we need to check if
+        # add the sample references
+        if len(samples):
+            ref = []
+            for s in samples:
+                d = {"Rel":"using","Type": "Sample", "HrefContent": self.version + '/samples/' + s.Id}
+                ref.append(d)
+
+        # case, an appSession is provided, we need to check if the a
         if queryParams.has_key('appsessionid'):
             session = self.getAppSession(Id=queryParams['appsessionid'])
             if not session.canWorkOn():
@@ -599,9 +608,10 @@ class BaseSpaceAPI(object):
             
         headerParams = {}
         postData = {}
-        postData['Name'] = name
+        postData['Name']        = name
         postData['Description'] = desc
-        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
+        postData['References']  = ref
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=1)
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''

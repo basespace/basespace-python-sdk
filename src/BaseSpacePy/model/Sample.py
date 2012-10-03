@@ -31,8 +31,14 @@ class Sample:
             'UserOwnedBy': 'UserCompact',
             'ExperimentName': 'str',
             'Run': 'RunCompact',
-            'HrefGenome': 'str'
+            'HrefGenome': 'str',
+            'IsPairedEnd':'int',
+            'Read1':'int',
+            'Read2':'int',
+            'NumReadsRaw':'int',
+            'NumReadsPF':'int',
         }
+
     def __str__(self):
         return self.Name
     def __repr__(self):
@@ -68,13 +74,20 @@ class Sample:
         self.isInit()
         return api.getFilesBySample(self.Id,queryPars=qp(myQp))
 
-        self.Name = None # str
-        self.HrefFiles = None # str
-        self.DateCreated = None # str
-        self.SampleNumber = None # int
-        self.Id = None # str
-        self.Href = None # str
-        self.UserOwnedBy = None # UserCompact
+        self.Name           = None # str
+        self.HrefFiles      = None # str
+        self.DateCreated    = None # str
+        self.SampleNumber   = None # int
+        self.Id             = None # str
+        self.Href           = None # str
+        self.UserOwnedBy    = None # UserCompact
         self.ExperimentName = None # str
-        self.Run = None # RunCompact
-        self.HrefGenome = None # str
+        self.Run            = None # RunCompact
+        self.HrefGenome     = None # str
+        self.IsPairedEnd    = None # int
+        self.Read1          = None # int
+        self.Read2          = None # int
+        self.NumReadsRaw    = None # int
+        self.NumReadsPF     = None # int
+        
+#IsPairedEnd, Read1, Read2, NumReadsRaw, and NumReadsPF
