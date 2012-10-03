@@ -142,7 +142,9 @@ class BaseSpaceAPI(object):
         if type.lower()=='project':
             return tempApi.deserialize(d, Project.Project)
         if type.lower()=='sample':
-            return tempApi.deserialize(d, Sample.Sample)        
+            return tempApi.deserialize(d, Sample.Sample)
+        if type.lower()=='appresult':
+            return tempApi.deserialize(d, AppResult.AppResult)        
         return d
         
     def __str__(self):
@@ -419,7 +421,7 @@ class BaseSpaceAPI(object):
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=1)
 
     def getFilesBySample(self, Id, queryPars=qp()):
         '''
@@ -736,9 +738,9 @@ class BaseSpaceAPI(object):
 #        # prepare multi-par upload objects
 #        myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,verbose=verbose)
 #        return myMpu
-
-    def markFileState(self,Id):
-        pass
+#
+#    def markFileState(self,Id):
+#        pass
 
     def setAppSessionState(self,Id,Status,Summary):
         '''

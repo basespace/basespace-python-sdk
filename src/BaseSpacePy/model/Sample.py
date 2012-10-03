@@ -37,6 +37,7 @@ class Sample:
             'Read2':'int',
             'NumReadsRaw':'int',
             'NumReadsPF':'int',
+            'References':'dict'
         }
 
     def __str__(self):
@@ -64,6 +65,20 @@ class Sample:
         self.isInit()
         return scope + ' sample ' + str(self.Id)
     
+    def getReferencedAppResults(self,api):
+        '''
+        Return the AppResults referenced by this sample. Note the returned AppResult objects
+        do not have their "References" field set, to get a fully populate AppResult object
+        you must use getAppResultById in BaseSpaceAPI.
+        '''
+        res = []
+        for s in self.References:
+            if s['Type']=='AppResult':
+                jsonAppResult = s['Content']
+                myAR = api.__serializeObject__(jsonAppResult,"AppResult")
+                res.append(myAR)
+        return res
+    
     def getFiles(self,api, myQp={}):
         '''
         Returns a list of File objects
@@ -89,5 +104,4 @@ class Sample:
         self.Read2          = None # int
         self.NumReadsRaw    = None # int
         self.NumReadsPF     = None # int
-        
-#IsPairedEnd, Read1, Read2, NumReadsRaw, and NumReadsPF
+        self.References     = None # dict

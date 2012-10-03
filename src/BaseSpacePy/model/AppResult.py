@@ -57,19 +57,29 @@ class AppResult:
         '''
         try: self.Id
         except: raise ModelNotInitializedException('The AppResult model has not been initialized yet')
+
+    def getReferencedSamplesIds(self):
+        '''
+        Return a list of sample ids for the samples referenced.
+        '''
+        res= []
+        for s in self.References:
+            if s['Type']=='Sample':
+                id = s['HrefContent'].split('/')[-1]
+                res.append(id)
+        return res
+        
     
     def getReferencedSamples(self,api):
         '''
-        Returns a list of sample objects references by the AppResult. NOTE this method makes on request to 
+        Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample
         '''
         res = []
-        
-        for s in self.References:
+        ids = self.getReferencedSamplesIds()
+        for id in ids:
             try:
-                if s['Type']=='Sample':
-                    id = s['HrefContent'].split('/')[-1]
-                    sample = api.getSampleById(id)
-                    res.append(sample)
+                sample = api.getSampleById(id)
+                res.append(sample)
             except:
                 e=1
         return res
@@ -122,3 +132,4 @@ class AppResult:
         self.UserOwnedBy        = None # UserCompact
         self.StatusDetail       = None
         self.HrefGenome         = None
+        self.References         = None
