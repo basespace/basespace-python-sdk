@@ -24,7 +24,7 @@
   \item File (class in BaseSpacePy.model.File), \hyperpage{7}
   \item fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
   \item filterVariant() (BaseSpacePy.model.File.File method), \hyperpage{7}
-  \item filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
+  \item filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
 
   \indexspace
   \bigletter G
@@ -45,13 +45,16 @@
   \item getCoverageMetaInfo() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getFileById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getFiles() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
-  \item getFiles() (BaseSpacePy.model.Sample.Sample method), \hyperpage{6}
+  \item getFiles() (BaseSpacePy.model.Sample.Sample method), \hyperpage{7}
   \item getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getIntervalCoverage() (BaseSpacePy.model.File.File method), \hyperpage{7}
   \item getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item getReferencedAppResults() (BaseSpacePy.model.Sample.Sample method), \hyperpage{7}
+  \item getReferencedSamples() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
+  \item getReferencedSamplesIds() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
   \item getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
   \item getSamples() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
   \item getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
@@ -72,7 +75,7 @@
 
   \indexspace
   \bigletter O
-  \item obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
+  \item obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{5}
 
   \indexspace
   \bigletter P

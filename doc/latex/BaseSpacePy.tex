@@ -155,12 +155,12 @@ Uploads a file associated with an AppResult to BaseSpace and returns the corresp
 \index{createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{Id}, \emph{name}, \emph{desc}, \emph{appSessionId=None}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{Id}, \emph{name}, \emph{desc}, \emph{samples=}\optional{}, \emph{appSessionId=None}}{}
 Create an AppResult object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The id for the project in which the AppResult is to be added
+\textbf{Id} -- The id of the project in which the AppResult is to be added
 
 \item {} 
 \textbf{name} -- The name of the AppResult
@@ -169,13 +169,16 @@ Create an AppResult object
 \textbf{desc} -- A describtion of the AppResult
 
 \item {} 
-\textbf{appSessionId} -- (Optional) If not appSessionId is used the one used to initialize the BaseSpaceAPI instance
+\textbf{samples} -- (Optional) The samples
+
+\item {} 
+\textbf{appSessionId} -- (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance
 
 \end{itemize}
 
 \end{description}\end{quote}
 
-will be used. If appSessionId is set equal an empty string, a new appsession we be created for the
+will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the
 
 \end{fulllineitems}
 
@@ -685,7 +688,7 @@ Represents a BaseSpace Project object.
 \index{createAppResult() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{api}, \emph{name}, \emph{desc}, \emph{appSessionId=None}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{api}, \emph{name}, \emph{desc}, \emph{appSessionId=None}, \emph{samples=}\optional{}}{}
 Return a newly created app result object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -833,6 +836,22 @@ Returns a list of file objects
 
 \end{fulllineitems}
 
+\index{getReferencedSamples() (BaseSpacePy.model.AppResult.AppResult method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.getReferencedSamples}\pysiglinewithargsret{\bfcode{getReferencedSamples}}{\emph{api}}{}
+Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample
+
+\end{fulllineitems}
+
+\index{getReferencedSamplesIds() (BaseSpacePy.model.AppResult.AppResult method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds}\pysiglinewithargsret{\bfcode{getReferencedSamplesIds}}{}{}
+Return a list of sample ids for the samples referenced.
+
+\end{fulllineitems}
+
 \index{isInit() (BaseSpacePy.model.AppResult.AppResult method)}
 
 \begin{fulllineitems}
@@ -914,6 +933,16 @@ Returns a list of File objects
 \end{itemize}
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getReferencedAppResults() (BaseSpacePy.model.Sample.Sample method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.Sample.Sample.getReferencedAppResults}\pysiglinewithargsret{\bfcode{getReferencedAppResults}}{\emph{api}}{}
+Return the AppResults referenced by this sample. Note the returned AppResult objects
+do not have their ``References'' field set, to get a fully populate AppResult object
+you must use getAppResultById in BaseSpaceAPI.
 
 \end{fulllineitems}
 

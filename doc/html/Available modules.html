@@ -78,23 +78,24 @@
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult">
-<tt class="descname">createAppResult</tt><big>(</big><em>Id</em>, <em>name</em>, <em>desc</em>, <em>appSessionId=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.createAppResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">createAppResult</tt><big>(</big><em>Id</em>, <em>name</em>, <em>desc</em>, <em>samples=</em><span class="optional">[</span><span class="optional">]</span>, <em>appSessionId=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.createAppResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an AppResult object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Id</strong> &#8211; The id for the project in which the AppResult is to be added</li>
+<li><strong>Id</strong> &#8211; The id of the project in which the AppResult is to be added</li>
 <li><strong>name</strong> &#8211; The name of the AppResult</li>
 <li><strong>desc</strong> &#8211; A describtion of the AppResult</li>
-<li><strong>appSessionId</strong> &#8211; (Optional) If not appSessionId is used the one used to initialize the BaseSpaceAPI instance</li>
+<li><strong>samples</strong> &#8211; (Optional) The samples</li>
+<li><strong>appSessionId</strong> &#8211; (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>will be used. If appSessionId is set equal an empty string, a new appsession we be created for the</p>
+<p>will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the</p>
 </dd></dl>
 
 <dl class="method">
@@ -565,7 +566,7 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 <dd><p>Represents a BaseSpace Project object.</p>
 <dl class="method">
 <dt id="BaseSpacePy.model.Project.Project.createAppResult">
-<tt class="descname">createAppResult</tt><big>(</big><em>api</em>, <em>name</em>, <em>desc</em>, <em>appSessionId=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Project.html#Project.createAppResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Project.Project.createAppResult" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">createAppResult</tt><big>(</big><em>api</em>, <em>name</em>, <em>desc</em>, <em>appSessionId=None</em>, <em>samples=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Project.html#Project.createAppResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Project.Project.createAppResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a newly created app result object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -704,6 +705,18 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.model.AppResult.AppResult.getReferencedSamples">
+<tt class="descname">getReferencedSamples</tt><big>(</big><em>api</em><big>)</big><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.getReferencedSamples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds">
+<tt class="descname">getReferencedSamplesIds</tt><big>(</big><big>)</big><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of sample ids for the samples referenced.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.model.AppResult.AppResult.isInit">
 <tt class="descname">isInit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/AppResult.html#AppResult.isInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.isInit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is called to test if the Project instance has been initialized</p>
@@ -773,6 +786,14 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.model.Sample.Sample.getReferencedAppResults">
+<tt class="descname">getReferencedAppResults</tt><big>(</big><em>api</em><big>)</big><a class="headerlink" href="#BaseSpacePy.model.Sample.Sample.getReferencedAppResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the AppResults referenced by this sample. Note the returned AppResult objects
+do not have their &#8220;References&#8221; field set, to get a fully populate AppResult object
+you must use getAppResultById in BaseSpaceAPI.</p>
 </dd></dl>
 
 <dl class="method">
