@@ -40,7 +40,7 @@ class BaseSpaceAPI(object):
     The main API class used for all communication with with the REST server
     '''
 
-    def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId, AccessToken=''):
+    def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId='', AccessToken=''):
         if not apiServer[-1]=='/': apiServer = apiServer + '/'
         #if not version[-1]=='/': version = version + '/'
         
@@ -177,6 +177,8 @@ class BaseSpaceAPI(object):
         
         :param id: The id of the appSession
         '''
+        # TO_DO make special case for access-token only retrieval
+        
         return self.getAppSession(Id=id)
 
     def getAppSession(self,Id=''):
@@ -187,6 +189,12 @@ class BaseSpaceAPI(object):
         
         :param Id: (Optional) AppSession id, if not supplied the AppSession id used to initialize the 
         '''
+        
+        if (not self.appSessionId) and (not Id):
+            raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method getAppSession")
+#        if (not id) and (not self.key):
+#            raise Exception("This BaseSpaceAPI instance has no client_secret (key) set and no alternative id was supplied for method getAppSession")
+        
         resourcePath = self.apiServer + '/appsessions/{AppSessionId}'
         if not Id:
             resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
@@ -201,7 +209,6 @@ class BaseSpaceAPI(object):
         c.perform()
         c.close()
         obj = json.loads(response.getvalue())
-#        pprint(obj)
         return self.__getTriggerObject__(obj) 
 
     def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
@@ -234,6 +241,8 @@ class BaseSpaceAPI(object):
         '''
 #        curlCall = 'curl -d "response_type=device_code" -d "client_id=' + self.key + '" -d "scope=' + scope + '" ' + self.apiServer + deviceURL
 #        print curlCall
+        if (not self.key):
+            raise Exception("This BaseSpaceAPI instance has no client_secret (key) set and no alternative id was supplied for method getVerificationCode")
         data = [('client_id',self.key),('scope', scope),('response_type','device_code')]
         return self.__makeCurlRequest__(data,self.apiServer + deviceURL)
 
@@ -245,6 +254,9 @@ class BaseSpaceAPI(object):
         :param redirectURL: The redirect URL
         :state: An optional state parameter that will passed through to the redirect response
         '''
+        
+        if (not self.key):
+            raise Exception("This BaseSpaceAPI instance has no client_id (key) set and no alternative id was supplied for method getVerificationCode")
         data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
         return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
 
@@ -254,6 +266,8 @@ class BaseSpaceAPI(object):
         
         :param deviceCode: The device code returned by the verification code method
         '''
+        if (not self.key) or (not self.secret):
+            raise Exception("This BaseSpaceAPI instance has either no client_secret or no client_id set and no alternative id was supplied for method getVerificationCode")
         data = [('client_id',self.key),('client_secret', self.secret),('code',deviceCode),('grant_type','device'),('redirect_uri','google.com')]
         dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
         return dict['access_token']
@@ -421,7 +435,7 @@ class BaseSpaceAPI(object):
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=1)
+        return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=0)
 
     def getFilesBySample(self, Id, queryPars=qp()):
         '''
@@ -586,7 +600,9 @@ class BaseSpaceAPI(object):
         :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance
         will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the 
         '''
-        # Parse inputs
+        if (not self.appSessionId) and (not appSessionId):
+            raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method createAppResult")
+        
         resourcePath = '/projects/{ProjectId}/appresults'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'POST'
@@ -613,7 +629,7 @@ class BaseSpaceAPI(object):
         postData['Name']        = name
         postData['Description'] = desc
         postData['References']  = ref
-        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=1)
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType, multipart=0):
         '''
