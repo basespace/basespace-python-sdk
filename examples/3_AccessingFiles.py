@@ -28,7 +28,7 @@ AppSessionId               = ""
 accessToken                = ""
 helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
-BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
+BaseSpaceUrl               = 'https://api.basespace.illumina.com/'
 version                    = 'v1pre3'
 
 # First, create a client for making calls for this user session 
