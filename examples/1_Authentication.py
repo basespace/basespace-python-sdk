@@ -39,7 +39,7 @@ AppSessionId               = ""
 # test if client variables have been set
 helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
 
-BaseSpaceUrl               = 'https://api.cloud-endor.illumina.com/'
+BaseSpaceUrl               = 'https://api.basespace.illumina.com/'
 version                    = 'v1pre3'
 
 
