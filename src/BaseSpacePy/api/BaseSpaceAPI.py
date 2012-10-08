@@ -292,7 +292,7 @@ class BaseSpaceAPI(object):
 
     def createProject(self,Name):
         '''
-        Creates a project with the specified name and returns the project object. 
+        Creates a project with the specified name and returns a project object. 
         If a project with this name already exists, the existing project is returned.
         
         :param Name: Name of the project
