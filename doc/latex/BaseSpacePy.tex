@@ -13,7 +13,7 @@
 
 
 \title{BaseSpacePy Documentation}
-\date{October 02, 2012}
+\date{October 08, 2012}
 \release{0.1.2}
 \author{Morten Kallberg}
 \newcommand{\sphinxlogo}{}
@@ -122,7 +122,7 @@
 \label{Available modules:api}\index{BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey}, \emph{clientSecret}, \emph{apiServer}, \emph{version}, \emph{appSessionId}, \emph{AccessToken='`}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey}, \emph{clientSecret}, \emph{apiServer}, \emph{version}, \emph{appSessionId='`}, \emph{AccessToken='`}}{}
 The main API class used for all communication with with the REST server
 \index{appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
@@ -179,6 +179,20 @@ Create an AppResult object
 \end{description}\end{quote}
 
 will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the
+
+\end{fulllineitems}
+
+\index{createProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject}\pysiglinewithargsret{\bfcode{createProject}}{\emph{Name}}{}
+Creates a project with the specified name and returns the project object. 
+If a project with this name already exists, the existing project is returned.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{Name} -- Name of the project
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 

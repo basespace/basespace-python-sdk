@@ -1,6 +1,7 @@
 \indexentry{BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI)|hyperpage}{1}
 \indexentry{appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{1}
 \indexentry{createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{1}
+\indexentry{createProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{1}
 \indexentry{fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{1}
 \indexentry{filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{2}
 \indexentry{getAccess() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{2}
@@ -17,7 +18,7 @@
 \indexentry{getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
 \indexentry{getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
 \indexentry{getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
-\indexentry{getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
+\indexentry{getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
 \indexentry{getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
 \indexentry{getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
 \indexentry{getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
@@ -44,8 +45,8 @@
 \indexentry{getReferencedSamplesIds() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{6}
 \indexentry{isInit() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{6}
 \indexentry{uploadFile() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{6}
-\indexentry{Sample (class in BaseSpacePy.model.Sample)|hyperpage}{6}
-\indexentry{getAccessStr() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{6}
+\indexentry{Sample (class in BaseSpacePy.model.Sample)|hyperpage}{7}
+\indexentry{getAccessStr() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{7}
 \indexentry{getFiles() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{7}
 \indexentry{getReferencedAppResults() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{7}
 \indexentry{isInit() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{7}
@@ -53,7 +54,7 @@
 \indexentry{downloadFile() (BaseSpacePy.model.File.File method)|hyperpage}{7}
 \indexentry{filterVariant() (BaseSpacePy.model.File.File method)|hyperpage}{7}
 \indexentry{getCoverageMeta() (BaseSpacePy.model.File.File method)|hyperpage}{7}
-\indexentry{getIntervalCoverage() (BaseSpacePy.model.File.File method)|hyperpage}{7}
+\indexentry{getIntervalCoverage() (BaseSpacePy.model.File.File method)|hyperpage}{8}
 \indexentry{getVariantMeta() (BaseSpacePy.model.File.File method)|hyperpage}{8}
 \indexentry{isInit() (BaseSpacePy.model.File.File method)|hyperpage}{8}
 \indexentry{isValidFileOption() (BaseSpacePy.model.File.File method)|hyperpage}{8}

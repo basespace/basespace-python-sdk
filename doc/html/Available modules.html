@@ -53,7 +53,7 @@
 <h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI">
-<em class="property">class </em><tt class="descclassname">BaseSpacePy.api.BaseSpaceAPI.</tt><tt class="descname">BaseSpaceAPI</tt><big>(</big><em>clientKey</em>, <em>clientSecret</em>, <em>apiServer</em>, <em>version</em>, <em>appSessionId</em>, <em>AccessToken=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">BaseSpacePy.api.BaseSpaceAPI.</tt><tt class="descname">BaseSpaceAPI</tt><big>(</big><em>clientKey</em>, <em>clientSecret</em>, <em>apiServer</em>, <em>version</em>, <em>appSessionId=''</em>, <em>AccessToken=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI" title="Permalink to this definition">¶</a></dt>
 <dd><p>The main API class used for all communication with with the REST server</p>
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload">
@@ -96,6 +96,21 @@
 </tbody>
 </table>
 <p>will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject">
+<tt class="descname">createProject</tt><big>(</big><em>Name</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a project with the specified name and returns the project object. 
+If a project with this name already exists, the existing project is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Name</strong> &#8211; Name of the project</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

@@ -14,6 +14,7 @@
   \bigletter C
   \item createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
   \item createAppResult() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
+  \item createProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{1}
 
   \indexspace
   \bigletter D
@@ -32,7 +33,7 @@
   \item getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
   \item getAccessStr() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
   \item getAccessStr() (BaseSpacePy.model.Project.Project method), \hyperpage{5}
-  \item getAccessStr() (BaseSpacePy.model.Sample.Sample method), \hyperpage{6}
+  \item getAccessStr() (BaseSpacePy.model.Sample.Sample method), \hyperpage{7}
   \item getAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
   \item getAppResultById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
   \item getAppResultFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{2}
@@ -49,8 +50,8 @@
   \item getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
   \item getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
-  \item getIntervalCoverage() (BaseSpacePy.model.File.File method), \hyperpage{7}
-  \item getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{3}
+  \item getIntervalCoverage() (BaseSpacePy.model.File.File method), \hyperpage{8}
+  \item getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
   \item getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{4}
   \item getReferencedAppResults() (BaseSpacePy.model.Sample.Sample method), \hyperpage{7}
   \item getReferencedSamples() (BaseSpacePy.model.AppResult.AppResult method), \hyperpage{6}
@@ -87,7 +88,7 @@
 
   \indexspace
   \bigletter S
-  \item Sample (class in BaseSpacePy.model.Sample), \hyperpage{6}
+  \item Sample (class in BaseSpacePy.model.Sample), \hyperpage{7}
   \item setAppSessionState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{5}
   \item setStatus() (BaseSpacePy.model.AppSession.AppSession method), \hyperpage{6}
   \item setTimeout() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method), \hyperpage{5}
