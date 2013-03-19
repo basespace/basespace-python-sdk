@@ -308,6 +308,30 @@ class BaseSpaceAPI(object):
         
         return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
+    def createPurchase(self,products,returnurl):
+        '''
+        Creates a purchase with the specified products
+        
+        :param Name: List of dicts to purchase, each of which has a product 'id'
+            and 'quantity' to purchase
+        '''        
+        #: v1pre3/projects, it requires 1 input parameter which is Name
+        resourcePath            = '/purchases/'
+        resourcePath            = resourcePath.replace('{format}', 'json')
+        method                  = 'POST'
+        # TODO check that return url is well-formed url?
+        queryParams             = {}
+        # TODO check that token is set?
+        headerParams            = {'x-access-token':self.apiClient.apiKey}
+        postData                = {}
+        # TODO validate 'products' is list of dicts with 'id' and 'quantity'
+        postData['Products']    = products
+        
+        response = self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
+        # TODO unneccessary hard-coding
+        response.ShoppingCartUrl = 'https://hoth-store.basespace.illumina.com/applications/' + response.Id + '/purchases?returnurl=' + returnurl
+        return response
+            
     
     
     def getUserById(self, Id, ):
@@ -372,6 +396,21 @@ class BaseSpaceAPI(object):
         headerParams = {}
         return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams)
            
+    def getPurchaseById(self, Id, ):
+        '''
+        Request a purchase object by Id
+        
+        :param Id: The Id of the purchase
+        '''
+        # Parse inputs
+        resourcePath = '/purchase/{Id}'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams)
+
     def getProjectByUser(self, Id, queryPars=qp()):
         '''
         Returns a list available projects for a User with the specified Id

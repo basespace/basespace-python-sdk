@@ -44,5 +44,9 @@ __all__= [
  'AppSession',
  'AppResult',
  'AppSessionLaunchObject',
- 'Application'
+ 'Application',
+ 'Purchase',
+ 'PurchaseResponse',
+ 'PurchaseType',
+ 'Product'
  ]
