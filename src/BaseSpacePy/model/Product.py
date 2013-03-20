@@ -13,4 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__all__ = ['APIClient','BaseSpaceAPI','BillingAPI','BaseAPI','BaseSpaceException']
+class Product:
+
+    def __init__(self):
+        self.swaggerTypes = {
+            'Id': 'str',
+            'Name': 'str',
+            'Cost': 'str',
+            'Quantity': 'str',
+        }
+
+    def __str__(self):
+        return str(self.Name)
+    def __repr__(self):
+        return str(self)
