@@ -47,6 +47,5 @@ __all__= [
  'Application',
  'Purchase',
  'PurchaseResponse',
- 'PurchaseType',
  'Product'
  ]
