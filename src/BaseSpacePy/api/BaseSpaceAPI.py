@@ -118,6 +118,7 @@ class BaseSpaceAPI(BaseAPI):
         c.perform()
         c.close()
         obj = json.loads(response.getvalue())
+        # TODO add exception if response isn't OK, e.g. incorrect server gives path not recognized
         return self.__getTriggerObject__(obj) 
 
     def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
