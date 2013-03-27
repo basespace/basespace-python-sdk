@@ -27,16 +27,16 @@ class Purchase:
             'Status': 'str',
             'DateCreated': 'str',
             'DateUpdated': 'str',
+            'InvoiceNumber': 'str',
             'Amount': 'str',
             'AmountOfTax': 'str',
             'AmountTotal': 'str',
             'Products': 'list<Product>',
             'PurchaseType': 'str',
             'AppSessionId': 'str',
-            #'ShoppingCartUrl': 'str',
             'HrefPurchaseDialog': 'str',
             'User': 'UserCompact',
-            # TODO create ApplicationCompact here? Holds 'Id', 'Name' only
+            # create ApplicationCompact here that holds 'Id' and 'Name' only?
             'Application': 'str',
         }
     
