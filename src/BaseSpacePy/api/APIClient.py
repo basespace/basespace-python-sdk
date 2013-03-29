@@ -143,8 +143,12 @@ class APIClient:
 #            print url
             #print request
 #            print "request with timeout=" + str(self.timeout)
-            response = urllib2.urlopen(request,timeout=self.timeout).read()
-            
+            try:
+                response = urllib2.urlopen(request,timeout=self.timeout).read()
+            except urllib2.HTTPError as e:
+                # handle HTTP errors in caller
+                response = e.read()
+                pass
         try:
             data = json.loads(response)
         except Exception, err:

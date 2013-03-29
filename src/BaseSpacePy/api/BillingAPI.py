@@ -58,7 +58,6 @@ class BillingAPI(BaseAPI):
         postData['Products']    = products
         
         response = self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
-        # TODO add returnurl qp as convenience to HrefPurchaseDialog?
         return response
             
     def getPurchaseById(self, Id, ):
