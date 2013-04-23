@@ -13,16 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class Product:
+class PurchasedProduct:
 
     def __init__(self):
         self.swaggerTypes = {
+            'PurchaseId': 'str',
+            'DatePurchased': 'str',
             'Id': 'str',
             'Name': 'str',
             'Price': 'str',
             'Quantity': 'str',
             'PersistenceStatus': 'str',
             'Tags': 'list<str>',
+            'ProductIds': 'list<str>',
         }
 
     def __str__(self):

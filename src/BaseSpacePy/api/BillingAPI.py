@@ -26,7 +26,7 @@ limitations under the License.
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model import * #@UnusedWildImport
-
+from BaseSpacePy.model.QueryParametersPurchasedProduct import QueryParametersPurchasedProduct #@UnresolvedImport
 
 class BillingAPI(BaseAPI):
     '''
@@ -69,12 +69,26 @@ class BillingAPI(BaseAPI):
         
         :param Id: The Id of the purchase
         '''
-        # Parse inputs
         resourcePath = '/purchases/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(PurchaseResponse.PurchaseResponse, resourcePath, method, queryParams, headerParams)
+
+    def getUserProducts(self, Id='current', qps={}):
+        '''
+        Returns the Products for the current user
+
+        :param Id: The id of the user, optional
+        :param qps: Query parameters, a dictionary for filtering by 'Tags' and/or 'ProductIds', optional
+        '''
+        method = 'GET'
+        resourcePath = '/users/{Id}/products'
+        resourcePath = resourcePath.replace('{Id}', str(Id))
+        queryPars = QueryParametersPurchasedProduct(qps)
+        queryParams = queryPars.getParameterDict()
+        headerParams = {}
+        return self.__listRequest__(PurchasedProduct.PurchasedProduct, resourcePath, method, queryParams, headerParams)
 

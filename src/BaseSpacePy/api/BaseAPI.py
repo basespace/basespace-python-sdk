@@ -85,6 +85,7 @@ class BaseAPI(object):
             responseObjects.append(self.apiClient.deserialize(responseObject, ListResponse.ListResponse))
         
         # convert list response dict to object type
+        # TODO check that Response is present -- errors sometime don't include
         convertet = [self.apiClient.deserialize(c,myModel) for c in responseObjects[0].convertToObjectList()]
 #        print response 
         return convertet
