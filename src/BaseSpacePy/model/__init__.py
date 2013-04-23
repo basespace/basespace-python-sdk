@@ -47,5 +47,7 @@ __all__= [
  'Application',
  'Purchase',
  'PurchaseResponse',
- 'Product'
+ 'Product',
+ 'AppSessionCompact',
+ 'ApplicationCompact'
  ]

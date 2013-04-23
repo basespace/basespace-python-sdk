@@ -40,27 +40,30 @@ class BillingAPI(BaseAPI):
         self.version        = version
         super(BillingAPI, self).__init__(AccessToken)
 
-    def createPurchase(self,products):
+    def createPurchase(self, products, appSessionId=''):
         '''
         Creates a purchase with the specified products
         
         :param Name: List of dicts to purchase, each of which has a product 'id'
             and 'quantity' to purchase
         '''        
+        if not self.apiClient.apiKey:
+            raise Exception('Access-token is not set and is required to create a Purchase')
         resourcePath            = '/purchases/'
         resourcePath            = resourcePath.replace('{format}', 'json')
         method                  = 'POST'
         queryParams             = {}
-        # TODO check that token is set?
         headerParams            = {'x-access-token':self.apiClient.apiKey}
         postData                = {}
-        # TODO validate 'products' is list of dicts with 'id' and 'quantity'
+        # 'Products' is list of dicts with 'id', 'quantity', and optnl 'tags[]'
         postData['Products']    = products
+        if appSessionId:
+            postData['AppSessionId'] = appSessionId
         
         response = self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
         return response
             
-    def getPurchaseById(self, Id, ):
+    def getPurchaseById(self, Id):
         '''
         Request a purchase object by Id
         

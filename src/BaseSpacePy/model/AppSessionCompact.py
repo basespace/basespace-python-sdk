@@ -13,20 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class Product:
-
+class AppSessionCompact:
+    '''
+    Returned from GET purchases
+    '''
     def __init__(self):
         self.swaggerTypes = {
-            'Id': 'str',
-            'Name': 'str',
-            'Price': 'str',
-            'Quantity': 'str',
-            'PersistenceStatus': 'str',
-            # TODO expand into dict?
-            'Tags': 'str',
+            'Id':'str',
+            'Name':'str',
         }
-
+        
     def __str__(self):
         return str(self.Name)
     def __repr__(self):
         return str(self)
+    

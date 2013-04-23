@@ -25,6 +25,7 @@ class Purchase:
         self.swaggerTypes = {
             'Id': 'str',
             'Status': 'str',
+            'RefundStatus': 'str',
             'DateCreated': 'str',
             'DateUpdated': 'str',
             'InvoiceNumber': 'str',
@@ -33,11 +34,13 @@ class Purchase:
             'AmountTotal': 'str',
             'Products': 'list<Product>',
             'PurchaseType': 'str',
-            'AppSessionId': 'str',
-            'HrefPurchaseDialog': 'str',
+            'AppSession': 'AppSessionCompact',
             'User': 'UserCompact',
-            # create ApplicationCompact here that holds 'Id' and 'Name' only?
-            'Application': 'str',
+            'Application': 'ApplicationCompact',
+            'HrefPurchaseDialog': 'str',
+            'RefundSecret': 'str',
+            'ExceptionMessage': 'str',
+            'ExceptionStackTrace': 'str',
         }
     
     def __str__(self):
@@ -48,7 +51,6 @@ class Purchase:
     def isInit(self):
         '''
         Is called to test if the Purchase instance has been initialized.
-        
         Throws:
             ModelNotInitializedException - Indicates the object has not been populated yet.
         '''
