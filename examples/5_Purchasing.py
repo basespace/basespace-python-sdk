@@ -49,7 +49,7 @@ billAPI   = BillingAPI(BaseSpaceStoreUrl, version, AppSessionId, AccessToken=acc
 # create a consumable purchase, and associated it with an AppSession
 # also add tags to provide (fake) details about the purchase
 print "\nCreating purchase\n"
-purch = billAPI.createPurchase([{'id':product_id,'quantity':4, 'tags':["test","test_tag"] }], AppSessionId)
+purch = billAPI.createPurchase({'id':product_id,'quantity':4, 'tags':["test","test_tag"] }, AppSessionId)
 
 # record the purchase Id and RefundSecret for refunding later
 purchaseId = purch.Id
@@ -67,7 +67,7 @@ time.sleep(30)
 
 print "\nRefunding the Purchase"
 # note we must use the same access token that was provided used for the purchase
-refunded_purchase = billAPI.refundPurchase(purchaseId, refundSecret, accessToken, comment='the product did not function well as a frisbee')
+refunded_purchase = billAPI.refundPurchase(purchaseId, refundSecret, comment='the product did not function well as a frisbee')
 
 print "\nGetting all purchases for the current user with the tags we used for the purchase above"
 #purch_prods = billAPI.getUserProducts()

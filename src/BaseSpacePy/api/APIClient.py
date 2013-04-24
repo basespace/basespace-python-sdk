@@ -99,6 +99,7 @@ class APIClient:
                 headers[param] = value
 
         if not headers.has_key('Content-Type') and not method=='PUT': headers['Content-Type'] = 'application/json'
+        # include access token in header 
         headers['Authorization'] = 'Bearer ' + self.apiKey
         
         data = None

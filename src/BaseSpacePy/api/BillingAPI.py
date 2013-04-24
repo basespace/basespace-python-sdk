@@ -12,17 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-#from pprint import pprint
-#import urllib2
-#import shutil
-#import urllib
-#import pycurl
-#import httplib
-#import cStringIO
-#import json
-#import os
-
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model import * #@UnusedWildImport
@@ -47,21 +36,17 @@ class BillingAPI(BaseAPI):
         :param Name: List of dicts to purchase, each of which has a product 'id'
             and 'quantity' to purchase
         '''        
-        if not self.apiClient.apiKey:
-            raise Exception('Access-token is not set and is required to create a Purchase')
         resourcePath            = '/purchases/'
         resourcePath            = resourcePath.replace('{format}', 'json')
         method                  = 'POST'
         queryParams             = {}
-        headerParams            = {'x-access-token':self.apiClient.apiKey}
+        headerParams            = {}
         postData                = {}
         # 'Products' is list of dicts with 'id', 'quantity', and optnl 'tags[]'
         postData['Products']    = products
         if appSessionId:
             postData['AppSessionId'] = appSessionId
-        
-        response = self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
-        return response
+        return self.__singleRequest__(PurchaseResponse.PurchaseResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
     def getPurchaseById(self, Id):
         '''
@@ -92,28 +77,21 @@ class BillingAPI(BaseAPI):
         headerParams = {}
         return self.__listRequest__(PurchasedProduct.PurchasedProduct, resourcePath, method, queryParams, headerParams)
 
-    def refundPurchase(self, purchaseId, refundSecret, accessToken, comment=''):
+    def refundPurchase(self, purchaseId, refundSecret, comment=''):
         '''
         Creates a purchase with the specified products
         
         :param purchaseId: The Id of the purchase
         :param refundSecret: The RefundSecret that was provided in the Response from createPurchase()
-        :param accessToken: The same access token that was used for the purchase
         :param comment: An optional comment about the refund
         '''        
-        #if not self.apiClient.apiKey:
-        #    raise Exception('Access-token is not set and is required to create a Purchase')
         resourcePath            = '/purchases/{id}/refund'
         resourcePath            = resourcePath.replace('{id}', purchaseId)
         method                  = 'POST'
         queryParams             = {}
-        headerParams            = {'x-access-token':accessToken}
+        headerParams            = {}
         postData                = {}
-        # 'Products' is list of dicts with 'id', 'quantity', and optnl 'tags[]'
         postData['RefundSecret'] = refundSecret
         if comment:
             postData['Comment'] = comment
-        
-        response = self.__singleRequest__(RefundPurchaseResponse.RefundPurchaseResponse, resourcePath, method, queryParams, headerParams, postData=postData, verbose=0)
-        return response
-            
+        return self.__singleRequest__(RefundPurchaseResponse.RefundPurchaseResponse, resourcePath, method, queryParams, headerParams, postData=postData, verbose=0)
