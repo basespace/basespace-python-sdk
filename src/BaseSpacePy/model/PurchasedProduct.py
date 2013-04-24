@@ -24,8 +24,8 @@ class PurchasedProduct:
             'Price': 'str',
             'Quantity': 'str',
             'PersistenceStatus': 'str',
-            'Tags': 'list<str>',
-            'ProductIds': 'list<str>',
+            'Tags': 'list<str>',         # only if provided as a query parameter
+            'ProductIds': 'list<str>',   # only if provided as a query parameter
         }
 
     def __str__(self):

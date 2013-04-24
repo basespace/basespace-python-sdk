@@ -21,7 +21,7 @@ class Product:
             'Name': 'str',
             'Price': 'str',
             'Quantity': 'str',
-            'PersistenceStatus': 'str',
+            'PersistenceStatus': 'str', # NOPERSISTENCE, ACTIVE, EXPIRED
             'Tags': 'list<str>',
         }
 

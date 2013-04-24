@@ -24,8 +24,8 @@ class Purchase:
     def __init__(self):
         self.swaggerTypes = {
             'Id': 'str',
-            'Status': 'str',
-            'RefundStatus': 'str',
+            'Status': 'str',       # PENDING, CANCELLED, ERRORED, COMPLETED
+            'RefundStatus': 'str', # NOTREFUNDED, REFUNDED
             'DateCreated': 'str',
             'DateUpdated': 'str',
             'InvoiceNumber': 'str',
@@ -37,10 +37,13 @@ class Purchase:
             'AppSession': 'AppSessionCompact',
             'User': 'UserCompact',
             'Application': 'ApplicationCompact',
-            'HrefPurchaseDialog': 'str',
-            'RefundSecret': 'str',
-            'ExceptionMessage': 'str',
-            'ExceptionStackTrace': 'str',
+            'HrefPurchaseDialog': 'str',    # new purchases only
+            'RefundSecret': 'str',          # new purchases only
+            'ExceptionMessage': 'str',      # errors only
+            'ExceptionStackTrace': 'str',   # errors only
+            'DateRefunded': 'str',          # refunds only
+            'UserRefundedBy': 'str',        # refunds only
+            'RefundComment': 'str',         # refunds only
         }
     
     def __str__(self):

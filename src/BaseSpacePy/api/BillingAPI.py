@@ -92,3 +92,28 @@ class BillingAPI(BaseAPI):
         headerParams = {}
         return self.__listRequest__(PurchasedProduct.PurchasedProduct, resourcePath, method, queryParams, headerParams)
 
+    def refundPurchase(self, purchaseId, refundSecret, accessToken, comment=''):
+        '''
+        Creates a purchase with the specified products
+        
+        :param purchaseId: The Id of the purchase
+        :param refundSecret: The RefundSecret that was provided in the Response from createPurchase()
+        :param accessToken: The same access token that was used for the purchase
+        :param comment: An optional comment about the refund
+        '''        
+        #if not self.apiClient.apiKey:
+        #    raise Exception('Access-token is not set and is required to create a Purchase')
+        resourcePath            = '/purchases/{id}/refund'
+        resourcePath            = resourcePath.replace('{id}', purchaseId)
+        method                  = 'POST'
+        queryParams             = {}
+        headerParams            = {'x-access-token':accessToken}
+        postData                = {}
+        # 'Products' is list of dicts with 'id', 'quantity', and optnl 'tags[]'
+        postData['RefundSecret'] = refundSecret
+        if comment:
+            postData['Comment'] = comment
+        
+        response = self.__singleRequest__(RefundPurchaseResponse.RefundPurchaseResponse, resourcePath, method, queryParams, headerParams, postData=postData, verbose=0)
+        return response
+            
