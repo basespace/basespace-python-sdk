@@ -65,6 +65,10 @@ print "Waiting 30 seconds..."
 time.sleep(30)
 ## PAUSE HERE
 
+print "\nConfirm the purchase"
+post_purch = billAPI.getPurchaseById(purchaseId)
+print "The status of the purchase is now: " + post_purch.Status
+
 print "\nRefunding the Purchase"
 # note we must use the same access token that was provided used for the purchase
 refunded_purchase = billAPI.refundPurchase(purchaseId, refundSecret, comment='the product did not function well as a frisbee')
