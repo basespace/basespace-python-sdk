@@ -24,7 +24,7 @@ class AppSession:
             'Href': 'str',
             'Type': 'str',
             'UserCreatedBy':'User',
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'Status':'str',
             'StatusSummary': 'str',
             'Application':'Application',

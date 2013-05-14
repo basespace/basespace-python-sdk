@@ -17,7 +17,7 @@ class RunCompact:
 
     def __init__(self):
         self.swaggerTypes = {
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'Id': 'str',
             'Href': 'str',
             'ExperimentName': 'str'
@@ -36,7 +36,7 @@ class RunCompact:
         return scope + ' run ' + str(self.Id)
 
         # 
-        self.DateCreated = None # str
+        self.DateCreated = None
 
         # 
         self.Id = None # str

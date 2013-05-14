@@ -18,7 +18,7 @@ class PurchasedProduct:
     def __init__(self):
         self.swaggerTypes = {
             'PurchaseId': 'str',
-            'DatePurchased': 'str',
+            'DatePurchased': 'datetime',
             'Id': 'str',
             'Name': 'str',
             'Price': 'str',

@@ -24,7 +24,7 @@ class Sample:
         self.swaggerTypes = {
             'Name': 'str',
             'HrefFiles': 'str',
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'SampleNumber': 'int',
             'Id': 'str',
             'Href': 'str',
@@ -91,7 +91,7 @@ class Sample:
 
         self.Name           = None # str
         self.HrefFiles      = None # str
-        self.DateCreated    = None # str
+        self.DateCreated    = None # datetime
         self.SampleNumber   = None # int
         self.Id             = None # str
         self.Href           = None # str

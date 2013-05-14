@@ -26,8 +26,8 @@ class Purchase:
             'Id': 'str',
             'Status': 'str',       # PENDING, CANCELLED, ERRORED, COMPLETED
             'RefundStatus': 'str', # NOTREFUNDED, REFUNDED
-            'DateCreated': 'str',
-            'DateUpdated': 'str',
+            'DateCreated': 'datetime',
+            'DateUpdated': 'datetime',
             'InvoiceNumber': 'str',
             'Amount': 'str',
             'AmountOfTax': 'str',
@@ -41,7 +41,7 @@ class Purchase:
             'RefundSecret': 'str',          # new purchases only
             'ExceptionMessage': 'str',      # errors only
             'ExceptionStackTrace': 'str',   # errors only
-            'DateRefunded': 'str',          # refunds only
+            'DateRefunded': 'datetime',     # refunds only
             'UserRefundedBy': 'str',        # refunds only
             'RefundComment': 'str',         # refunds only
         }

@@ -26,7 +26,7 @@ class Project:
             'Name': 'str',
             'HrefSamples': 'str',
             'HrefAppResults': 'str',
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'Id': 'str',
             'Href': 'str',
             'UserOwnedBy': 'UserCompact'

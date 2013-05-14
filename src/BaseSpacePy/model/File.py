@@ -25,7 +25,7 @@ class File:
             'Name': 'str',
             'HrefCoverage': 'str',
             'HrefParts': 'str',
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'UploadStatus': 'str',
             'Id': 'str',
             'Href': 'str',

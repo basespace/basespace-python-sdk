@@ -22,7 +22,7 @@ class Application:
             "Name":"str",
             "HomepageUri":"str",
             "ShortDescription":"str",
-            "DateCreated":"str"            
+            "DateCreated":"datetime"            
         }
 
         self.Id                   = None

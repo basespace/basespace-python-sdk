@@ -24,6 +24,7 @@ import cStringIO
 import json
 from subprocess import *
 import subprocess
+import dateutil.parser
 #from pprint import pprint
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -219,6 +220,9 @@ class APIClient:
                 elif attrType=='dict':                                          # support for parsing dictionary
 #                    pprint(value)                   
                     setattr(instance, attr,value)
+                elif attrType=='datetime':
+                    dt = dateutil.parser.parse(value)
+                    setattr(instance, attr,dt)
                 else:
 #                    print "recursive call w/ " + attrType
                     setattr(instance, attr, self.deserialize(value,attrType))

@@ -21,10 +21,10 @@ class User:
         self.swaggerTypes = {
             'Name': 'str',
             'Email': 'str',
-            'DateLastActive': 'str',
+            'DateLastActive': 'datetime',
             'GravatarUrl': 'str',
             'HrefProjects': 'str',
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'Id': 'str',
             'Href': 'str',
             'HrefRuns': 'str'
@@ -59,13 +59,13 @@ class User:
 
         self.Email = None # str
 
-        self.DateLastActive = None # str
+        self.DateLastActive = None # datetime
 
         self.GravatarUrl = None # str
 
         self.HrefProjects = None # str
 
-        self.DateCreated = None # str
+        self.DateCreated = None # datetime
 
         self.Id = None # str
 
