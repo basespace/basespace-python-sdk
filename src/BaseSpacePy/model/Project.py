@@ -26,6 +26,7 @@ class Project:
             'Name': 'str',
             'HrefSamples': 'str',
             'HrefAppResults': 'str',
+            'HrefBaseSpaceUI': 'str',
             'DateCreated': 'datetime',
             'Id': 'str',
             'Href': 'str',
@@ -88,6 +89,7 @@ class Project:
         self.Name           = None # str
         self.HrefSamples    = None # str
         self.HrefAppResults = None # str
+        self.HrefBaseSpaceUI = None # str
         self.DateCreated    = None # str
         self.Id             = None # str
         self.Href           = None # str
