@@ -616,6 +616,27 @@ class BaseSpaceAPI(BaseAPI):
         with open(os.path.join(localDir,name), 'wb') as fp:
             shutil.copyfileobj(req, fp)
         return 1
+
+    def fileUrl(self,Id): #@ReservedAssignment
+        '''
+        Returns URL of file (on S3)
+        
+        :param Id: The file id
+        '''
+        resourcePath = '/files/{Id}/content'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
+        
+        response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
+        
+        # return the Amazon URL 
+        return response['Response']['HrefContent']
            
     def __uploadMultipartUnit__(self,Id,partNumber,md5,data):
         '''

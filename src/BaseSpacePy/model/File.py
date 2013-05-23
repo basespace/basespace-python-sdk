@@ -86,6 +86,14 @@ class File:
         if len(range): return api.fileDownload(self.Id,localDir, self.Name, range=range)
         else: return api.fileDownload(self.Id,localDir,self.Name)
 
+    def getFileUrl(self,api):
+        '''
+        Return the S3 url of the file.
+        
+        :param api: A BaseSpaceAPI with read access on the scope including the file object.
+        '''
+        return api.fileUrl(self.Id)
+
     def deleteFile(self,api):
         raise Exception('Not yet implemented')
 
