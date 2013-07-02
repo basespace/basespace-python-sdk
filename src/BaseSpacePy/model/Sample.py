@@ -22,22 +22,26 @@ class Sample:
 
     def __init__(self):
         self.swaggerTypes = {
-            'Name': 'str',
-            'HrefFiles': 'str',
-            'DateCreated': 'datetime',
-            'SampleNumber': 'int',
-            'Id': 'str',
-            'Href': 'str',
-            'UserOwnedBy': 'UserCompact',
-            'ExperimentName': 'str',
-            'Run': 'RunCompact',
             'HrefGenome': 'str',
+            'SampleNumber': 'int',
+            'ExperimentName': 'str',
+            'HrefFiles': 'str',
+            # AppSession
             'IsPairedEnd':'int',
             'Read1':'int',
             'Read2':'int',
             'NumReadsRaw':'int',
             'NumReadsPF':'int',
-            'References':'dict'
+            'Id': 'str',
+            'Href': 'str',
+            'UserOwnedBy': 'UserCompact',
+            'Name': 'str',
+            'SampleId': 'str',
+            'Status': 'str',
+            'StatusSummary': 'str',
+            'DateCreated': 'datetime',
+            'References':'dict',
+            'Run': 'RunCompact' # deprecated?
         }
 
     def __str__(self):
@@ -105,3 +109,6 @@ class Sample:
         self.NumReadsRaw    = None # int
         self.NumReadsPF     = None # int
         self.References     = None # dict
+        self.SampleId       = None # str
+        self.Status         = None # str
+        self.StatusSummary  = None # str
