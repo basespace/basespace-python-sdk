@@ -80,7 +80,7 @@ class Project:
         
         :param api: An instance of BaseSpaceAPI
         :param name: The name of the app result
-        :param desc: A describtion of the app result
+        :param desc: A description of the app result
         '''
         self.isInit()
         return api.createAppResult(self.Id,name,desc,appSessionId=appSessionId,samples=samples)

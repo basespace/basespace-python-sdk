@@ -192,8 +192,8 @@ class BaseSpaceAPI(object):
         
         if (not self.appSessionId) and (not Id):
             raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method getAppSession")
-#        if (not id) and (not self.key):
-#            raise Exception("This BaseSpaceAPI instance has no client_secret (key) set and no alternative id was supplied for method getAppSession")
+        if (not id) and (not self.key):
+            raise Exception("This BaseSpaceAPI instance has no client_secret (key) set and no alternative id was supplied for method getAppSession")
         
         resourcePath = self.apiServer + '/appsessions/{AppSessionId}'
         if not Id:
@@ -260,7 +260,7 @@ class BaseSpaceAPI(object):
         data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
         return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
 
-    def obtainAccessToken(self,deviceCode):
+    def obtainAccessToken(self,deviceCode,grantType='device'):
         '''
         Returns a user specific access token.    
         
@@ -268,12 +268,12 @@ class BaseSpaceAPI(object):
         '''
         if (not self.key) or (not self.secret):
             raise Exception("This BaseSpaceAPI instance has either no client_secret or no client_id set and no alternative id was supplied for method getVerificationCode")
-        data = [('client_id',self.key),('client_secret', self.secret),('code',deviceCode),('grant_type','device'),('redirect_uri','google.com')]
+        data = [('client_id',self.key),('client_secret', self.secret),('code',deviceCode),('grant_type',grantType),('redirect_uri','google.com')]
         dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
         return dict['access_token']
 
-    def updatePrivileges(self,code):
-        token = self.obtainAccessToken(code)
+    def updatePrivileges(self,code,grantType='device'):
+        token = self.obtainAccessToken(code,grantType=grantType)
         self.setAccessToken(token)
             
     def getAccessToken(self):
@@ -618,9 +618,9 @@ class BaseSpaceAPI(object):
         :param desc: A describtion of the AppResult
         :param samples: (Optional) The samples 
         :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance
-        will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the 
+        will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
         '''
-        if (not self.appSessionId) and (not appSessionId):
+        if (not self.appSessionId) and (appSessionId==None):
             raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method createAppResult")
         
         resourcePath = '/projects/{ProjectId}/appresults'
@@ -671,15 +671,10 @@ class BaseSpaceAPI(object):
         queryParams['directory']     = directory 
         headerParams                 = {}
         headerParams['Content-Type'] = contentType
+        
         # three cases, two for multipart, starting 
         if multipart==1:
             queryParams['multipart']          = 'true'
-            postData = None
-            # Set force post as this need to use POST though no data is being streamed
-            return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
-                                      queryParams, headerParams,postData=postData,verbose=0,forcePost=1)
-        elif multipart==2:
-            queryParams          = {'uploadstatus':'complete'}
             postData = None
             # Set force post as this need to use POST though no data is being streamed
             return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
@@ -740,10 +735,6 @@ class BaseSpaceAPI(object):
         headerParams                 = {'Content-MD5':md5.strip()}
         out = self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams,forcePost=0)
         return out
-#        curl -v -H "x-access-token: {access token}" \
-#        -H "Content-MD5: 9mvo6qaA+FL1sbsIn1tnTg==" \
-#        -T reportarchive.zipaa \
-#        -X PUT https://api.cloud-endor.illumina.com/v1pre2/files/7094087/parts/1
 
 #    def largeFileDownload(self):
 #        '''
@@ -752,31 +743,46 @@ class BaseSpaceAPI(object):
 #        raise Exception('Not yet implemented')
 
     
-#    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,verbose=0):
-#        '''
-#        Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
-#        
-#        
-#        :param Id: The AppResult ID
-#        :param localPath: The local path of the file to be uploaded
-#        :param fileName: The desired filename on the server
-#        :param directory: The server directory to place the file in (empty string will place it in the root directory)
-#        :param contentType: The content type of the file
-#        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
-#        :param cpuCount: The number of CPUs to be used
-#        :param partSize: The size of individual upload parts (must be between 5 and 25mb)
-#        :param verbose: Write process output to stdout as upload progresses
-#        '''
-# 
-#        # Create file object on server
-#        myFile = self.AppResultFileUpload(Id, localPath, fileName, directory, contentType,multipart=1)
-#        
-#        # prepare multi-par upload objects
-#        myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,verbose=verbose)
-#        return myMpu
-#
-#    def markFileState(self,Id):
-#        pass
+    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,startChunk=1,verbose=0):
+        '''
+        Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
+        The call returns 
+        
+        :param Id: The AppResult ID
+        :param localPath: The local path of the file to be uploaded
+        :param fileName: The desired filename on the server
+        :param directory: The server directory to place the file in (empty string will place it in the root directory)
+        :param contentType: The content type of the file
+        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
+        :param cpuCount: The number of CPUs to be used
+        :param partSize: The size of individual upload parts (must be between 5 and 25mb)
+        :param verbose: Write process output to stdout as upload progresses
+        '''
+ 
+        # Create file object on server
+        myFile = self.appResultFileUpload(Id, localPath, fileName, directory, contentType,multipart=1)
+        
+        # prepare multi-part upload objects
+        myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,startChunk=startChunk,verbose=verbose)
+        return myMpu,myFile
+
+    def markFileState(self,Id):
+        '''
+        Marks a multi-part upload file as complete  
+        :param Id: file id.
+        '''
+        resourcePath = '/files/{Id}'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'POST'
+        resourcePath                 = resourcePath.replace('{Id}', Id)
+        headerParams                 = {}
+        queryParams              = {'uploadstatus':'complete'}
+        postData = None
+        
+        # Set force post as this need to use POST though no data is being streamed
+        return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
+                                  queryParams, headerParams,postData=postData,verbose=0,forcePost=1)
+
 
     def setAppSessionState(self,Id,Status,Summary):
         '''
