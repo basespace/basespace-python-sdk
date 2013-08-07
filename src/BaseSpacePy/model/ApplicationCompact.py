@@ -13,36 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class RunCompact:
-
+class ApplicationCompact:
+    """
+    Application data returned by GET purchase
+    """
     def __init__(self):
         self.swaggerTypes = {
-            'DateCreated': 'datetime',
             'Id': 'str',
-            'Href': 'str',
-            'ExperimentName': 'str'
+            "Name":"str",
+            "CompanyName":"str"
         }
     def __str__(self):
-        return self.ExperimentName
+        return str(self.Name)
     def __repr__(self):
         return str(self)
-    
-    def getAccessStr(self,scope='write'):
-        '''
-        Returns the scope-string to used for requesting BaseSpace access to the object
-        :param scope: The type that is request (write|read)
-        '''
-        self.isInit()
-        return scope + ' run ' + str(self.Id)
 
-        # 
-        self.DateCreated = None
+        
 
-        # 
-        self.Id = None # str
-
-        # 
-        self.Href = None # str
-
-        # 
-        self.ExperimentName = None # str

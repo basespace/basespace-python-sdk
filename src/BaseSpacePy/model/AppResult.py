@@ -25,7 +25,7 @@ class AppResult:
             'Description': 'str',
             'StatusSummary': 'str',
             'HrefFiles': 'str',
-            'DateCreated': 'str',
+            'DateCreated': 'datetime',
             'Id': 'str',
             'Href': 'str',
             'UserOwnedBy': 'UserCompact',

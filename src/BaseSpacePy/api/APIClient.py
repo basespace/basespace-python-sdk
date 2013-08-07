@@ -24,6 +24,7 @@ import cStringIO
 import json
 from subprocess import *
 import subprocess
+import dateutil.parser
 #from pprint import pprint
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
@@ -95,10 +96,11 @@ class APIClient:
         if headerParams:
             for param, value in headerParams.iteritems():
                 headers[param] = value
-        
         # specify the content type
         if not headers.has_key('Content-Type') and not method=='PUT' and not forcePost: headers['Content-Type'] = 'application/json'
-        
+
+        # include access token in header 
+
         headers['Authorization'] = 'Bearer ' + self.apiKey
         
         data = None
@@ -143,8 +145,12 @@ class APIClient:
 #            print url
             #print request
 #            print "request with timeout=" + str(self.timeout)
-            response = urllib2.urlopen(request,timeout=self.timeout).read()
-            
+            try:
+                response = urllib2.urlopen(request,timeout=self.timeout).read()
+            except urllib2.HTTPError as e:
+                # handle HTTP errors in caller
+                response = e.read()
+                pass
         try:
             data = json.loads(response)
         except Exception, err:
@@ -214,6 +220,9 @@ class APIClient:
                 elif attrType=='dict':                                          # support for parsing dictionary
 #                    pprint(value)                   
                     setattr(instance, attr,value)
+                elif attrType=='datetime':
+                    dt = dateutil.parser.parse(value)
+                    setattr(instance, attr,dt)
                 else:
 #                    print "recursive call w/ " + attrType
                     setattr(instance, attr, self.deserialize(value,attrType))

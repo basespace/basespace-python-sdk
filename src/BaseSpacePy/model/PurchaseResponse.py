@@ -13,4 +13,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__all__ = ['APIClient','BaseSpaceAPI','BillingAPI','BaseAPI','BaseSpaceException']
+class PurchaseResponse:
+
+    def __init__(self):
+        self.swaggerTypes = {
+            'ResponseStatus': 'ResponseStatus',
+            'Response': 'Purchase',
+            'Notifications': 'list<Str>'
+        }
+
+
+
+        # 
+        self.ResponseStatus = None # ResponseStatus
+
+
+        # 
+        self.Response = None # Purchase
+
+
+        # 
+        self.Notifications = None # list<Str>
+

@@ -13,36 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class RunCompact:
+class PurchasedProduct:
 
     def __init__(self):
         self.swaggerTypes = {
-            'DateCreated': 'datetime',
+            'PurchaseId': 'str',
+            'DatePurchased': 'datetime',
             'Id': 'str',
-            'Href': 'str',
-            'ExperimentName': 'str'
+            'Name': 'str',
+            'Price': 'str',
+            'Quantity': 'str',
+            'PersistenceStatus': 'str',
+            'Tags': 'list<str>',         # only if provided as a query parameter
+            'ProductIds': 'list<str>',   # only if provided as a query parameter
         }
+
     def __str__(self):
-        return self.ExperimentName
+        return str(self.Name)
     def __repr__(self):
         return str(self)
-    
-    def getAccessStr(self,scope='write'):
-        '''
-        Returns the scope-string to used for requesting BaseSpace access to the object
-        :param scope: The type that is request (write|read)
-        '''
-        self.isInit()
-        return scope + ' run ' + str(self.Id)
-
-        # 
-        self.DateCreated = None
-
-        # 
-        self.Id = None # str
-
-        # 
-        self.Href = None # str
-
-        # 
-        self.ExperimentName = None # str

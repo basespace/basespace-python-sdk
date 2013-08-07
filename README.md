@@ -12,6 +12,7 @@ AUTHORS
 =========================================
 
 Morten Kallberg
+Eric Smith
 
 
 REQUIREMENTS

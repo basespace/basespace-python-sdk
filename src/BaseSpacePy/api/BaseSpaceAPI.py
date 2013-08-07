@@ -24,6 +24,7 @@ import json
 import os
 
 from BaseSpacePy.api.APIClient import APIClient
+from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model.MultipartUpload import MultipartUpload as mpu #@UnresolvedImport
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@UnresolvedImport
@@ -35,11 +36,10 @@ deviceURL                  = "/oauthv2/deviceauthorization"
 webAuthorize               = '/oauth/authorize'
 
 
-class BaseSpaceAPI(object):
+class BaseSpaceAPI(BaseAPI):
     '''
-    The main API class used for all communication with with the REST server
+    The main API class used for all communication with the REST server
     '''
-
     def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId='', AccessToken=''):
         if not apiServer[-1]=='/': apiServer = apiServer + '/'
         #if not version[-1]=='/': version = version + '/'
@@ -50,78 +50,9 @@ class BaseSpaceAPI(object):
         self.apiServer      = apiServer + version
         self.version        = version
         self.weburl         = apiServer.replace('api.','')
-        self.apiClient      = None
-        self.setTimeout(10)
-        self.setAccessToken(AccessToken)        # logic for setting the access-token 
+        super(BaseSpaceAPI, self).__init__(AccessToken)
 
-    def __updateAccessToken__(self,AccessToken):
-        self.apiClient.apiKey = AccessToken
 
-    def __singleRequest__(self,myModel,resourcePath, method, queryParams, headerParams,postData=None,verbose=0,forcePost=0,noAPI=1):
-        # test if access-token has been set
-        if not self.apiClient and noAPI:
-            raise Exception('Access-token not set, use the "setAccessToken"-method to supply a token value')
-        if verbose: print "    # " + str(resourcePath)
-        
-        # Make the API Call
-        response = self.apiClient.callAPI(resourcePath, method, queryParams,postData, headerParams,forcePost=forcePost)
-        if verbose: 
-            print "    # "
-            print "    # forcePost: " + str(forcePost) 
-            pprint(response)
-        if not response: 
-            raise Exception('BaseSpace error: None response returned')
-        
-        # throw exception here for various error messages
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-         
-        # Create output objects if the response has more than one object
-        responseObject = self.apiClient.deserialize(response,myModel)
-        return responseObject.Response
-
-    def __listRequest__(self,myModel,resourcePath, method, queryParams, headerParams,verbose=0,noAPI=1):
-        # test if access-token has been set
-        if not self.apiClient and noAPI:
-            raise Exception('Access-token not set, use the "setAccessToken"-method to supply a token value')
-        
-        # Make the API Call
-        if verbose: 
-            print '    # Path: ' + str(resourcePath)
-            print '    # Pars: ' + str(queryParams)
-        response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if not response: 
-            raise Exception('BaseSpace Exception: No data returned')
-        
-        if verbose: 
-            print '    # response: ' 
-            pprint(response)
-        if not isinstance(response, list): response = [response]
-        responseObjects = []
-        for responseObject in response:
-            responseObjects.append(self.apiClient.deserialize(responseObject, ListResponse.ListResponse))
-        
-        # convert list response dict to object type
-        convertet = [self.apiClient.deserialize(c,myModel) for c in responseObjects[0].convertToObjectList()]
-#        print response 
-        return convertet
-    # test if 
-
-    def __makeCurlRequest__(self, data, url):
-        post = urllib.urlencode(data)
-        response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL,url)
-        c.setopt(pycurl.POST, 1)
-        c.setopt(pycurl.POSTFIELDS, post)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        obj = json.loads(response.getvalue())
-        if obj.has_key('error'):
-            raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
-        return obj
-      
     def __getTriggerObject__(self,obj):
         '''
         Warning this method is not for general use and should only be called 
@@ -147,29 +78,7 @@ class BaseSpaceAPI(object):
             return tempApi.deserialize(d, AppResult.AppResult)        
         return d
         
-    def __str__(self):
-        return "BaseSpaceAPI instance - using token=" + self.getAccessToken()
     
-    def __repr__(self):
-        return str(self)  
-
-    
-    def setTimeout(self,time):
-        '''
-        Specify the timeout in seconds for each request made
-        
-        :param time: timeout in second
-        '''
-        self.timeout = time
-        if self.apiClient:
-            self.apiClient.timeout = self.timeout
-        
-    
-    def setAccessToken(self,token):
-        self.apiClient      = None
-        if token: 
-            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer,timeout=self.timeout)
-            self.apiClient = apiClient
 
     def getAppSessionById(self,id):
         '''
@@ -209,6 +118,7 @@ class BaseSpaceAPI(object):
         c.perform()
         c.close()
         obj = json.loads(response.getvalue())
+        # TODO add exception if response isn't OK, e.g. incorrect server gives path not recognized
         return self.__getTriggerObject__(obj) 
 
     def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
@@ -276,20 +186,6 @@ class BaseSpaceAPI(object):
         token = self.obtainAccessToken(code,grantType=grantType)
         self.setAccessToken(token)
             
-    def getAccessToken(self):
-        '''
-        Returns the access-token that was used to initialize the BaseSpaceAPI object.
-        '''
-        if self.apiClient:
-            return self.apiClient.apiKey
-        return ""
-    
-    def getServerUri(self):
-        '''
-        Returns the server uri used by this instance
-        '''
-        return self.apiClient.apiServer
-
     def createProject(self,Name):
         '''
         Creates a project with the specified name and returns a project object. 
@@ -308,7 +204,6 @@ class BaseSpaceAPI(object):
         
         return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
-    
     
     def getUserById(self, Id, ):
         '''
@@ -716,6 +611,27 @@ class BaseSpaceAPI(object):
         with open(os.path.join(localDir,name), 'wb') as fp:
             shutil.copyfileobj(req, fp)
         return 1
+
+    def fileUrl(self,Id): #@ReservedAssignment
+        '''
+        Returns URL of file (on S3)
+        
+        :param Id: The file id
+        '''
+        resourcePath = '/files/{Id}/content'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
+        
+        response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
+        
+        # return the Amazon URL 
+        return response['Response']['HrefContent']
            
     def __uploadMultipartUnit__(self,Id,partNumber,md5,data):
         '''
