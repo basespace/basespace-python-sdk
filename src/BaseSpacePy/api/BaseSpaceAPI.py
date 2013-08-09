@@ -170,20 +170,22 @@ class BaseSpaceAPI(BaseAPI):
         data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
         return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
 
-    def obtainAccessToken(self,deviceCode,grantType='device'):
+    def obtainAccessToken(self,code,grantType='device',redirect_uri='http://www.myRedirect.com'):
         '''
         Returns a user specific access token.    
         
-        :param deviceCode: The device code returned by the verification code method
+        :param code: The device code returned by the verification code method
+        :param grantType: Grant-type may be either device or 'device' or 'authorization_code' 
+        :param redirect_uri: The uri we should redirect to
         '''
         if (not self.key) or (not self.secret):
             raise Exception("This BaseSpaceAPI instance has either no client_secret or no client_id set and no alternative id was supplied for method getVerificationCode")
-        data = [('client_id',self.key),('client_secret', self.secret),('code',deviceCode),('grant_type',grantType),('redirect_uri','google.com')]
+        data = [('client_id',self.key),('client_secret', self.secret),('code',code),('grant_type',grantType),('redirect_uri',redirect_uri)]
         dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
         return dict['access_token']
 
-    def updatePrivileges(self,code,grantType='device'):
-        token = self.obtainAccessToken(code,grantType=grantType)
+    def updatePrivileges(self,code,grantType='device',redirect_uri='http://www.myRedirect.com'):
+        token = self.obtainAccessToken(code,grantType=grantType,redirect_uri=redirect_uri)
         self.setAccessToken(token)
             
     def createProject(self,Name):
