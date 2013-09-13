@@ -184,7 +184,8 @@ class APIClient:
         # native Python type, or one of the model classes.
         if type(objClass) == str:
             try:
-                if not str(objClass)=='File':                # Hack to avoid native python-type 'file' (non-capital 'f')
+                # Hack to avoid native python-type 'file' (non-capital 'f') and 'property'
+                if ((not str(objClass)=='File') and (not str(objClass)=='Property')): 
                     objClass = eval(objClass.lower())
                 else:
                     objClass = eval(objClass + '.' + objClass)
@@ -212,11 +213,38 @@ class APIClient:
                 elif 'list<' in attrType:
                     match = re.match('list<(.*)>', attrType)
                     subClass = match.group(1)
+                    
                     subValues = []
-
-                    for subValue in value:
-                        subValues.append(self.deserialize(subValue, subClass))
-                    setattr(instance, attr, subValues)
+                    if subClass != 'Property':                                                                
+                        for subValue in value:
+                            subValues.append(self.deserialize(subValue, subClass))
+                        setattr(instance, attr, subValues)
+                    else:
+                        prop_models = {'string': 'PropertyString',
+                                       'project': 'PropertyProject',
+                                       'project[]': 'PropertyProjects', # TODO
+                                       'sample': 'PropertySample', # TODO
+                                       'sample[]': 'PropertySamples',
+                                       'map': 'PropertyMap',
+                                       'map[]': 'PropertyMap' 
+                                       }     
+                        for subValue in value:
+                            try:
+                                subValues.append(self.deserialize(subValue, prop_models[subValue['Type']]))
+                            except KeyError as e:
+                                # TODO print to STDERR? print "Error - unrecognized Property Type" + subValue['Type']
+                                subValues.append(self.deserialize(subValue, 'Property'))
+                                
+                            #if subValue['Type'] == 'string':        
+                            #    subValues.append(self.deserialize(subValue, 'PropertyString'))
+                            #elif subValue['Type'] == 'project':
+                            #    subValues.append(self.deserialize(subValue, 'PropertyProject'))
+                            #elif subValue['Type'] == 'sample[]':
+                            #    subValues.append(self.deserialize(subValue, 'PropertySamples'))
+                            #else:
+                            #    subValues.append(self.deserialize(subValue, 'Property'))
+                            setattr(instance, attr, subValues)
+                        
                 elif attrType=='dict':                                          # support for parsing dictionary
 #                    pprint(value)                   
                     setattr(instance, attr,value)

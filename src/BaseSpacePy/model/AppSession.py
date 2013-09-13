@@ -28,7 +28,8 @@ class AppSession:
             'Status':'str',
             'StatusSummary': 'str',
             'Application':'Application',
-            'References':'list<AppSessionLaunchObject>'
+            'References':'list<AppSessionLaunchObject>',
+            'Properties':'PropertyList'
         }
         
     def __str__(self):

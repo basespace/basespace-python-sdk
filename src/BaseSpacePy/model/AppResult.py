@@ -32,7 +32,8 @@ class AppResult:
             'StatusDetail': 'str',
             'HrefGenome': 'str',
             'AppSession':'AppSession',
-            'References':'dict'
+            'References':'dict',
+            'TotalSize':'int'
         }
     def __str__(self):
         return "AppResult: " + self.Name #+ " - " + str(self.Status)

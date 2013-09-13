@@ -51,5 +51,11 @@ __all__= [
  'AppSessionCompact',
  'ApplicationCompact',
  'PurchasedProduct',
- 'RefundPurchaseResponse'
+ 'RefundPurchaseResponse',
+ 'PropertyList',
+ 'Property',
+ 'PropertyString',
+ 'PropertyProject',
+ 'PropertySamples',
+ 'PropertyMap'
  ]

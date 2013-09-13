@@ -41,7 +41,8 @@ class Sample:
             'StatusSummary': 'str',
             'DateCreated': 'datetime',
             'References':'dict',
-            'Run': 'RunCompact' # deprecated?
+            'Run': 'RunCompact', # deprecated?
+            'TotalSize': 'int'
         }
 
     def __str__(self):
