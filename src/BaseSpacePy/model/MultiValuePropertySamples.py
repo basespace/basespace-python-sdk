@@ -13,22 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PropertySamples:
+class MultiValuePropertySamples:
+    """
+    A generic multi-value Property for use when a property is queried directly by name
+    """
 
     def __init__(self):
         self.swaggerTypes = {
-            'Type': 'str',
-            'Href': 'str',
-            'Name': 'str',
-            'Description': 'str',
-            'Items': 'list<Sample>',
-            'HrefItems': 'str',
-            'ItemsDisplayedCount': 'int',
-            'ItemsTotalCount': 'int'
+            'Id': 'str',
+            'Content': 'Sample', 
         }
-
-    def __str__(self):
-        return str(self.Name)
-    def __repr__(self):
-        return str(self)
-    

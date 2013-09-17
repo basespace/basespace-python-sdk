@@ -13,22 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PropertySamples:
+class MultiValuePropertyResponse:
 
     def __init__(self):
         self.swaggerTypes = {
-            'Type': 'str',
-            'Href': 'str',
-            'Name': 'str',
-            'Description': 'str',
-            'Items': 'list<Sample>',
-            'HrefItems': 'str',
-            'ItemsDisplayedCount': 'int',
-            'ItemsTotalCount': 'int'
+            'ResponseStatus': 'ResponseStatus',
+            'Response': 'MultiValuePropertyList',
+            'Notifications': 'list<Str>'
         }
 
-    def __str__(self):
-        return str(self.Name)
-    def __repr__(self):
-        return str(self)
-    
+        self.ResponseStatus = None # ResponseStatus
+        self.Response = None
+        self.Notifications = None # list<Str>
+

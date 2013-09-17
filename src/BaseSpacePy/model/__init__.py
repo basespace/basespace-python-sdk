@@ -56,6 +56,17 @@ __all__= [
  'Property',
  'PropertyString',
  'PropertyProject',
+ 'PropertyProjects',
+ 'PropertySample',
  'PropertySamples',
- 'PropertyMap'
+ 'PropertyMap',
+ 'MultiValuePropertyResponse',
+ 'MultiValuePropertyList',
+ 'MultiValueProperty',
+ 'MultiValuePropertyMaps',
+ 'MultiValuePropertySamples',
+ 'MultiValuePropertyProjects',
+ 'MultiValuePropertyMapsList',
+ 'MultiValuePropertySamplesList',
+ 'MultiValuePropertyProjectsList'
  ]

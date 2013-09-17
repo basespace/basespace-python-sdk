@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PropertySamples:
+class PropertySample:
 
     def __init__(self):
         self.swaggerTypes = {
@@ -21,10 +21,7 @@ class PropertySamples:
             'Href': 'str',
             'Name': 'str',
             'Description': 'str',
-            'Items': 'list<Sample>',
-            'HrefItems': 'str',
-            'ItemsDisplayedCount': 'int',
-            'ItemsTotalCount': 'int'
+            'Content': 'Sample'
         }
 
     def __str__(self):

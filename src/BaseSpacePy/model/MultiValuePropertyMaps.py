@@ -13,22 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PropertySamples:
+class MultiValuePropertyMaps:
+    """
+    """
 
     def __init__(self):
         self.swaggerTypes = {
-            'Type': 'str',
-            'Href': 'str',
-            'Name': 'str',
-            'Description': 'str',
-            'Items': 'list<Sample>',
-            'HrefItems': 'str',
-            'ItemsDisplayedCount': 'int',
-            'ItemsTotalCount': 'int'
+            'Id': 'str',
+            'Content': 'list<Str>', 
+                # user must parse key-value (value is a list) pairs
         }
 
-    def __str__(self):
-        return str(self.Name)
-    def __repr__(self):
-        return str(self)
-    

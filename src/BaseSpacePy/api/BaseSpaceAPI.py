@@ -121,6 +121,45 @@ class BaseSpaceAPI(BaseAPI):
         # TODO add exception if response isn't OK, e.g. incorrect server gives path not recognized
         return self.__getTriggerObject__(obj) 
 
+
+    def getAppSessionPropertiesById(self, Id, queryPars=qp(), name=''):
+        '''
+        Returns the Properties of an AppSession, or a multi-value Property (from the AppSession) with the provided property name
+        :param Id: The AppSessionId
+        :param name: Optional name of the multi-value property to retrieve        
+        '''                
+        resourcePath = '/appsessions/{Id}/properties'
+        resourcePath = resourcePath.replace('{Id}',Id)
+        if name:
+            resourcePath = resourcePath + '/' + name + '/items'
+        method = 'GET'
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
+        #queryParams  = {}
+        headerParams = {}
+        if name:
+            return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+        else:
+            return self.__listRequest__(Property.Property, resourcePath, method, queryParams, headerParams, verbose=0)
+
+
+    def getAppSessionPropertyByPropertyName(self, Id, queryPars=qp(), name=''):
+        '''
+        Returns the multi-value Property of the provided AppSession that has the provided Property name
+        :param Id: The AppSessionId
+        :param name: Name of the multi-value property to retrieve        
+        '''                
+        resourcePath = '/appsessions/{Id}/properties/{Name}/items'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        resourcePath = resourcePath.replace('{Name}', name)        
+        method = 'GET'
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
+        #queryParams  = {}
+        headerParams = {}
+        return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+                    
+
     def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
         '''
         

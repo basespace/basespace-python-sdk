@@ -210,40 +210,41 @@ class APIClient:
                     except UnicodeEncodeError:
                         value = unicode(value)
                     setattr(instance, attr, value)
+                elif attrType == 'MultiValuePropertyList':
+                    prop_models = { 'map[]': 'MultiValuePropertyMapsList',
+                                    'sample[]': 'MultiValuePropertySamplesList',
+                                    'project[]': 'MultiValuePropertyProjectsList' }                    
+                    try:
+                        model_name = prop_models[value['Type']]                
+                    except KeyError:
+                        # unrecognized property type, de-serialize as a generic multi-value property
+                        model_name = 'MultiValuePropertyList'                                                                                                        
+                    setattr(instance, attr, self.deserialize(value, model_name))
                 elif 'list<' in attrType:
                     match = re.match('list<(.*)>', attrType)
-                    subClass = match.group(1)
-                    
-                    subValues = []
-                    if subClass != 'Property':                                                                
-                        for subValue in value:
-                            subValues.append(self.deserialize(subValue, subClass))
-                        setattr(instance, attr, subValues)
-                    else:
+                    subClass = match.group(1)                    
+                    subValues = []                       
+                                                                 
+                    if subClass == 'Property':
                         prop_models = {'string': 'PropertyString',
                                        'project': 'PropertyProject',
-                                       'project[]': 'PropertyProjects', # TODO
-                                       'sample': 'PropertySample', # TODO
+                                       'project[]': 'PropertyProjects',
+                                       'sample': 'PropertySample',
                                        'sample[]': 'PropertySamples',
                                        'map': 'PropertyMap',
-                                       'map[]': 'PropertyMap' 
-                                       }     
+                                       'map[]': 'PropertyMap' }     
                         for subValue in value:
                             try:
                                 subValues.append(self.deserialize(subValue, prop_models[subValue['Type']]))
-                            except KeyError as e:
-                                # TODO print to STDERR? print "Error - unrecognized Property Type" + subValue['Type']
-                                subValues.append(self.deserialize(subValue, 'Property'))
-                                
-                            #if subValue['Type'] == 'string':        
-                            #    subValues.append(self.deserialize(subValue, 'PropertyString'))
-                            #elif subValue['Type'] == 'project':
-                            #    subValues.append(self.deserialize(subValue, 'PropertyProject'))
-                            #elif subValue['Type'] == 'sample[]':
-                            #    subValues.append(self.deserialize(subValue, 'PropertySamples'))
-                            #else:
-                            #    subValues.append(self.deserialize(subValue, 'Property'))
+                            except KeyError:
+                                # unrecognized property type, de-serialize as a generic property
+                                subValues.append(self.deserialize(subValue, 'Property'))                                                            
                             setattr(instance, attr, subValues)
+                    # typical lists
+                    else:                                                                             
+                        for subValue in value:
+                            subValues.append(self.deserialize(subValue, subClass))
+                        setattr(instance, attr, subValues)
                         
                 elif attrType=='dict':                                          # support for parsing dictionary
 #                    pprint(value)                   

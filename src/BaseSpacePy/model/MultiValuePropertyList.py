@@ -13,22 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PropertySamples:
+class MultiValuePropertyList:
+    """
+    A generic MultiValueProperty to catch unrecognized Property types;
+    shouldn't be used unless new properties are added to the REST API
+    """
 
     def __init__(self):
         self.swaggerTypes = {
             'Type': 'str',
-            'Href': 'str',
-            'Name': 'str',
-            'Description': 'str',
-            'Items': 'list<Sample>',
-            'HrefItems': 'str',
-            'ItemsDisplayedCount': 'int',
-            'ItemsTotalCount': 'int'
+            'Items': 'list<MultiValueProperty>',
+            'DisplayedCount': 'int',
+            'TotalCount': 'int',
+            'Offset': 'int',
+            'Limit': 'int',
+            'SortDir': 'str',
+            'SortBy': 'str'
         }
-
-    def __str__(self):
-        return str(self.Name)
-    def __repr__(self):
-        return str(self)
-    
