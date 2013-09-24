@@ -140,7 +140,8 @@ class BaseSpaceAPI(BaseAPI):
         if name:
             return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
         else:
-            return self.__listRequest__(Property.Property, resourcePath, method, queryParams, headerParams, verbose=0)
+        #    TODO create PropertyResponse with DynamicType?
+            return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
 
     def getAppSessionPropertyByPropertyName(self, Id, queryPars=qp(), name=''):

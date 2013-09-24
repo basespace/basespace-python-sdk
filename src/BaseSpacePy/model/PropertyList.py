@@ -14,17 +14,32 @@ limitations under the License.
 """
 
 class PropertyList:
+    
+    # Values for DynamicType, keyed by 'Type' in each property Item
+    dynamic_type = {'string': 'PropertyString',
+                   'project': 'PropertyProject',
+                   'project[]': 'PropertyProjects',
+                   'sample': 'PropertySample',
+                   'sample[]': 'PropertySamples',
+                   'map': 'PropertyMap',
+                   'map[]': 'PropertyMap',
+                   }    
 
     def __init__(self):
         self.swaggerTypes = {
-            'Items': 'list<Property>',
-            'Href': 'str',
+            'Items': 'list<DynamicType>',
+            'Href': 'str', #
             'DisplayedCount': 'int',
-            'TotalCount': 'int'
+            'TotalCount': 'int',
+            #
+            'Offset:': 'int',
+            'Limit': 'int',
+            'SortDir': 'str',
+            'SortBy': 'str'
         }
 
-    def __str__(self):
-        return str(self.Href)
-    def __repr__(self):
-        return str(self)
+#    def __str__(self):
+#        return str(self.Href)
+#    def __repr__(self):
+#        return str(self)
     

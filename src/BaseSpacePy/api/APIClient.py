@@ -25,7 +25,7 @@ import json
 from subprocess import *
 import subprocess
 import dateutil.parser
-#from pprint import pprint
+from warnings import warn
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 from model import *
@@ -198,62 +198,48 @@ class APIClient:
         
         for attr, attrType in instance.swaggerTypes.iteritems():
             if attr in obj:
-#                print '@@@@ ' + str(obj)
-#                print '@@@@ ' + str(attr)
-#                print '@@@@ ' + str(attrType)
                 value = obj[attr]
-#                print value
                 if attrType in ['str', 'int', 'float', 'bool']:
                     attrType = eval(attrType)
                     try:
                         value = attrType(value)
                     except UnicodeEncodeError:
                         value = unicode(value)
-                    setattr(instance, attr, value)
-                elif attrType == 'MultiValuePropertyList':
-                    prop_models = { 'map[]': 'MultiValuePropertyMapsList',
-                                    'sample[]': 'MultiValuePropertySamplesList',
-                                    'project[]': 'MultiValuePropertyProjectsList' }                    
+                    setattr(instance, attr, value)                            
+                elif attrType == 'DynamicType':                                                
                     try:
-                        model_name = prop_models[value['Type']]                
+                        model_name = instance.dynamic_type[value['Type']]                
                     except KeyError:
-                        # unrecognized property type, de-serialize as a generic multi-value property
-                        model_name = 'MultiValuePropertyList'                                                                                                        
-                    setattr(instance, attr, self.deserialize(value, model_name))
+                        warn("Warning - unrecognized dynamic type: " + value['Type'])                                                                                    
+                    else:
+                        setattr(instance, attr, self.deserialize(value, model_name))
                 elif 'list<' in attrType:
                     match = re.match('list<(.*)>', attrType)
                     subClass = match.group(1)                    
                     subValues = []                       
-                                                                 
-                    if subClass == 'Property':
-                        prop_models = {'string': 'PropertyString',
-                                       'project': 'PropertyProject',
-                                       'project[]': 'PropertyProjects',
-                                       'sample': 'PropertySample',
-                                       'sample[]': 'PropertySamples',
-                                       'map': 'PropertyMap',
-                                       'map[]': 'PropertyMap' }     
-                        for subValue in value:
+
+                    # lists of dynamic type
+                    if subClass == 'DynamicType':                             
+                        for subValue in value:                            
                             try:
-                                subValues.append(self.deserialize(subValue, prop_models[subValue['Type']]))
+                                new_type = instance.dynamic_type[subValue['Type']]                                
                             except KeyError:
-                                # unrecognized property type, de-serialize as a generic property
-                                subValues.append(self.deserialize(subValue, 'Property'))                                                            
-                            setattr(instance, attr, subValues)
+                                warn("Warning - unrecognized (list of) dynamic types: " + subValue['Type'])                                
+                            else:
+                                subValues.append(self.deserialize(subValue, new_type)) 
+                                setattr(instance, attr, subValues)
                     # typical lists
                     else:                                                                             
                         for subValue in value:
                             subValues.append(self.deserialize(subValue, subClass))
                         setattr(instance, attr, subValues)
                         
-                elif attrType=='dict':                                          # support for parsing dictionary
-#                    pprint(value)                   
+                elif attrType=='dict':                                          
                     setattr(instance, attr,value)
                 elif attrType=='datetime':
                     dt = dateutil.parser.parse(value)
                     setattr(instance, attr,dt)
                 else:
-#                    print "recursive call w/ " + attrType
+                    # recursive call with attribute type
                     setattr(instance, attr, self.deserialize(value,attrType))
-
         return instance

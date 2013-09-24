@@ -15,10 +15,16 @@ limitations under the License.
 
 class MultiValuePropertyResponse:
 
-    def __init__(self):
+    # Values for DynamicType, keyed by 'Type' in property response
+    dynamic_type = { 'map[]': 'MultiValuePropertyMapsList',
+                    'sample[]': 'MultiValuePropertySamplesList',
+                    'project[]': 'MultiValuePropertyProjectsList',                    
+                    }  
+
+    def __init__(self):    
         self.swaggerTypes = {
             'ResponseStatus': 'ResponseStatus',
-            'Response': 'MultiValuePropertyList',
+            'Response': 'DynamicType',
             'Notifications': 'list<Str>'
         }
 
