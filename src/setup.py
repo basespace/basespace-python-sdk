@@ -26,3 +26,14 @@ setup(name='BaseSpacePy',
       author_email='',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
 )
+
+# Warn use if dependent packages aren't installed
+try:
+    import pycurl
+except:
+    print "WARNING - please install required package 'pycurl'"
+try:
+    import dateutil
+except:
+    print "WARNING - please install required package 'python-dateutil'"
+

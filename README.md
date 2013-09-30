@@ -18,7 +18,7 @@ Eric Smith
 REQUIREMENTS
 =========================================
 
-Python 2.6 with the packages 'urllib2', 'pycurl', 'multiprocessing' and 'shutil' available.
+Python 2.6 with the packages 'pycurl', and 'python-dateutil' installed.
 
 The multi-part file upload will currently only run on a unix setup.
 
