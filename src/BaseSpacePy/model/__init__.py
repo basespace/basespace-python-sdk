@@ -60,6 +60,8 @@ __all__= [
  'PropertySample',
  'PropertySamples',
  'PropertyMap',
+ 'PropertyMaps',
+ 'PropertyMapKeyValues',
  'MultiValuePropertyResponse',
  'MultiValuePropertyMaps',
  'MultiValuePropertySamples',

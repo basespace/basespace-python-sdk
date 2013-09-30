@@ -19,10 +19,11 @@ class Application:
         self.swaggerTypes = {
             'Id': 'str',
             'Href': 'str',
-            "Name":"str",
-            "HomepageUri":"str",
-            "ShortDescription":"str",
-            "DateCreated":"datetime"            
+            'Name':'str',
+            'HrefLogo': 'str',
+            'HomepageUri': 'str',
+            'ShortDescription': 'str',
+            'DateCreated': 'datetime'            
         }
 
         self.Id                   = None

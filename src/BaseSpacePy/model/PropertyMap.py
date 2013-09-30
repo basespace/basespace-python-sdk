@@ -21,7 +21,7 @@ class PropertyMap:
             'Href': 'str',
             'Name': 'str',
             'Description': 'str',
-            'Items': 'list<Str>' # user will need to parse map data
+            'Items': 'list<PropertyMapKeyValues>',           
         }
 
     def __str__(self):

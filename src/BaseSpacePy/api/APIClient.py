@@ -212,7 +212,8 @@ class APIClient:
                     except KeyError:
                         warn("Warning - unrecognized dynamic type: " + value['Type'])                                                                                    
                     else:
-                        setattr(instance, attr, self.deserialize(value, model_name))
+                        setattr(instance, attr, self.deserialize(value, 
+                            model_name))
                 elif 'list<' in attrType:
                     match = re.match('list<(.*)>', attrType)
                     subClass = match.group(1)                    
@@ -226,14 +227,27 @@ class APIClient:
                             except KeyError:
                                 warn("Warning - unrecognized (list of) dynamic types: " + subValue['Type'])                                
                             else:
-                                subValues.append(self.deserialize(subValue, new_type)) 
+                                subValues.append(self.deserialize(subValue, 
+                                    new_type)) 
                                 setattr(instance, attr, subValues)
                     # typical lists
                     else:                                                                             
                         for subValue in value:
-                            subValues.append(self.deserialize(subValue, subClass))
+                            subValues.append(self.deserialize(subValue, 
+                                subClass))
                         setattr(instance, attr, subValues)
-                        
+                # list of lists (e.g. map[] property type)
+                elif 'listoflists<' in attrType:
+                    match = re.match('listoflists<(.*)>', attrType)
+                    subClass = match.group(1)                    
+                    outvals = []                
+                    for outval in value:
+                        invals = []
+                        for inval in outval:
+                            invals.append(self.deserialize(inval, subClass))
+                        outvals.append(invals)
+                    setattr(instance, attr, outvals)
+                                            
                 elif attrType=='dict':                                          
                     setattr(instance, attr,value)
                 elif attrType=='datetime':

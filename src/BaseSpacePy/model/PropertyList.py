@@ -22,7 +22,7 @@ class PropertyList:
                    'sample': 'PropertySample',
                    'sample[]': 'PropertySamples',
                    'map': 'PropertyMap',
-                   'map[]': 'PropertyMap',
+                   'map[]': 'PropertyMaps',
                    }    
 
     def __init__(self):
@@ -30,9 +30,8 @@ class PropertyList:
             'Items': 'list<DynamicType>',
             'Href': 'str', #
             'DisplayedCount': 'int',
-            'TotalCount': 'int',
-            #
-            'Offset:': 'int',
+            'TotalCount': 'int',            
+            'Offset': 'int',
             'Limit': 'int',
             'SortDir': 'str',
             'SortBy': 'str'

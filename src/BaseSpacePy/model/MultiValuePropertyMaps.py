@@ -20,7 +20,6 @@ class MultiValuePropertyMaps:
     def __init__(self):
         self.swaggerTypes = {
             'Id': 'str',
-            'Content': 'list<Str>', 
-                # user must parse key-value (value is a list) pairs
+            'Content': 'list<PropertyMapKeyValues>'
         }
 

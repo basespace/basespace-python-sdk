@@ -122,31 +122,25 @@ class BaseSpaceAPI(BaseAPI):
         return self.__getTriggerObject__(obj) 
 
 
-    def getAppSessionPropertiesById(self, Id, queryPars=qp(), name=''):
+    def getAppSessionPropertiesById(self, Id, queryPars=qp()):
         '''
-        Returns the Properties of an AppSession, or a multi-value Property (from the AppSession) with the provided property name
-        :param Id: The AppSessionId
-        :param name: Optional name of the multi-value property to retrieve        
+        Returns the Properties of an AppSession
+        :param Id: The AppSessionId            
         '''                
         resourcePath = '/appsessions/{Id}/properties'
         resourcePath = resourcePath.replace('{Id}',Id)
-        if name:
-            resourcePath = resourcePath + '/' + name + '/items'
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
         #queryParams  = {}
-        headerParams = {}
-        if name:
-            return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
-        else:
-        #    TODO create PropertyResponse with DynamicType?
-            return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+        headerParams = {}                
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
 
-    def getAppSessionPropertyByPropertyName(self, Id, queryPars=qp(), name=''):
+    def getAppSessionPropertyByName(self, Id, queryPars=qp(), name=''):
         '''
-        Returns the multi-value Property of the provided AppSession that has the provided Property name
+        Returns the multi-value Property of the provided AppSession that has the provided Property name.
+        Note - this method (and REST API) is supported for ONLY multi-value Properties.
         :param Id: The AppSessionId
         :param name: Name of the multi-value property to retrieve        
         '''                

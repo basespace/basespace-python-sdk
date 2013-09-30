@@ -13,29 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class UserCompact:
+class PropertyMapKeyValues:
 
     def __init__(self):
         self.swaggerTypes = {
-            'Name': 'str',
-            'Id': 'str',
-            'Href': 'str',
-            'GravatarUrl': 'str',
-        }
-
-    def __str__(self):
-        return str(self.Id) + ": " + self.Name
-    def __repr__(self):
-        return str(self)
-
-        # 
-        self.Name = None # str
-
-
-        # 
-        self.Id = None # str
-
-
-        # 
-        self.Href = None # str
-
+            'Key': 'str',
+            'Values': 'list<Str>'                        
+        }    
+    

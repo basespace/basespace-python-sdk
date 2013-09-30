@@ -23,13 +23,16 @@ class AppSession:
             'Id':'str',
             'Href': 'str',
             'Type': 'str',
+            'Name': 'str',
             'UserCreatedBy':'User',
             'DateCreated': 'datetime',
             'Status':'str',
             'StatusSummary': 'str',
             'Application':'Application',
             'References':'list<AppSessionLaunchObject>',
-            'Properties':'PropertyList'
+            'Properties':'PropertyList',
+            'AuthorizationCode': 'str',
+            'OriginatingUri': 'str',
         }
         
     def __str__(self):
