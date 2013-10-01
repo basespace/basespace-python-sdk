@@ -208,7 +208,7 @@ class APIClient:
                     setattr(instance, attr, value)                            
                 elif attrType == 'DynamicType':                                                
                     try:
-                        model_name = instance.dynamic_type[value['Type']]                
+                        model_name = instance._dynamicType[value['Type']]                
                     except KeyError:
                         warn("Warning - unrecognized dynamic type: " + value['Type'])                                                                                    
                     else:
@@ -223,7 +223,7 @@ class APIClient:
                     if subClass == 'DynamicType':                             
                         for subValue in value:                            
                             try:
-                                new_type = instance.dynamic_type[subValue['Type']]                                
+                                new_type = instance._dynamicType[subValue['Type']]                                
                             except KeyError:
                                 warn("Warning - unrecognized (list of) dynamic types: " + subValue['Type'])                                
                             else:

@@ -335,6 +335,20 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(RunCompact.RunCompact,resourcePath, method, queryParams, headerParams)
     
+    def getRunById(self, Id, queryPars=qp()):
+        '''        
+        Request a run object by Id
+        
+        :param Id: The Id of the run
+        '''        
+        resourcePath = '/runs/{Id}'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(RunResponse.RunResponse,resourcePath, method, queryParams, headerParams)
+    
     def getAppResultsByProject(self, Id, queryPars=qp(),statuses=[]):
         '''
         Returns a list of AppResult object associated with the project with Id

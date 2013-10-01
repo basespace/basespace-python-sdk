@@ -16,13 +16,20 @@ limitations under the License.
 class PropertyList:
     
     # Values for DynamicType, keyed by 'Type' in each property Item
-    dynamic_type = {'string': 'PropertyString',
-                   'project': 'PropertyProject',
-                   'project[]': 'PropertyProjects',
-                   'sample': 'PropertySample',
-                   'sample[]': 'PropertySamples',
-                   'map': 'PropertyMap',
-                   'map[]': 'PropertyMaps',
+    _dynamicType = {'string': 'PropertyString',
+                    'string[]': 'PropertyStrings',
+                    'project': 'PropertyProject',
+                    'project[]': 'PropertyProjects',
+                    'appresult': 'PropertyAppResult',
+                    'appresult[]': 'PropertyAppResults',
+                    'sample': 'PropertySample',
+                    'sample[]': 'PropertySamples',
+                    'file': 'PropertyFile',
+                    'file[]': 'PropertyFiles',
+                    'run': 'PropertyRun',
+                    'run[]': 'PropertyRuns',
+                    'map': 'PropertyMap',
+                    'map[]': 'PropertyMaps',
                    }    
 
     def __init__(self):

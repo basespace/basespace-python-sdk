@@ -13,22 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class MultiValuePropertyResponse:
+class RunResponse:
 
-    # Values for DynamicType, keyed by 'Type' in property response
-    _dynamicType = { 'map[]': 'MultiValuePropertyMapsList',
-                     'sample[]': 'MultiValuePropertySamplesList',
-                     'project[]': 'MultiValuePropertyProjectsList',                    
-                    }  
-
-    def __init__(self):    
+    def __init__(self):
         self.swaggerTypes = {
             'ResponseStatus': 'ResponseStatus',
-            'Response': 'DynamicType',
+            'Response': 'Run',
             'Notifications': 'list<Str>'
         }
 
         self.ResponseStatus = None # ResponseStatus
-        self.Response = None
+        self.Response = None    
         self.Notifications = None # list<Str>
 
