@@ -133,7 +133,6 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
-        #queryParams  = {}
         headerParams = {}                
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
@@ -151,7 +150,6 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
-        #queryParams  = {}
         headerParams = {}
         return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
                     
@@ -361,6 +359,20 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         return self.__singleRequest__(RunResponse.RunResponse,resourcePath, method, queryParams, headerParams)
+    
+    def getRunPropertiesById(self, Id, queryPars=qp()):
+        '''        
+        Request the Properties of a run object by Id
+        
+        :param Id: The Id of the run
+        '''        
+        resourcePath = '/runs/{Id}/properties'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
     
     def getAppResultsByProject(self, Id, queryPars=qp(),statuses=[]):
         '''
