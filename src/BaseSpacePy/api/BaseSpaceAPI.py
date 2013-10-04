@@ -22,6 +22,7 @@ import httplib
 import cStringIO
 import json
 import os
+import re
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
@@ -155,6 +156,18 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
                     
 
+    def getAppSessionInputsById(self, Id, queryPars=qp()):
+        '''
+        Returns a dictionary of input properties from the provided AppSessions, keyed by input Name        
+        '''
+        props = self.getAppSessionPropertiesById(Id, queryPars)
+        inputs = {}
+        for prop in props.Items:
+            match = re.search("^Input\.(.+)", prop.Name)
+            if match != None:
+                inputs[match.group(1)] = prop
+        return inputs
+                
     def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
         '''
         

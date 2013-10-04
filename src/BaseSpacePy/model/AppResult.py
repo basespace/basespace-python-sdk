@@ -21,7 +21,7 @@ class AppResult:
     def __init__(self):
         self.swaggerTypes = {
             'Name': 'str',
-            #'Status': 'str',        # will be deprecated
+            'Status': 'str',        # will be deprecated
             'Description': 'str',
             'StatusSummary': 'str',
             'HrefFiles': 'str',

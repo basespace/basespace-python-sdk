@@ -227,14 +227,12 @@ class APIClient:
                             except KeyError:
                                 warn("Warning - unrecognized (list of) dynamic types: " + subValue['Type'])                                
                             else:
-                                subValues.append(self.deserialize(subValue, 
-                                    new_type)) 
-                                setattr(instance, attr, subValues)
+                                subValues.append(self.deserialize(subValue, new_type)) 
+                        setattr(instance, attr, subValues)
                     # typical lists
                     else:                                                                             
                         for subValue in value:
-                            subValues.append(self.deserialize(subValue, 
-                                subClass))
+                            subValues.append(self.deserialize(subValue, subClass))
                         setattr(instance, attr, subValues)
                 # list of lists (e.g. map[] property type)
                 elif 'listoflists<' in attrType:

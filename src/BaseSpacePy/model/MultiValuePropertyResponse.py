@@ -16,9 +16,13 @@ limitations under the License.
 class MultiValuePropertyResponse:
 
     # Values for DynamicType, keyed by 'Type' in property response
-    _dynamicType = { 'map[]': 'MultiValuePropertyMapsList',
-                     'sample[]': 'MultiValuePropertySamplesList',
+    _dynamicType = { 'appresult[]': 'MultiValuePropertyAppResultsList',
+                     'file[]': 'MultiValuePropertyFilesList',
+                     'map[]': 'MultiValuePropertyMapsList',
+                     'run[]': 'MultiValuePropertyRunsList',
                      'project[]': 'MultiValuePropertyProjectsList',                    
+                     'sample[]': 'MultiValuePropertySamplesList',
+                     'string[]': 'MultiValuePropertyStringsList',
                     }  
 
     def __init__(self):    

@@ -18,7 +18,7 @@ class Run:
     def __init__(self):
         self.swaggerTypes = {
             'Name': 'str',
-            'Number': 'str',
+            'Number': 'int',
             'HrefFiles': 'str',
             'HrefSamples': 'str',
             'UserUploadedBy': 'UserCompact',

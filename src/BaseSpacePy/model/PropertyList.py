@@ -44,8 +44,4 @@ class PropertyList:
             'SortBy': 'str'
         }
 
-#    def __str__(self):
-#        return str(self.Href)
-#    def __repr__(self):
-#        return str(self)
     
