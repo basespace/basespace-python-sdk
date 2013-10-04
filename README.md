@@ -28,7 +28,7 @@ INSTALL
 
 Version 0.1.1 of BaseSpacePy can be checked out here:
 
-	git clone git@github.com:basespace/basespace-python-sdk.git
+	git clone https://github.com/basespace/basespace-python-sdk.git
 
 To install 'BaseSpacePy' run the 'setup.py' script in the main directory (for a global install you will need to run this command with root privileges):
 

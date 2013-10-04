@@ -39,7 +39,7 @@ class File:
     def __str__(self):
         s =  self.Name 
         try:
-            s += "- status: " + self.UploadStatus
+            s += " - status: " + self.UploadStatus
         except:
             e=1
         return s 
@@ -149,6 +149,16 @@ class File:
         self.isValidFileOption('vcf')
         Id = self.HrefVariants.split('/')[-1]
         return api.getVariantMetadata(Id,'txt')
+    
+    def markAsComplete(self,api):
+        '''
+        Mark a file object created as part of a multipart upload as complete
+        :param api: An instance of BaseSpaceAPI
+        '''
+        api.markFileState(self.Id)
+        self.UploadStatus ='Complete'
+        
+        
     
         self.Name = None # str
 

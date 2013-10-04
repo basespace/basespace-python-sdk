@@ -46,13 +46,11 @@ class APIClient:
         :param qParams:Query oaramter string
         :param resourcePath: The url 
         '''
-#        print "Forcing post"
-#        print resourcePath
         postData = [(p,postData[p]) for p in postData]
         headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
         post =  urllib.urlencode(postData)
-#        print headerPrep
-#        print post
+#        print "header prep " + str(headerPrep)
+#        print "post " + str(post)
         response = cStringIO.StringIO()
         c = pycurl.Curl()
         c.setopt(pycurl.URL,resourcePath + '?' + post)
@@ -98,9 +96,11 @@ class APIClient:
         if headerParams:
             for param, value in headerParams.iteritems():
                 headers[param] = value
+        # specify the content type
+        if not headers.has_key('Content-Type') and not method=='PUT' and not forcePost: headers['Content-Type'] = 'application/json'
 
-        if not headers.has_key('Content-Type') and not method=='PUT': headers['Content-Type'] = 'application/json'
         # include access token in header 
+
         headers['Authorization'] = 'Bearer ' + self.apiKey
         
         data = None

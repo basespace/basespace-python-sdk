@@ -13,3 +13,4 @@ parts
 bin
 var
 sdist
+/scripts

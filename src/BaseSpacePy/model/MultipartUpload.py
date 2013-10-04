@@ -76,14 +76,14 @@ class Consumer(multiprocessing.Process):
             
             if next_task is None or self.halt.is_set(): # check if we are out of jobs or have been halted
                 # Poison pill means shutdown
-                print '%s: Exiting' % proc_name
+#                print '%s: Exiting' % proc_name
                 self.task_queue.task_done()
                 break
             elif self.pause.is_set():                   # if we have been paused, sleep for a bit then check back
-                print '%s: Paused' % proc_name 
+#                print '%s: Paused' % proc_name 
                 time.sleep(3)                                       
             else:                                       # do some work
-                print '%s: %s' % (proc_name, next_task)
+#                print '%s: %s' % (proc_name, next_task)
                 answer = next_task()
                 self.task_queue.task_done()
                 if answer.state == 1:                   # case everything went well
@@ -96,10 +96,10 @@ class Consumer(multiprocessing.Process):
         return
 
 class MultipartUpload:
-    def __init__(self,api,aId,localFile,fileObject,cpuCount,partSize,tempdir,verbose):
+    def __init__(self,api,aId,localFile,fileObject,cpuCount,partSize,tempdir,startChunk=1,verbose=0):
         self.api            = api
         self.analysisId     = aId
-        self.localFile      = localFile
+        self.localFile      = localFile     # File object
         self.remoteFile     = fileObject
         self.partSize       = partSize
         self.cpuCount       = cpuCount
@@ -107,6 +107,7 @@ class MultipartUpload:
         self.tempDir        = tempdir       #
         self.Status         = 'Initialized'
         self.StartTime      = -1
+        self.startChunk     = startChunk
 #        self.repeatCount    = 0             # number of chunks we uploaded multiple times
         self.setup()
     
@@ -129,6 +130,7 @@ class MultipartUpload:
     def setup(self):
         
         # determine the 
+#        print self.localFile
         totalSize = os.path.getsize(self.localFile)
         fileCount = int(math.ceil(totalSize/(self.partSize*1024.0*1000)))
         
@@ -137,11 +139,12 @@ class MultipartUpload:
             print "Using split size " + str(self.partSize) +"Mb"
             print "Filecount " + str(fileCount)
             print "CPUs " + str(self.cpuCount)
+            print "startChunk " + str(self.startChunk)
         
         # Establish communication queues
         self.tasks = multiprocessing.JoinableQueue()
         self.completedPool = multiprocessing.Queue()
-        for i in xrange(1,fileCount+1):         # set up the task queue
+        for i in xrange(self.startChunk,fileCount+1):         # set up the task queue
             t = uploadTask(self.api,self.remoteFile.Id,i, fileCount, self.localFile, 0)
             self.tasks.put(t)
         self.totalTask  = self.tasks.qsize()
@@ -180,18 +183,20 @@ class MultipartUpload:
             self.finalize()
             return 1
         else:
+            self.finalize()
             return 1
-    
     
     def finalize(self):
         if self.getRunningThreadCount():
             raise Exception('Cannot finalize a transfer with running threads.')
         if self.Status=='Running':
-            # code here for 
+            time.sleep(1)               # sleep one to make sure 
+            print self.remoteFile.Id
+            self.remoteFile = self.api.markFileState(self.remoteFile.Id)
             self.Status=='Completed'
         else:
             raise Exception('To finalize the status of the transfer must be "Running."')
-    
+#    
     def hasFinished(self):
         if self.Status == 'Initialized': return 0
         return not self.getRunningThreadCount()>0
@@ -214,7 +219,8 @@ class MultipartUpload:
         return sum([c.is_alive() for c in self.consumers])
     
     def getTransRate(self):
-                # tasks completed                        size of file-parts 
+                # tasks completed                        size of file-parts
+        if not self.getRunningTime()>0: return '0 mb/s' 
         return str((self.totalTask - self.tasks.qsize())*self.partSize/self.getRunningTime())[:6] + ' mb/s'
     
     def getRunningTime(self):
@@ -223,11 +229,13 @@ class MultipartUpload:
     
     def getTotalTransfered(self):
         '''
-        Returns the total data amoun transfered in Gb
+        Returns the total data amount transfered in Gb
         '''
         return float((self.totalTask - self.tasks.qsize())*self.partSize)/1000.0
         
     
     def getProgressRatio(self):
-        currentQ = float(self.tasks.qsize() - len(self.consumers))
-        return str(float(self.totalTask - currentQ)/self.totalTask)[:6]
+        currentQ = float(self.tasks.qsize())
+        res = float(self.totalTask - currentQ)/self.totalTask
+        if res>1.0: res=1.0
+        return str(res)[:5]
