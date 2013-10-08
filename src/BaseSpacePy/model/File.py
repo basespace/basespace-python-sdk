@@ -33,7 +33,8 @@ class File:
             'HrefVariants': 'str',
             'ContentType': 'str',
             'Path': 'str',
-            'Size': 'int'
+            'Size': 'int',
+            'Properties': 'PropertyList',
         }
 
     def __str__(self):

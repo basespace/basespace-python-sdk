@@ -265,7 +265,7 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse,resourcePath, method, queryParams, headerParams)
            
-    def getAppResultById(self, Id, ):
+    def getAppResultById(self, Id, queryPars=qp()):
         '''
         Returns an AppResult object corresponding to Id
         
@@ -276,9 +276,26 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams = {}
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
         headerParams = {}
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams)
+
+    def getAppResultPropertiesById(self, Id, queryPars=qp()):
+        '''
+        Returns the Properties of an AppResult object corresponding to Id
+        
+        :param Id: The Id of the AppResult
+        '''
+        # Parse inputs
+        resourcePath = '/appresults/{Id}/properties'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams)
 
     def getAppResultFiles(self, Id, queryPars=qp()):
         '''
@@ -297,20 +314,35 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)
 
-    def getProjectById(self, Id, ):
+    def getProjectById(self, Id, queryPars=qp()):
         '''
         Request a project object by Id
         
         :param Id: The Id of the project
         '''
-        # Parse inputs
         resourcePath = '/projects/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams = {}
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
         headerParams = {}
         return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams)
+
+    def getProjectPropertiesById(self, Id, queryPars=qp()):
+        '''
+        Request the Properties of a project object by Id
+        
+        :param Id: The Id of the project
+        '''
+        resourcePath = '/projects/{Id}/properties'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
            
     def getProjectByUser(self, Id, queryPars=qp()):
         '''
@@ -356,7 +388,8 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams = {}
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()        
         headerParams = {}
         return self.__singleRequest__(RunResponse.RunResponse,resourcePath, method, queryParams, headerParams)
     
@@ -370,7 +403,8 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams = {}
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
     
@@ -410,7 +444,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams,verbose=0)
 
-    def getSampleById(self, Id, ):
+    def getSampleById(self, Id, queryPars=qp()):
         '''
         Returns a Sample object
         
@@ -421,9 +455,26 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams = {}
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
         headerParams = {}
         return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=0)
+    
+    def getSamplePropertiesById(self, Id, queryPars=qp()):
+        '''
+        Returns the Properties of a Sample object
+        
+        :param Id: The id of the sample
+        '''
+        # Parse inputs
+        resourcePath = '/samples/{Id}/properties'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)    
 
     def getFilesBySample(self, Id, queryPars=qp()):
         '''
@@ -442,7 +493,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)
     
-    def getFileById(self, Id, ):
+    def getFileById(self, Id, queryPars=qp()):
         '''
         Returns a file object by Id
         
@@ -453,9 +504,27 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams = {}
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()        
         headerParams = {}
         return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
+                                      queryParams, headerParams,verbose=0)
+        
+    def getFilePropertiesById(self, Id, queryPars=qp()):
+        '''
+        Returns the Properties of a file object by Id
+        
+        :param Id: The id of the file
+        '''
+        # Parse inputs
+        resourcePath = '/files/{Id}/properties'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()        
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
 
     def getGenomeById(self, Id, ):

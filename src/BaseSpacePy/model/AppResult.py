@@ -31,9 +31,10 @@ class AppResult:
             'UserOwnedBy': 'UserCompact',
             'StatusDetail': 'str',
             'HrefGenome': 'str',
-            'AppSession':'AppSession',
+            'AppSession':'AppSessionSemiCompact',
             'References':'dict',
-            'TotalSize':'int'
+            'TotalSize':'int',
+            'Properties': 'PropertyList',
         }
     def __str__(self):
         return "AppResult: " + self.Name #+ " - " + str(self.Status)

@@ -49,6 +49,7 @@ __all__= [
  'PurchaseResponse',
  'Product',
  'AppSessionCompact',
+ 'AppSessionSemiCompact',
  'ApplicationCompact',
  'PurchasedProduct',
  'RefundPurchaseResponse',

@@ -116,11 +116,11 @@ class TestSDK(object):
 
 class GetAppSessionById(TestSDK):
 
-    def __init__(self, app, ssn_id):        
+    def __init__(self, app, bsid):        
         super(GetAppSessionById, self).__init__(app)
-        self.rest_path = '/appsessions/' + ssn_id
+        self.rest_path = '/appsessions/' + bsid
         
-        self.appsession_id = ssn_id
+        self.appsession_id = bsid
 
     def call_sdk(self):
         return self.myAPI.getAppSessionById(self.appsession_id)
@@ -152,26 +152,124 @@ class GetAppSessionPropertyByName(TestSDK):
 
 class GetRunById(TestSDK):
 
-    def __init__(self, app, ssn_id):        
+    def __init__(self, app, bsid, query_p={}):        
         super(GetRunById, self).__init__(app)
-        self.rest_path = '/runs/' + ssn_id
+        self.rest_path = '/runs/' + bsid
         
-        self.run_id = ssn_id
+        self.run_id = bsid
+        self.qp = query_p
 
     def call_sdk(self):
-        return self.myAPI.getRunById(self.run_id)
+        return self.myAPI.getRunById(self.run_id, qp(self.qp))
 
 class GetRunPropertiesById(TestSDK):
 
-    def __init__(self, app, ssn_id):        
+    def __init__(self, app, ssn_id, query_p={}):        
         super(GetRunPropertiesById, self).__init__(app)
         self.rest_path = '/runs/' + ssn_id + '/properties'
         
         self.run_id = ssn_id
+        self.qp = query_p
 
     def call_sdk(self):
-        return self.myAPI.getRunPropertiesById(self.run_id)
+        return self.myAPI.getRunPropertiesById(self.run_id, qp(self.qp))
 
+class GetProjectById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetProjectById, self).__init__(app)
+        self.rest_path = '/projects/' + bsid
+        
+        self.project_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getProjectById(self.project_id, qp(self.qp))
+
+class GetProjectPropertiesById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetProjectPropertiesById, self).__init__(app)
+        self.rest_path = '/projects/' + bsid + '/properties'
+        
+        self.project_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getProjectPropertiesById(self.project_id, qp(self.qp))
+
+class GetSampleById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetSampleById, self).__init__(app)
+        self.rest_path = '/samples/' + bsid
+        
+        self.sample_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getSampleById(self.sample_id, qp(self.qp))
+
+class GetSamplePropertiesById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetSamplePropertiesById, self).__init__(app)
+        self.rest_path = '/samples/' + bsid + '/properties'
+        
+        self.sample_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getSamplePropertiesById(self.sample_id, qp(self.qp))
+
+class GetAppResultById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetAppResultById, self).__init__(app)
+        self.rest_path = '/appresults/' + bsid
+        
+        self.appresult_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getAppResultById(self.appresult_id, qp(self.qp))
+
+class GetAppResultPropertiesById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetAppResultPropertiesById, self).__init__(app)
+        self.rest_path = '/appresults/' + bsid + '/properties'
+        
+        self.appresult_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getAppResultPropertiesById(self.appresult_id, qp(self.qp))
+
+class GetFileById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetFileById, self).__init__(app)
+        self.rest_path = '/files/' + bsid
+        
+        self.file_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getFileById(self.file_id, qp(self.qp))
+
+class GetFilePropertiesById(TestSDK):
+
+    def __init__(self, app, bsid, query_p={}):        
+        super(GetFilePropertiesById, self).__init__(app)
+        self.rest_path = '/files/' + bsid + '/properties'
+        
+        self.file_id = bsid
+        self.qp = query_p
+
+    def call_sdk(self):
+        return self.myAPI.getFilePropertiesById(self.file_id, qp(self.qp))
+    
 
 class TestSuite(object):
     '''
@@ -197,11 +295,45 @@ class TestSuite(object):
         except AttributeError:
             print "Skipping test GetAppSessionPropertiesByName -- missing input parameter"
         try:
-            self.tests.append((GetRunById(app, app.run_id), "test"))
-            self.tests.append((GetRunPropertiesById(app, app.run_id), "test"))
+            self.tests.append((GetRunById(app, app.run_id, app.query_p), "with query parameter"))
         except AttributeError:
             print "Skipping test GetRunById -- missing input parameter"
+        try:
+            self.tests.append((GetRunPropertiesById(app, app.run_id, app.query_p), "with query parameter"))
+        except AttributeError:
             print "Skipping test GetRunPropertiesById -- missing input parameter"
+        try:
+            self.tests.append((GetProjectById(app, app.project_id, app.query_p), "with query parameter"))
+        except AttributeError:
+            print "Skipping test GetProjectById -- missing input parameter"
+        try:
+            self.tests.append((GetProjectPropertiesById(app, app.project_id, app.query_p), "with query parameter"))
+        except AttributeError:            
+            print "Skipping test GetProjectPropertiesById -- missing input parameter"
+        try:
+            self.tests.append((GetSampleById(app, app.sample_id, app.query_p), "with query parameter"))
+        except AttributeError:
+            print "Skipping test GetSampleById -- missing input parameter"
+        try:
+            self.tests.append((GetSamplePropertiesById(app, app.sample_id, app.query_p), "with query parameter"))
+        except AttributeError:            
+            print "Skipping test GetSamplePropertiesById -- missing input parameter"            
+        try:
+            self.tests.append((GetAppResultById(app, app.appresult_id, app.query_p), "with query parameter"))
+        except AttributeError:
+            print "Skipping test GetAppResultById -- missing input parameter"
+        try:
+            self.tests.append((GetAppResultPropertiesById(app, app.appresult_id, app.query_p), "with query parameter"))
+        except AttributeError:            
+            print "Skipping test GetAppResultPropertiesById -- missing input parameter"            
+        try:
+            self.tests.append((GetFileById(app, app.file_id, app.query_p), "with query parameter"))
+        except AttributeError:
+            print "Skipping test GetFileById -- missing input parameter"
+        try:
+            self.tests.append((GetFilePropertiesById(app, app.file_id, app.query_p), "with query parameter"))
+        except AttributeError:            
+            print "Skipping test GetFilePropertiesById -- missing input parameter"       
     
     def test_rest_vs_sdk(self):
         for test in self.tests:
