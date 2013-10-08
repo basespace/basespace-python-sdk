@@ -26,7 +26,6 @@ class Sample:
             'SampleNumber': 'int',
             'ExperimentName': 'str',
             'HrefFiles': 'str',
-            # AppSession
             'IsPairedEnd':'int',
             'Read1':'int',
             'Read2':'int',
@@ -42,7 +41,9 @@ class Sample:
             'DateCreated': 'datetime',
             'References':'dict',
             'Run': 'RunCompact', # deprecated?
-            'TotalSize': 'int'
+            'TotalSize': 'int',
+            'AppSession': 'AppSessionSemiCompact',
+            'Properties': 'PropertyList',
         }
 
     def __str__(self):

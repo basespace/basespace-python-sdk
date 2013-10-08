@@ -30,7 +30,8 @@ class Project:
             'DateCreated': 'datetime',
             'Id': 'str',
             'Href': 'str',
-            'UserOwnedBy': 'UserCompact'
+            'UserOwnedBy': 'UserCompact',
+            'Properties': 'PropertyList',
         }
     
     def __str__(self):
