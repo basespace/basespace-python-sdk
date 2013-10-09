@@ -15,7 +15,7 @@ limitations under the License.
 
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
-class Sample:
+class Sample(object):
     '''
     Representation of a BaseSpace Sample object.
     '''

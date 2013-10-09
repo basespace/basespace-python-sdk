@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class CoverageMetaResponse:
+class CoverageMetaResponse(object):
 
 
     def __init__(self):

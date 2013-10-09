@@ -15,7 +15,7 @@ limitations under the License.
 
 from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException
 
-class User:
+class User(object):
     
     def __init__(self):
         self.swaggerTypes = {

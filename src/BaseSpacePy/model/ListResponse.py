@@ -16,7 +16,7 @@ limitations under the License.
 import json
 from StringIO import StringIO
 
-class ListResponse:
+class ListResponse(object):
 
     def __init__(self):
         self.swaggerTypes = {

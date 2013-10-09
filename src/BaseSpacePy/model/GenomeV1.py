@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class GenomeV1:
+class GenomeV1(object):
 
 
     def __init__(self):

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PropertyList:
+class PropertyList(object):
     
     # Values for DynamicType, keyed by 'Type' in each property Item
     _dynamicType = {'string': 'PropertyString',
