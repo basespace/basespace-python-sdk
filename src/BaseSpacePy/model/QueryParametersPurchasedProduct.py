@@ -17,7 +17,7 @@ from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException,Unkno
 
 legal    = { 'Tags':[], 'ProductIds':[] }
 
-class QueryParametersPurchasedProduct:
+class QueryParametersPurchasedProduct(object):
     '''
     This class can be passed as an optional argument for a filtering getUserProducts list response
     '''

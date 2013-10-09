@@ -16,7 +16,7 @@ limitations under the License.
 from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
-class AppResult:
+class AppResult(object):
 
     def __init__(self):
         self.swaggerTypes = {

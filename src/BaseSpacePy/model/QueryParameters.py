@@ -18,7 +18,7 @@ from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException,Unkno
 # not very strict parameters testing
 legal    = {'Statuses':[],'SortBy':['Id', 'Name', 'DateCreated','Path','Position'],'Format':['txt'], 'Extensions':[],'Offset':[],'Limit':[],'SortDir':['Asc', 'Desc'], 'Name':[]}
 
-class QueryParameters:
+class QueryParameters(object):
     '''
     The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, AppResult, or variants)
     '''

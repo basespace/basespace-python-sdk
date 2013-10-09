@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class MultiValuePropertySamples:
+class MultiValuePropertySamples(object):
     """
     A generic multi-value Property for use when a property is queried directly by name
     """

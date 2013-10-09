@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class PurchaseResponse:
+class PurchaseResponse(object):
 
     def __init__(self):
         self.swaggerTypes = {

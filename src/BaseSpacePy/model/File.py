@@ -15,7 +15,7 @@ limitations under the License.
 
 from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException,WrongFiletypeException
 
-class File:
+class File(object):
     '''
     Represents a BaseSpace file object.
     '''
