@@ -1,4 +1,5 @@
 
+from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 
 class App(object):
     """
@@ -14,5 +15,12 @@ class App(object):
         self.appsession_id = appsession_id        
         self.basespace_url = basespace_url
         self.version = version
+        
+    def bs_api(self):
+        """
+        Returns a BaseSpace API object
+        """
+        return BaseSpaceAPI(self.client_key, self.client_secret, 
+            self.basespace_url, self.version, self.appsession_id, self.access_token)
 
 

@@ -123,11 +123,13 @@ class BaseSpaceAPI(BaseAPI):
         return self.__getTriggerObject__(obj) 
 
 
-    def getAppSessionPropertiesById(self, Id, queryPars=qp()):
+    def getAppSessionPropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of an AppSession
         :param Id: The AppSessionId            
         '''                
+        if queryPars is None:
+            queryPars = qp()
         resourcePath = '/appsessions/{Id}/properties'
         resourcePath = resourcePath.replace('{Id}',Id)
         method = 'GET'
@@ -137,13 +139,15 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
 
-    def getAppSessionPropertyByName(self, Id, queryPars=qp(), name=''):
+    def getAppSessionPropertyByName(self, Id, queryPars=None, name=''):
         '''
         Returns the multi-value Property of the provided AppSession that has the provided Property name.
         Note - this method (and REST API) is supported for ONLY multi-value Properties.
         :param Id: The AppSessionId
         :param name: Name of the multi-value property to retrieve        
         '''                
+        if queryPars is None:
+            queryPars = qp()        
         resourcePath = '/appsessions/{Id}/properties/{Name}/items'
         resourcePath = resourcePath.replace('{Id}', Id)
         resourcePath = resourcePath.replace('{Name}', name)        
@@ -154,10 +158,12 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
                     
 
-    def getAppSessionInputsById(self, Id, queryPars=qp()):
+    def getAppSessionInputsById(self, Id, queryPars=None):
         '''
         Returns a dictionary of input properties from the provided AppSessions, keyed by input Name        
         '''
+        if queryPars is None:
+            queryPars = qp()        
         props = self.getAppSessionPropertiesById(Id, queryPars)
         inputs = {}
         for prop in props.Items:
@@ -265,13 +271,15 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse,resourcePath, method, queryParams, headerParams)
            
-    def getAppResultById(self, Id, queryPars=qp()):
+    def getAppResultById(self, Id, queryPars=None):
         '''
         Returns an AppResult object corresponding to Id
         
         :param Id: The Id of the AppResult
         '''
         # Parse inputs
+        if queryPars is None:
+            queryPars = qp()        
         resourcePath = '/appresults/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -281,13 +289,15 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams)
 
-    def getAppResultPropertiesById(self, Id, queryPars=qp()):
+    def getAppResultPropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of an AppResult object corresponding to Id
         
         :param Id: The Id of the AppResult
         '''
         # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/appresults/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -297,7 +307,7 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams)
 
-    def getAppResultFiles(self, Id, queryPars=qp()):
+    def getAppResultFiles(self, Id, queryPars=None):
         '''
         Returns a list of File object for the AppResult with id  = Id
         
@@ -305,6 +315,8 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
         # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -314,12 +326,14 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)
 
-    def getProjectById(self, Id, queryPars=qp()):
+    def getProjectById(self, Id, queryPars=None):
         '''
         Request a project object by Id
         
         :param Id: The Id of the project
         '''
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/projects/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -329,12 +343,14 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams)
 
-    def getProjectPropertiesById(self, Id, queryPars=qp()):
+    def getProjectPropertiesById(self, Id, queryPars=None):
         '''
         Request the Properties of a project object by Id
         
         :param Id: The Id of the project
         '''
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/projects/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -344,14 +360,15 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
            
-    def getProjectByUser(self, Id, queryPars=qp()):
+    def getProjectByUser(self, Id, queryPars=None):
         '''
         Returns a list available projects for a User with the specified Id
         
         :param Id: The id of the user
         :param qp: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/users/{Id}/projects'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -361,14 +378,15 @@ class BaseSpaceAPI(BaseAPI):
         if Id != None: resourcePath = resourcePath.replace('{Id}', Id)
         return self.__listRequest__(Project.Project,resourcePath, method, queryParams, headerParams)
        
-    def getAccessibleRunsByUser(self, Id, queryPars=qp()):
+    def getAccessibleRunsByUser(self, Id, queryPars=None):
         '''
         Returns a list of accessible runs for the User with id=Id
         
         :param Id: An user id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        '''
-        # Parse inputs
+        '''        
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/users/{Id}/runs'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -378,12 +396,14 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(RunCompact.RunCompact,resourcePath, method, queryParams, headerParams)
     
-    def getRunById(self, Id, queryPars=qp()):
+    def getRunById(self, Id, queryPars=None):
         '''        
         Request a run object by Id
         
         :param Id: The Id of the run
         '''        
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/runs/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -393,12 +413,14 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(RunResponse.RunResponse,resourcePath, method, queryParams, headerParams)
     
-    def getRunPropertiesById(self, Id, queryPars=qp()):
+    def getRunPropertiesById(self, Id, queryPars=None):
         '''        
         Request the Properties of a run object by Id
         
         :param Id: The Id of the run
         '''        
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/runs/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -408,7 +430,7 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
     
-    def getAppResultsByProject(self, Id, queryPars=qp(),statuses=[]):
+    def getAppResultsByProject(self, Id, queryPars=None, statuses=None):
         '''
         Returns a list of AppResult object associated with the project with Id
         
@@ -416,7 +438,10 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :param statuses: An (optional) list of AppResult statuses to filter by
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp() 
+        if statuses is None:
+            statuses = []               
         resourcePath = '/projects/{Id}/appresults'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -427,14 +452,15 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(AppResult.AppResult,resourcePath, method, queryParams, headerParams,verbose=0)
 
-    def getSamplesByProject(self, Id, queryPars=qp()):
+    def getSamplesByProject(self, Id, queryPars=None):
         '''
         Returns a list of samples associated with a project with Id
         
         :param Id: The id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/projects/{Id}/samples'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -444,13 +470,14 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams,verbose=0)
 
-    def getSampleById(self, Id, queryPars=qp()):
+    def getSampleById(self, Id, queryPars=None):
         '''
         Returns a Sample object
         
         :param Id: The id of the sample
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp()        
         resourcePath = '/samples/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -460,13 +487,14 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=0)
     
-    def getSamplePropertiesById(self, Id, queryPars=qp()):
+    def getSamplePropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of a Sample object
         
         :param Id: The id of the sample
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                        
         resourcePath = '/samples/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -476,14 +504,15 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)    
 
-    def getFilesBySample(self, Id, queryPars=qp()):
+    def getFilesBySample(self, Id, queryPars=None):
         '''
         Returns a list of File objects associated with sample with Id
         
         :param Id: A Sample id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/samples/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -493,13 +522,14 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)
     
-    def getFileById(self, Id, queryPars=qp()):
+    def getFileById(self, Id, queryPars=None):
         '''
         Returns a file object by Id
         
         :param Id: The id of the file
         '''
-        # Parse inputs
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/files/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -510,13 +540,14 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
         
-    def getFilePropertiesById(self, Id, queryPars=qp()):
+    def getFilePropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of a file object by Id
         
         :param Id: The id of the file
-        '''
-        # Parse inputs
+        '''        
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/files/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -542,14 +573,14 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(GenomeResponse.GenomeResponse,resourcePath, method, queryParams, headerParams)
 
-    def getAvailableGenomes(self, queryPars=qp()):
+    def getAvailableGenomes(self, queryPars=None):
         '''
         Returns a list of all available genomes
         
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        '''
-        
-        # Parse inputs
+        '''        
+        if queryPars is None:
+            queryPars = qp()                
         resourcePath = '/genomes'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -578,7 +609,7 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(VariantsHeaderResponse.VariantsHeaderResponse,resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
     
-    def filterVariantSet(self,Id, Chrom, StartPos, EndPos, Format, queryPars=qp(pars={'SortBy':'Position'})):
+    def filterVariantSet(self,Id, Chrom, StartPos, EndPos, Format, queryPars=None):
         '''
         List the variants in a set of variants. Maximum returned records is 1000
         
@@ -586,12 +617,12 @@ class BaseSpaceAPI(BaseAPI):
         :param Chrom: The chromosome of interest
         :param StartPos: The start position of the sequence of interest
         :param EndPos: The start position of the sequence of interest
-        :param Format: Set to 'vcf' to get the results as lines in VCF format
+        :param Format: Set to 'vcf' to get the results as lines in VCF format (default is 'json')
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        # Parse inputs
-        resourcePath = '/variantset/{Id}/variants/chr{Chrom}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        if queryPars is None:
+            queryPars=qp(pars={'SortBy':'Position'})
+        resourcePath = '/variantset/{Id}/variants/{Chrom}'
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
@@ -646,7 +677,7 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse,resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
      
-    def createAppResult(self,Id,name,desc,samples=[],appSessionId=None):
+    def createAppResult(self, Id, name, desc, samples=None, appSessionId=None):
         '''
         Create an AppResult object
         
@@ -659,7 +690,8 @@ class BaseSpaceAPI(BaseAPI):
         '''
         if (not self.appSessionId) and (not appSessionId):
             raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method createAppResult")
-        
+        if samples is None:
+            samples = []
         resourcePath = '/projects/{ProjectId}/appresults'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'POST'
@@ -726,7 +758,7 @@ class BaseSpaceAPI(BaseAPI):
             return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
 
-    def fileDownload(self,Id,localDir,name,range=[]): #@ReservedAssignment
+    def fileDownload(self, Id, localDir, name, range=None): #@ReservedAssignment
         '''
         Downloads a BaseSpace file to a local directory
         
@@ -735,6 +767,8 @@ class BaseSpaceAPI(BaseAPI):
         :param name: The name of the local file
         :param range: (Optional) The byte range of the file to retrieve (not yet implemented)
         '''
+        if range is None:
+            range = []
         resourcePath = '/files/{Id}/content'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
