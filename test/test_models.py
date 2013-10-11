@@ -3,7 +3,7 @@
 import os
 import argparse
 from BaseSpacePy.api.APIClient import APIClient
-from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
+#from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 import app_data
 
@@ -18,9 +18,9 @@ class TestSDK(object):
         self.rest_method = 'GET'
         self.postData = None
         self.headerParams=None
+        self.list_request = False
         
-        self.myAPI = BaseSpaceAPI(self.app.client_key, self.app.client_secret, 
-            self.app.basespace_url, self.app.version, self.app.appsession_id, self.app.access_token)
+        self.myAPI = self.app.bs_api()
         
         self.api = APIClient(self.app.access_token, self.app.basespace_url + self.app.version)        
 
@@ -82,7 +82,10 @@ class TestSDK(object):
         sdk_obj = self.call_sdk()
         rest_obj = self.call_rest_api()                                                        
         # TODO passing Response here, SDK doesn't currently capture other items at this level (e.g. Notifications)
-        self.compare_dict_to_obj(rest_obj['Response'], sdk_obj)
+        if self.list_request:
+            self.compare_list_to_obj(rest_obj['Response']['Items'], sdk_obj, "BASE")
+        else:
+            self.compare_dict_to_obj(rest_obj['Response'], sdk_obj)
 
     def call_rest_api(self):
         """
@@ -269,7 +272,29 @@ class GetFilePropertiesById(TestSDK):
 
     def call_sdk(self):
         return self.myAPI.getFilePropertiesById(self.file_id, qp(self.qp))
+
+class FilterVariantSet(TestSDK):
     
+    def __init__(self, app, bsid, chrom, start_pos, end_pos, format ,query_p=None):        
+        super(FilterVariantSet, self).__init__(app)
+        self.rest_path = '/variantset/' + bsid + '/variants/' + chrom        
+        if query_p is None:
+            query_p = {}
+            
+        self.file_id = bsid
+        self.chrom = chrom
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.format = format        
+        query_p['StartPos'] = start_pos
+        query_p['EndPos'] = end_pos
+        query_p['Format'] = format        
+        self.qp = query_p
+        self.list_request = True
+    
+    def call_sdk(self):
+        return self.myAPI.filterVariantSet(self.file_id, self.chrom, self.start_pos, self.end_pos, self.format, qp(self.qp))    
+
 
 class TestSuite(object):
     '''
@@ -281,6 +306,10 @@ class TestSuite(object):
 
     def add_tests(self):
         app = self.app
+        try:
+            self.tests.append((FilterVariantSet(app, app.vcf_id, app.vcf_chr, app.vcf_start, app.vcf_end, app.vcf_format, app.query_p), "with query parameter"))
+        except AttributeError:            
+            print "Skipping test FilterVariantSet -- missing input parameter"
         try:
             self.tests.append((GetAppSessionById(app, app.ssn_id), "test"))
         except AttributeError:
@@ -333,7 +362,8 @@ class TestSuite(object):
         try:
             self.tests.append((GetFilePropertiesById(app, app.file_id, app.query_p), "with query parameter"))
         except AttributeError:            
-            print "Skipping test GetFilePropertiesById -- missing input parameter"       
+            print "Skipping test GetFilePropertiesById -- missing input parameter"          
+
     
     def test_rest_vs_sdk(self):
         for test in self.tests:

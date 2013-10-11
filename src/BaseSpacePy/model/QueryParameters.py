@@ -16,14 +16,19 @@ limitations under the License.
 from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException,UnknownParameterException,IllegalParameterException
 
 # not very strict parameters testing
-legal    = {'Statuses':[],'SortBy':['Id', 'Name', 'DateCreated','Path','Position'],'Format':['txt'], 'Extensions':[],'Offset':[],'Limit':[],'SortDir':['Asc', 'Desc'], 'Name':[]}
+legal    = {'Statuses':[],'SortBy':['Id', 'Name', 'DateCreated','Path','Position'],'Format':['txt', 'json', 'vcf'], 'Extensions':[],'Offset':[],'Limit':[],'SortDir':['Asc', 'Desc'], 'Name':[], 'StartPos':[], 'EndPos':[], 'Format':[] }
 
 class QueryParameters(object):
     '''
     The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, AppResult, or variants)
     '''
-    def __init__(self,pars={}, required = ['SortBy','Offset','Limit','SortDir']):
-        self.passed = {'SortBy':'Id','Offset':'0','Limit':'100','SortDir':'Asc'}
+    def __init__(self, pars = None, required = None):
+        if pars is None:
+            pars = {}
+        if required is None:
+            required = [] # ['SortBy','Offset','Limit','SortDir']
+        #self.passed = {'SortBy':'Id','Offset':'0','Limit':'100','SortDir':'Asc'}
+        self.passed = {}
         for k in pars.keys():
             self.passed[k] = pars[k]
         self.required = required
