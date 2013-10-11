@@ -18,7 +18,7 @@ Eric Smith
 REQUIREMENTS
 =========================================
 
-Python 2.6 with the packages 'pycurl', and 'python-dateutil' installed.
+Python 2.6 with the packages 'pycurl', and 'python-dateutil' installed. You can install these on Ubuntu with 'apt-get install python-pycurl' and 'apt-get install python-dateutil'.
 
 The multi-part file upload will currently only run on a unix setup.
 
