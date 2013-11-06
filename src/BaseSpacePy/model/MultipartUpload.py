@@ -25,14 +25,15 @@ import multiprocessing
 import base64
 
 class uploadTask(object):
-    def __init__(self, api, BSfileId, piece, total, myfile, attempt):
+    def __init__(self, api, BSfileId, piece, total, myfile, attempt,tempDir):
         self.api    = api
         self.piece  = piece   # piece number 
         self.total  = total   # out of total piece count
         self.file   = myfile  # the local file to be uploaded
         self.BSfileId=BSfileId# the baseSpace fileId
         self.attempt= attempt # the # of attempts we've made to upload this guy  
-        self.state  = 0       # 0=pending, 1=ran, 2=error 
+        self.state  = 0       # 0=pending, 1=ran, 2=error
+        self.tempDir = tempDir 
     
     def uploadFileName(self):
         return self.file.split('/')[-1] + '_' + str(self.piece)
@@ -40,7 +41,8 @@ class uploadTask(object):
     def __call__(self):
         # read the byte string in
         self.attempt += 1
-        transFile = self.file + str(self.piece)
+        fname = self.file.split('/')[-1]
+        transFile = os.path.join(self.tempDir, fname + str(self.piece))
         cmd = "split -d -n " + str(self.piece) + '/' + str(self.total) + ' ' + self.file
         process = os.popen(cmd)
         out = process.read()
@@ -53,7 +55,7 @@ class uploadTask(object):
         res = self.api.__uploadMultipartUnit__(self.BSfileId,self.piece,self.md5,transFile)
         os.system('rm ' + transFile)
 #        print "my result " + str(res)
-        if res['Response'].has_key('ETag'): self.state = 1          # case things went well
+        if res and res['Response'].has_key('ETag'): self.state = 1          # case things went well
         else: self.state = 2
         return self
         
@@ -68,31 +70,36 @@ class Consumer(multiprocessing.Process):
         self.result_queue = result_queue
         self.pause = pauseEvent
         self.halt  = haltEvent
+        self.timeOutTask = 60   # seconds for a task to timeout
+        
     
     def run(self):
         proc_name = self.name
         while True:
             if not self.pause.is_set(): next_task = self.task_queue.get()
             
-            if next_task is None or self.halt.is_set(): # check if we are out of jobs or have been halted
+            if next_task is None or self.task_queue.qsize()==0 or self.halt.is_set(): # check if we are out of jobs or have been halted
                 # Poison pill means shutdown
-#                print '%s: Exiting' % proc_name
+                print '%s: Exiting' % proc_name
                 self.task_queue.task_done()
-                break
+                return
             elif self.pause.is_set():                   # if we have been paused, sleep for a bit then check back
 #                print '%s: Paused' % proc_name 
                 time.sleep(3)                                       
             else:                                       # do some work
 #                print '%s: %s' % (proc_name, next_task)
-                answer = next_task()
-                self.task_queue.task_done()
-                if answer.state == 1:                   # case everything went well
-                    self.result_queue.put(answer)
-                else:                                   # case something sent wrong
-                    if next_task.attempt<3:
-                        self.task_queue.put(next_task)  # queue the guy for a retry
-                    else:                               # problems, shutting down this party
-                        self.halt.set()                 # halt all other process
+                # give any upload job 5 tries
+                for i in xrange(0,5):    
+                    answer = next_task()
+                    if answer.state == 1:
+                        self.task_queue.task_done()                   # case everything went well
+                        self.result_queue.put(answer)
+                        break
+                    else:
+                        print "Upload task " + str(next_task.piece) + " failed, retry attempt " + str(i)
+                if not answer.state==1:
+                    print "5 consecutive fails, halting upload task"        
+                    self.halt.set()                 # halt all other process
         return
 
 class MultipartUpload:
@@ -108,6 +115,7 @@ class MultipartUpload:
         self.Status         = 'Initialized'
         self.StartTime      = -1
         self.startChunk     = startChunk
+        self.zeroQCount     = 0  
 #        self.repeatCount    = 0             # number of chunks we uploaded multiple times
         self.setup()
     
@@ -117,7 +125,7 @@ class MultipartUpload:
                 ", Q-size " + str(self.tasks.qsize()) + \
                 ", Completed " + str(self.getProgressRatio()) + \
                 ", AVG TransferRate " + self.getTransRate() + \
-                ", Data transfered " + str(self.getTotalTransfered())[:5] + 'Gb'
+                ", Data transferred " + str(self.getTotalTransfered())[:5] + 'Gb'
     
     def __repr__(self):
         return str(self)
@@ -131,6 +139,7 @@ class MultipartUpload:
         
         # determine the 
 #        print self.localFile
+        self.zeroQCount = 0
         totalSize = os.path.getsize(self.localFile)
         fileCount = int(math.ceil(totalSize/(self.partSize*1024.0*1000)))
         
@@ -145,7 +154,7 @@ class MultipartUpload:
         self.tasks = multiprocessing.JoinableQueue()
         self.completedPool = multiprocessing.Queue()
         for i in xrange(self.startChunk,fileCount+1):         # set up the task queue
-            t = uploadTask(self.api,self.remoteFile.Id,i, fileCount, self.localFile, 0)
+            t = uploadTask(self.api,self.remoteFile.Id,i, fileCount, self.localFile, 0,self.tempDir)
             self.tasks.put(t)
         self.totalTask  = self.tasks.qsize()
         
@@ -188,10 +197,10 @@ class MultipartUpload:
     
     def finalize(self):
         if self.getRunningThreadCount():
-            raise Exception('Cannot finalize a transfer with running threads.')
+            print 'Finalize called on  a transfer with running threads, halting all remaining threads.'
+            self.haltUpload()
         if self.Status=='Running':
             time.sleep(1)               # sleep one to make sure 
-            print self.remoteFile.Id
             self.remoteFile = self.api.markFileState(self.remoteFile.Id)
             self.Status=='Completed'
         else:
@@ -199,6 +208,14 @@ class MultipartUpload:
 #    
     def hasFinished(self):
         if self.Status == 'Initialized': return 0
+        
+        
+        # temporary hack, check if the queue is empty        
+        if self.tasks.qsize()==0:
+            self.zeroQCount +=1
+        if self.zeroQCount>15:
+            self.haltUpload()
+        
         return not self.getRunningThreadCount()>0
     
     def pauseUpload(self):
@@ -207,7 +224,7 @@ class MultipartUpload:
 #    
     def haltUpload(self):
         for c in self.consumers: c.terminate()
-        self.Status = 'Terminated'
+#        self.Status = 'Terminated'
     
     def getStatus(self):
         return self.Status
