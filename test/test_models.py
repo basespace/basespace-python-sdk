@@ -2,6 +2,7 @@
 """
 import os
 import argparse
+import copy
 from BaseSpacePy.api.APIClient import APIClient
 #from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
@@ -286,10 +287,10 @@ class FilterVariantSet(TestSDK):
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.format = format        
-        query_p['StartPos'] = start_pos
-        query_p['EndPos'] = end_pos
-        query_p['Format'] = format        
-        self.qp = query_p
+        self.qp = copy.deepcopy(query_p)
+        self.qp['StartPos'] = start_pos
+        self.qp['EndPos'] = end_pos
+        self.qp['Format'] = format
         self.list_request = True
     
     def call_sdk(self):
