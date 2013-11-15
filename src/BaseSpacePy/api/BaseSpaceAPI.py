@@ -28,6 +28,7 @@ from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model.MultipartUpload import MultipartUpload as mpu #@UnresolvedImport
+from BaseSpacePy.model.MultipartDownload import MultipartDownload as mpd #@UnresolvedImport
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@UnresolvedImport
 from BaseSpacePy.model import * #@UnusedWildImport
 
@@ -778,17 +779,16 @@ class BaseSpaceAPI(BaseAPI):
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         
-        # get the Amazon URL 
-        fileUrl = response['Response']['HrefContent']
-        req = urllib2.urlopen(fileUrl)
+        # get the Amazon URL
+        req = urllib2.Request(response['Response']['HrefContent'])
         if len(range):
-#            print "Case range request" 
-            req.headers['Range']='bytes=%s-%s' % (range[0], range[1])
+            req.add_header('Range', 'bytes=%s-%s' % (range[0], range[1]))
+        flo = urllib2.urlopen(req)                                 
         
         # Do the download
         with open(os.path.join(localDir,name), 'wb') as fp:
-            shutil.copyfileobj(req, fp)
-        return 1
+            shutil.copyfileobj(flo, fp)
+        return True
 
     def fileUrl(self,Id): #@ReservedAssignment
         '''
@@ -830,13 +830,58 @@ class BaseSpaceAPI(BaseAPI):
         out = self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams,forcePost=0)
         return out
 
-#    def largeFileDownload(self):
-#        '''
-#        Not yet implemented
-#        '''
-#        raise Exception('Not yet implemented')
+    def largefileDownload(self, Id, localDir, name, range=None): #@ReservedAssignment
+        '''
+        Downloads a BaseSpace file to a local directory
+        
+        :param Id: The file id
+        :param localDir: The local directory to place the file in
+        :param name: The name of the local file
+        :param range: (Optional) The byte range of the file to retrieve (not yet implemented)
+        '''
+        if range is None:
+            range = []
+        resourcePath = '/files/{Id}/content'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
+        
+        response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
+        
+        # get the Amazon URL
+        req = urllib2.Request(response['Response']['HrefContent'])
+        if len(range):
+            req.add_header('Range', 'bytes=%s-%s' % (range[0], range[1]))
+        flo = urllib2.urlopen(req)     
+        
+        with open(os.path.join(localDir,name), 'a+b') as fp:
+            for piece in self.__downloadFileChunk__(flo):
+                    fp.write(piece)
+        return True
 
-    
+    def __downloadFileChunk__(self, request, chunk_size=1024):
+        '''
+        Lazy generator to download file piece by piece; retries chunk up to 10 times before raising exception
+        '''
+        retry = 0
+        while True:
+            try:
+                data = request.read(chunk_size)
+            except urllib2.URLError as e:
+                retry += 1
+                if retry > 10:
+                    # TODO retry logic not yet tested on connection failures
+                    # TODO make custom exception
+                    raise Exception('Error - repeated download errors in large-file download: ' + str(e.reason))
+            if not data:
+                break
+            yield data
+
     def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,startChunk=1,verbose=0):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
@@ -859,6 +904,24 @@ class BaseSpaceAPI(BaseAPI):
         # prepare multi-part upload objects
         myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,startChunk=startChunk,verbose=verbose)
         return myMpu,myFile
+
+    def multipartFileDownload(self, Id, localPath, tempDir='',cpuCount=2, partSize=25, startChunk=1, verbose=0):
+        '''
+        Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
+        The call returns TODO
+        
+        :param Id: The ID of the File to download 
+        :param localPath: The local path in which to store the downloaded file
+        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
+        :param cpuCount: The number of CPUs to be used
+        :param partSize: The size of individual upload parts (must be between 5 and 25mb)
+        :param verbose: Write process output to stdout as download progresses
+        '''         
+        # prepare multi-part download objects
+        if not tempDir:
+            tempDir = localPath
+        myMpd = mpd(self, Id, localPath, cpuCount, partSize, tempDir=tempDir, startChunk=startChunk, verbose=verbose)
+        return myMpd        
 
     def markFileState(self,Id):
         '''

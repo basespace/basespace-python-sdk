@@ -87,5 +87,5 @@ __all__= [
  'MultiValuePropertyStringsList',
  'RunResponse',
  'Run',
- 'MultipartUpload',
+ 'MultipartDownload',
  ]
