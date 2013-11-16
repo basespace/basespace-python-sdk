@@ -23,6 +23,7 @@ import json
 import multiprocessing
 import base64
 import shutil
+import sys
 
 class downloadTask(object):
     def __init__(self, api, BSfileId, fileName, localPath, piece, partSize, totalSize, attempt, tempDir):
@@ -43,7 +44,9 @@ class downloadTask(object):
     #    return self.file.split('/')[-1] + '_' + str(self.piece)
     
     def __call__(self):
-        # read the byte string in
+        '''
+        Download a chunk of the target file
+        '''
         self.attempt += 1
         transFile = os.path.join(self.tempDir, self.fileName + "." + str(self.piece))
         # calculate byte range
@@ -51,11 +54,15 @@ class downloadTask(object):
         endbyte = (self.piece * self.partSize) - 1
         if endbyte > self.totalSize:
             endbyte = self.totalSize - 1
-        myfile = self.api.fileDownload(self.BSfileId, self.localPath, transFile, [startbyte, endbyte])
-        # TODO, is md5 check occurring? (is it set by AWS?)
-
-        # TODO handle response? set self.state = 2 if recvd a BS exception?                            
-        self.state = 1          # case things went well        
+        try:
+            self.api.fileDownload(self.BSfileId, self.localPath, transFile, [startbyte, endbyte])
+        except Exception as e:
+            self.state = False
+            self.err_msg = str(e)
+        else:
+            self.state = True
+            #self.err_msg = "testing"
+        # TODO, is md5 check occurring? (is it set by AWS?)                                                
         return self
         
     def __str__(self):
@@ -64,7 +71,7 @@ class downloadTask(object):
     
 class Consumer(multiprocessing.Process):
     
-    def __init__(self, task_queue, result_queue,pauseEvent,haltEvent):
+    def __init__(self, task_queue, result_queue, pauseEvent, haltEvent):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
@@ -72,12 +79,11 @@ class Consumer(multiprocessing.Process):
         self.halt  = haltEvent
         self.timeOutTask = 60   # seconds for a task to timeout
         
-    
     def run(self):
         proc_name = self.name
         while True:
-            if not self.pause.is_set(): next_task = self.task_queue.get()
-            
+            if not self.pause.is_set(): 
+                next_task = self.task_queue.get()            
             if next_task is None or self.task_queue.qsize()==0 or self.halt.is_set(): # check if we are out of jobs or have been halted
                 # Poison pill means shutdown
                 print '%s: Exiting' % proc_name
@@ -91,15 +97,16 @@ class Consumer(multiprocessing.Process):
                 # give any download job 5 tries
                 for i in xrange(0,5):    
                     answer = next_task()
-                    if answer.state == 1:
+                    if answer.state == True:
                         self.task_queue.task_done()                   # case everything went well
                         self.result_queue.put(answer)
                         break
                     else:
-                        print "Download task " + str(next_task.piece) + " failed, retry attempt " + str(i)
-                if not answer.state==1:
-                    print "5 consecutive fails, halting download task"        
+                        print "Download task " + str(next_task.piece) + " failed, retry attempt " + str(i) + " with error msg: " + answer.err_msg
+                if not answer.state == True:
+                    print "Five consecutive fails, halting download task"        
                     self.halt.set()                 # halt all other process
+                    sys.exit(1)
         return
 
 class MultipartDownload:
@@ -166,7 +173,8 @@ class MultipartDownload:
             print 'Creating %d consumers' % self.cpuCount
             print "queue size " + str(self.tasks.qsize())
         self.consumers = [ Consumer(self.tasks, self.completedPool,self.pauseEvent,self.haltEvent) for i in xrange(self.cpuCount) ]
-        for c in self.consumers: self.tasks.put(None)   # add poison pill
+        for c in self.consumers:
+            self.tasks.put(None)   # add poison pill
         
     def __cleanUp__(self):
         self.stats[0] +=1
@@ -201,26 +209,34 @@ class MultipartDownload:
             print 'Finalize called on  a transfer with running threads, halting all remaining threads.'
             self.haltUpload()
         if self.Status=='Running':
-            time.sleep(1)               # sleep one to make sure 
-            # TODO re-assemble downloaded parts into single file 
-            part_files = [os.path.join(self.tempDir, self.fileName + '.' + str(i)) for i in xrange(self.startChunk,self.fileCount+1)]            
-            with open(os.path.join(self.localPath, self.fileName), 'w+b') as whole_file:
+            time.sleep(1)               # sleep one to make sure
+            # check that all parts downloaded successfully
+            reassemble = True
+            for w in self.consumers:
+                if w.exitcode is None:
+                    raise Exception('Error - at least one process is active when all processes should be terminated')
+                if w.exitcode != 0:
+                    reassemble = False
+            if reassemble:              
+                if self.verbose:
+                    print "Assembling downloaded file parts into single file"                                           
+                # re-assemble downloaded parts into single file 
+                part_files = [os.path.join(self.tempDir, self.fileName + '.' + str(i)) for i in xrange(self.startChunk,self.fileCount+1)]            
+                with open(os.path.join(self.localPath, self.fileName), 'w+b') as whole_file:
+                    for part_file in part_files:
+                        shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                 
+                # delete temp part files
                 for part_file in part_files:
-                    shutil.copyfileobj(open(part_file, 'r+b'), whole_file)
-                 
-            # delete temp part files
-            for part_file in part_files:
-                os.remove(part_file)
-            #self.remoteFile = self.api.markFileState(self.remoteFile.Id)
+                    os.remove(part_file)                
+            # TODO option to delete downloaded piece files? Could resume with these...?
             self.Status = 'Completed'
         else:
-            raise Exception('To finalize the status of the transfer must be "Running."')
+            raise Exception('To finalize, the status of the transfer must be "Running."')
 #    
     def hasFinished(self):
-        if self.Status == 'Initialized': return 0
-        
-        
-        # temporary hack, check if the queue is empty        
+        if self.Status == 'Initialized': 
+            return 0            
+        # TODO temporary hack, check if the queue is empty        
         if self.tasks.qsize()==0:
             self.zeroQCount +=1
         if self.zeroQCount>15:
