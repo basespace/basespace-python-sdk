@@ -16,25 +16,20 @@ limitations under the License.
 import time
 import os
 import math
-from hashlib import md5
-import pycurl
-from subprocess import *
-import json
 import multiprocessing
-import base64
 import shutil
 import sys
 
 class downloadTask(object):
     def __init__(self, api, BSfileId, fileName, localPath, piece, partSize, totalSize, attempt, tempDir):
-        self.api    = api
-        self.BSfileId=BSfileId      # the baseSpace fileId
+        self.api = api
+        self.BSfileId = BSfileId      # the baseSpace fileId
         self.fileName = fileName    # the name of the file to download
         self.piece  = piece         # piece number
-        self.partSize = partSize    # the size in MB of each piece (except last piece)
+        self.partSize = partSize    # the size in bytes of each piece (except last piece)
         self.totalSize  = totalSize # the total size of the file in bytes
         self.localPath = localPath  # the path in which to store the downloaded file        
-        self.attempt= attempt       # the # of attempts we've made to upload this guy          
+        self.attempt= attempt       # the # of attempts we've made to download this piece          
         self.tempDir = tempDir
         self.partSize = partSize
         
@@ -61,13 +56,10 @@ class downloadTask(object):
             self.err_msg = str(e)
         else:
             self.state = True
-            #self.err_msg = "testing"
-        # TODO, is md5 check occurring? (is it set by AWS?)                                                
         return self
         
-    def __str__(self):
-        # TODO substitute file id for file name
-        return '%s / %s - %s' % (self.piece, self.totalSize, self.BSfileId)
+    def __str__(self):        
+        return 'File id %s, piece %s, piece size %s, total size %s' % (self.BSfileId, self.piece, self.partSize, self.totalSize)
     
 class Consumer(multiprocessing.Process):
     
@@ -83,29 +75,33 @@ class Consumer(multiprocessing.Process):
         proc_name = self.name
         while True:
             if not self.pause.is_set(): 
-                next_task = self.task_queue.get()            
-            if next_task is None or self.task_queue.qsize()==0 or self.halt.is_set(): # check if we are out of jobs or have been halted
+                next_task = self.task_queue.get()
+            # check if we are out of jobs or have been halted                
+            if next_task is None or self.task_queue.qsize()==0 or self.halt.is_set():
                 # Poison pill means shutdown
                 print '%s: Exiting' % proc_name
                 self.task_queue.task_done()
                 return
-            elif self.pause.is_set():                   # if we have been paused, sleep for a bit then check back
+            # if we have been paused, sleep for a bit then check back
+            elif self.pause.is_set():                   
 #                print '%s: Paused' % proc_name 
                 time.sleep(3)                                       
-            else:                                       # do some work
+            # do some work
+            else:                                       
 #                print '%s: %s' % (proc_name, next_task)
                 # give any download job 5 tries
-                for i in xrange(0,5):    
-                    answer = next_task()
+                for i in xrange(1,5):    
+                    answer = next_task()                    
                     if answer.state == True:
-                        self.task_queue.task_done()                   # case everything went well
+                        self.task_queue.task_done()                   
                         self.result_queue.put(answer)
                         break
                     else:
                         print "Download task " + str(next_task.piece) + " failed, retry attempt " + str(i) + " with error msg: " + answer.err_msg
                 if not answer.state == True:
                     print "Five consecutive fails, halting download task"        
-                    self.halt.set()                 # halt all other process
+                    # halt all other processes and set non-zero exit code
+                    self.halt.set()                 
                     sys.exit(1)
         return
 
@@ -122,46 +118,47 @@ class MultipartDownload:
         self.StartTime      = -1
         self.startChunk     = startChunk
         self.zeroQCount     = 0  
-#        self.repeatCount    = 0             # number of chunks we downloaded multiple times
         self.setup()
     
     def __str__(self):
-        return "MPU -  Stat: " + self.Status +  ", LiveThread: " + str(self.getRunningThreadCount()) + \
-                ", RunTime: " + str(self.getRunningTime())[:5] + 's' + \
-                ", Q-size " + str(self.tasks.qsize()) + \
-                ", Completed " + str(self.getProgressRatio()) + \
-                ", AVG TransferRate " + self.getTransRate() + \
-                ", Data transferred " + str(self.getTotalTransfered())[:5] + 'Gb'
+        return "MPU -  Status: " + self.Status +  \
+                ", Workers: " + str(self.getRunningWorkerCount()) + \
+                ", Run Time: " + str(self.getRunningTime())[:5] + 's' + \
+                ", Queue Size: " + str(self.tasks.qsize()) + \
+                ", Percent Completed: " + str(self.getProgressRatio())[:6] + \
+                ", Avg Transfer Rate: " + self.getTransRate() + \
+                ", Data Transferred: " + readable_bytes(self.getTotalTransferred())
     
     def __repr__(self):
         return str(self)
     
-    def run(self):
-        while self.Status=='Paused' or self.__checkQueue__():
-            time.sleep(self.wait)
-        return
+#    def run(self):
+#        while self.Status=='Paused' or self.__checkQueue__():
+#            time.sleep(self.wait)
+#        return
     
     def setup(self):
-        
+        '''
+        Determine number of file pieces to download, create communication and tasks queues, add workers to task queue 
+        '''
         # determine the number of chunks to download 
         bs_file = self.api.getFileById(self.fileId)
         self.fileName = bs_file.Name
         totalSize = bs_file.Size
         self.zeroQCount = 0
-        #totalSize = os.path.getsize(self.localFile)
         self.fileCount = int(math.ceil(totalSize/self.partSize)) + 1
         
         if self.verbose: 
-            print "TotalSize " + str(totalSize)
-            print "Using split size " + str(self.partSize) +" bytes"
-            print "Filecount " + str(self.fileCount)
+            print "Total file size " + str(totalSize) + " bytes"
+            print "Using split size " + str(self.partSize) + " bytes"
+            print "File count " + str(self.fileCount)
             print "CPUs " + str(self.cpuCount)
             print "startChunk " + str(self.startChunk)
         
-        # Establish communication queues
+        # Establish communication and task queues
         self.tasks = multiprocessing.JoinableQueue()
-        self.completedPool = multiprocessing.Queue()
-        for i in xrange(self.startChunk,self.fileCount+1):         # set up the task queue
+        self.completedPool = multiprocessing.Queue()        
+        for i in xrange(self.startChunk,self.fileCount+1):         
             t = downloadTask(self.api, self.fileId, self.fileName, self.localPath, i, self.partSize, totalSize, 0, self.tempDir)
             self.tasks.put(t)
         self.totalTask  = self.tasks.qsize()
@@ -176,10 +173,13 @@ class MultipartDownload:
         for c in self.consumers:
             self.tasks.put(None)   # add poison pill
         
-    def __cleanUp__(self):
-        self.stats[0] +=1
+#    def __cleanUp__(self):
+#        self.stats[0] +=1
     
-    def startDownload(self,returnOnFinish=0,testInterval=5):
+    def startDownload(self, testInterval=5):
+        '''
+        Start workers, handle paused and other states, wait until workers finish to clean up small file downloads
+        '''
         if self.Status=='Terminated' or self.Status=='Completed':
             raise Exception('Cannot resume a ' + self.Status + ' multi-part download session.')
         
@@ -191,26 +191,24 @@ class MultipartDownload:
             self.pauseEvent.clear()
         self.Status = 'Running'
         
-        # If returnOnFinish is set 
-        if returnOnFinish:
-            i=0
-            while not self.hasFinished():
-                if self.verbose and i: print str(i) + ': ' + str(self)
-                time.sleep(testInterval)
-                i+=1
-            self.finalize()
-            return 1
-        else:
-            self.finalize()
-            return 1
+        # wait until tasks queues are empty, then finalize download
+        i=0
+        while not self.hasFinished():
+            if self.verbose and i: print str(i) + ': ' + str(self)
+            time.sleep(testInterval)
+            i+=1
+        self.finalize()
+        return 1
     
     def finalize(self):
-        if self.getRunningThreadCount():
-            print 'Finalize called on  a transfer with running threads, halting all remaining threads.'
-            self.haltUpload()
+        '''
+        Check that all file pieces downloaded successfully, re-assemble file parts into single file
+        '''
+        if self.getRunningWorkerCount():
+            raise Exception('Error - finalize called on  a transfer with running processes.')
         if self.Status=='Running':
-            time.sleep(1)               # sleep one to make sure
-            # check that all parts downloaded successfully
+            # check that all parts downloaded successfully (first sleep to make sure we're ready)
+            time.sleep(1)            
             reassemble = True
             for w in self.consumers:
                 if w.exitcode is None:
@@ -232,53 +230,77 @@ class MultipartDownload:
             self.Status = 'Completed'
         else:
             raise Exception('To finalize, the status of the transfer must be "Running."')
-#    
+    
     def hasFinished(self):
+        '''
+        If the task queue is empty, halt all workers
+        Return the count of available workers
+        '''
         if self.Status == 'Initialized': 
             return 0            
         # TODO temporary hack, check if the queue is empty        
         if self.tasks.qsize()==0:
             self.zeroQCount +=1
         if self.zeroQCount>15:
-            self.haltDownload()
+            self.haltWorkers()
         
-        return not self.getRunningThreadCount()>0
+        return not self.getRunningWorkerCount()>0
     
-    def pauseDownload(self):
-        self.pauseEvent.set()
-        self.Status = 'Paused'
-#    
-    def haltDownload(self):
-        for c in self.consumers: c.terminate()
-#        self.Status = 'Terminated'
+#    def pauseWorkers(self):
+#        self.pauseEvent.set()
+#        self.Status = 'Paused'
     
+    def haltWorkers(self):
+        for c in self.consumers: 
+            c.terminate()
+            
+    #def terminateAll(self):
+    #    '''
+    #    Stop all workers, call cleanup method(s) (delete all local files?)
+    #    '''
+    #    #self.Status = 'Terminated'
+        
     def getStatus(self):
         return self.Status
     
     def getFileResponse(self):
         return self.remoteFile
     
-    def getRunningThreadCount(self):
+    def getRunningWorkerCount(self):
         return sum([c.is_alive() for c in self.consumers])
     
     def getTransRate(self):
-                # tasks completed                        size of file-parts
-        if not self.getRunningTime()>0: return '0 mb/s' 
-        return str((self.totalTask - self.tasks.qsize())*self.partSize/self.getRunningTime())[:6] + ' b/s'
+        if not self.getRunningTime()>0: 
+            return '0 b/s' 
+        return readable_bytes((self.totalTask - self.tasks.qsize())*self.partSize/self.getRunningTime()) + '/s'
     
     def getRunningTime(self):
-        if self.StartTime==-1: return 0
-        else: return time.time() - self.StartTime
+        if self.StartTime==-1: 
+            return 0
+        else: 
+            return time.time() - self.StartTime
     
-    def getTotalTransfered(self):
+    def getTotalTransferred(self):
         '''
-        Returns the total data amount transfered in bytes
+        Returns the total data amount transferred in bytes
         '''
         return float((self.totalTask - self.tasks.qsize())*self.partSize)
-        
-    
+            
     def getProgressRatio(self):
         currentQ = float(self.tasks.qsize())
         res = float(self.totalTask - currentQ)/self.totalTask
-        if res>1.0: res=1.0
-        return str(res)[:5]
+        if res>1.0: 
+            res=1.0
+        return str(res)
+
+def readable_bytes(size, precision=2):
+    """
+    Utility function to display number of bytes in a human-readable form; BaseSpace uses the Base 2 definition of bytes
+    """
+    suffixes=['B','KB','MB','GB','TB']
+    suffixIndex = 0
+    while size > 1024:
+        suffixIndex += 1 # increment the index of the suffix
+        size = size / 1024.0 # apply the division
+    return "%.*f %s"%(precision, size, suffixes[suffixIndex])
+    
