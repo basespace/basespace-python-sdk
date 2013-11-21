@@ -926,7 +926,7 @@ class BaseSpaceAPI(BaseAPI):
         # prepare multi-part download objects
         if not tempDir:
             tempDir = localPath
-        myMpd = mpd(self, Id, localPath, cpuCount, partSize, tempDir=tempDir, startChunk=startChunk, verbose=verbose)
+        myMpd = mpd(self, Id, localPath, cpuCount, partSize, temp_dir=tempDir, start_chunk=startChunk, verbose=verbose)
         return myMpd        
 
     def markFileState(self,Id):

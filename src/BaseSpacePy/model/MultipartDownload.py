@@ -20,37 +20,33 @@ import multiprocessing
 import shutil
 import sys
 
-class downloadTask(object):
-    def __init__(self, api, BSfileId, fileName, localPath, piece, partSize, totalSize, attempt, tempDir):
-        self.api = api
-        self.BSfileId = BSfileId      # the baseSpace fileId
-        self.fileName = fileName    # the name of the file to download
+class DownloadTask(object):
+    def __init__(self, api, bs_file_id, file_name, local_path, piece, part_size, total_size, attempt, temp_dir):
+        self.api = api                # BaseSpace api object
+        self.bs_file_id = bs_file_id  # the baseSpace fileId
+        self.file_name = file_name    # the name of the file to download
         self.piece  = piece         # piece number
-        self.partSize = partSize    # the size in bytes of each piece (except last piece)
-        self.totalSize  = totalSize # the total size of the file in bytes
-        self.localPath = localPath  # the path in which to store the downloaded file        
+        self.part_size = part_size    # the size in bytes of each piece (except last piece)
+        self.total_size  = total_size # the total size of the file in bytes
+        self.local_path = local_path  # the path in which to store the downloaded file        
         self.attempt= attempt       # the # of attempts we've made to download this piece          
-        self.tempDir = tempDir
-        self.partSize = partSize
+        self.temp_dir = temp_dir
         
-        self.state  = 0             # 0=pending, 1=ran, 2=error 
-    
-    #def downloadFileName(self):
-    #    return self.file.split('/')[-1] + '_' + str(self.piece)
+        self.state  = 0             # 0=pending, 1=ran, 2=error         
     
     def __call__(self):
         '''
         Download a chunk of the target file
         '''
         self.attempt += 1
-        transFile = os.path.join(self.tempDir, self.fileName + "." + str(self.piece))
+        transFile = os.path.join(self.temp_dir, self.file_name + "." + str(self.piece))
         # calculate byte range
-        startbyte = (self.piece - 1) * self.partSize
-        endbyte = (self.piece * self.partSize) - 1
-        if endbyte > self.totalSize:
-            endbyte = self.totalSize - 1
+        startbyte = (self.piece - 1) * self.part_size
+        endbyte = (self.piece * self.part_size) - 1
+        if endbyte > self.total_size:
+            endbyte = self.total_size - 1
         try:
-            self.api.fileDownload(self.BSfileId, self.localPath, transFile, [startbyte, endbyte])
+            self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte])
         except Exception as e:
             self.state = False
             self.err_msg = str(e)
@@ -59,7 +55,7 @@ class downloadTask(object):
         return self
         
     def __str__(self):        
-        return 'File id %s, piece %s, piece size %s, total size %s' % (self.BSfileId, self.piece, self.partSize, self.totalSize)
+        return 'File id %s, piece %s, piece size %s, total size %s' % (self.bs_file_id, self.piece, self.part_size, self.total_size)
     
 class Consumer(multiprocessing.Process):
     
@@ -105,138 +101,59 @@ class Consumer(multiprocessing.Process):
                     sys.exit(1)
         return
 
-class MultipartDownload:
-    def __init__(self, api, fileId, localPath, cpuCount, partSize, tempDir, startChunk=1, verbose=0):
-        self.api            = api
-        self.fileId         = fileId
-        self.localPath      = localPath        
-        self.partSize       = partSize
-        self.cpuCount       = cpuCount
-        self.verbose        = verbose
-        self.tempDir        = tempDir
-        self.Status         = 'Initialized'
-        self.StartTime      = -1
-        self.startChunk     = startChunk
-        self.zeroQCount     = 0  
-        self.setup()
-    
-    def __str__(self):
-        return "MPU -  Status: " + self.Status +  \
-                ", Workers: " + str(self.getRunningWorkerCount()) + \
-                ", Run Time: " + str(self.getRunningTime())[:5] + 's' + \
-                ", Queue Size: " + str(self.tasks.qsize()) + \
-                ", Percent Completed: " + str(self.getProgressRatio())[:6] + \
-                ", Avg Transfer Rate: " + self.getTransRate() + \
-                ", Data Transferred: " + readable_bytes(self.getTotalTransferred())
-    
-    def __repr__(self):
-        return str(self)
-    
-#    def run(self):
-#        while self.Status=='Paused' or self.__checkQueue__():
-#            time.sleep(self.wait)
-#        return
-    
-    def setup(self):
-        '''
-        Determine number of file pieces to download, create communication and tasks queues, add workers to task queue 
-        '''
-        # determine the number of chunks to download 
-        bs_file = self.api.getFileById(self.fileId)
-        self.fileName = bs_file.Name
-        totalSize = bs_file.Size
+class Executor(object):
+    '''
+    Multi-processing task manager, with task queue, pause and halt methods, and callback to finalize once workers are completed
+    '''
+    def __init__(self, verbose=0):
+        self.verbose = verbose
+        
+        self.status = 'Initialized'
         self.zeroQCount = 0
-        self.fileCount = int(math.ceil(totalSize/self.partSize)) + 1
+        self.StartTime = -1
         
-        if self.verbose: 
-            print "Total file size " + str(totalSize) + " bytes"
-            print "Using split size " + str(self.partSize) + " bytes"
-            print "File count " + str(self.fileCount)
-            print "CPUs " + str(self.cpuCount)
-            print "startChunk " + str(self.startChunk)
-        
-        # Establish communication and task queues
+        # Establish communication and task queues, create consumers
         self.tasks = multiprocessing.JoinableQueue()
-        self.completedPool = multiprocessing.Queue()        
-        for i in xrange(self.startChunk,self.fileCount+1):         
-            t = downloadTask(self.api, self.fileId, self.fileName, self.localPath, i, self.partSize, totalSize, 0, self.tempDir)
-            self.tasks.put(t)
-        self.totalTask  = self.tasks.qsize()
-        
-        # create consumers
+        self.completedPool = multiprocessing.Queue()                        
         self.pauseEvent = multiprocessing.Event()
         self.haltEvent = multiprocessing.Event()
-        if self.verbose:
-            print 'Creating %d consumers' % self.cpuCount
-            print "queue size " + str(self.tasks.qsize())
-        self.consumers = [ Consumer(self.tasks, self.completedPool,self.pauseEvent,self.haltEvent) for i in xrange(self.cpuCount) ]
+    
+    def add_task(self, task):
+        self.tasks.put(task)
+        
+    def get_task_count(self):
+        '''
+        Returns size the task queue; may be approximate (according to multiprocessing docs)
+        Attempts to not count final 'poison pill' tasks in queue
+        '''
+        if self.get_running_worker_count():
+            return self.tasks.qsize() - self.get_running_worker_count()
+        else:
+            return self.tasks.qsize() - len(self.consumers)
+    
+    def add_workers(self, num_workers):
+        self.consumers = [ Consumer(self.tasks, self.completedPool, self.pauseEvent, self.haltEvent) for i in xrange(num_workers) ]
         for c in self.consumers:
             self.tasks.put(None)   # add poison pill
-        
-#    def __cleanUp__(self):
-#        self.stats[0] +=1
+
+    def get_running_worker_count(self):
+        return sum([c.is_alive() for c in self.consumers])
     
-    def startDownload(self, testInterval=5):
+    def get_running_time(self):
         '''
-        Start workers, handle paused and other states, wait until workers finish to clean up small file downloads
+        Returns the total running time since workers were started
         '''
-        if self.Status=='Terminated' or self.Status=='Completed':
-            raise Exception('Cannot resume a ' + self.Status + ' multi-part download session.')
-        
-        if self.Status == 'Initialized':
-            self.StartTime = time.time()
-            for w in self.consumers:
-                w.start()
-        if self.Status == 'Paused':
-            self.pauseEvent.clear()
-        self.Status = 'Running'
-        
-        # wait until tasks queues are empty, then finalize download
-        i=0
-        while not self.hasFinished():
-            if self.verbose and i: print str(i) + ': ' + str(self)
-            time.sleep(testInterval)
-            i+=1
-        self.finalize()
-        return 1
+        if self.StartTime==-1: 
+            return 0
+        else: 
+            return time.time() - self.StartTime
     
-    def finalize(self):
-        '''
-        Check that all file pieces downloaded successfully, re-assemble file parts into single file
-        '''
-        if self.getRunningWorkerCount():
-            raise Exception('Error - finalize called on  a transfer with running processes.')
-        if self.Status=='Running':
-            # check that all parts downloaded successfully (first sleep to make sure we're ready)
-            time.sleep(1)            
-            reassemble = True
-            for w in self.consumers:
-                if w.exitcode is None:
-                    raise Exception('Error - at least one process is active when all processes should be terminated')
-                if w.exitcode != 0:
-                    reassemble = False
-            if reassemble:              
-                if self.verbose:
-                    print "Assembling downloaded file parts into single file"                                           
-                # re-assemble downloaded parts into single file 
-                part_files = [os.path.join(self.tempDir, self.fileName + '.' + str(i)) for i in xrange(self.startChunk,self.fileCount+1)]            
-                with open(os.path.join(self.localPath, self.fileName), 'w+b') as whole_file:
-                    for part_file in part_files:
-                        shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                 
-                # delete temp part files
-                for part_file in part_files:
-                    os.remove(part_file)                
-            # TODO option to delete downloaded piece files? Could resume with these...?
-            self.Status = 'Completed'
-        else:
-            raise Exception('To finalize, the status of the transfer must be "Running."')
-    
-    def hasFinished(self):
+    def has_finished(self):
         '''
         If the task queue is empty, halt all workers
         Return the count of available workers
         '''
-        if self.Status == 'Initialized': 
+        if self.status == 'Initialized': 
             return 0            
         # TODO temporary hack, check if the queue is empty        
         if self.tasks.qsize()==0:
@@ -244,51 +161,155 @@ class MultipartDownload:
         if self.zeroQCount>15:
             self.haltWorkers()
         
-        return not self.getRunningWorkerCount()>0
+        return not self.get_running_worker_count()>0
     
 #    def pauseWorkers(self):
 #        self.pauseEvent.set()
-#        self.Status = 'Paused'
+#        self.status = 'Paused'
     
-    def haltWorkers(self):
+    def halt_workers(self):
         for c in self.consumers: 
-            c.terminate()
-            
-    #def terminateAll(self):
-    #    '''
-    #    Stop all workers, call cleanup method(s) (delete all local files?)
-    #    '''
-    #    #self.Status = 'Terminated'
+            c.terminate()                
+
+    def start_workers(self, status_callback, finalize_callback, testInterval=5):
+        '''
+        Start workers, handle paused and other states, wait until workers finish to clean up small file downloads
+        '''
+        if self.status=='Terminated' or self.status=='Completed':
+            raise Exception('Cannot resume a ' + self.status + ' session.')
         
-    def getStatus(self):
-        return self.Status
+        if self.status == 'Initialized':
+            self.StartTime = time.time()
+            for w in self.consumers:
+                w.start()
+        if self.status == 'Paused':
+            self.pauseEvent.clear()
+        self.status = 'Running'
+        
+        # wait until tasks queues are empty, then call finalize callback if all went well
+        i=0
+        while not self.has_finished():            
+            if self.verbose and i: print str(i) + ': ' + status_callback()
+            time.sleep(testInterval)
+            i+=1
+        
+        
+        if self.get_running_worker_count():
+            raise Exception('Error - finalize called on  a transfer with running processes.')
+        if self.status=='Running':
+            # check that all workers completed successfully (first sleep to make sure we're ready)
+            time.sleep(1)            
+            finalize = True
+            for w in self.consumers:
+                if w.exitcode is None:
+                    raise Exception('Error - at least one process is active when all processes should be terminated')
+                if w.exitcode != 0:
+                    finalize = False
+                    # TODO throw exception when not finalizing? offer cleanup callback (e.g. delete download pieces after failure)?
+            if finalize:                              
+                finalize_callback()                                            
+            self.status = 'Completed'
+        else:
+            raise Exception('To finalize, the status of the transfer must be "Running."')
+
+class MultipartDownload(object):
+    '''
+    Downloads a (large) file by downloading file parts in separate processes.
+    '''
+    def __init__(self, api, fileId, local_path, process_count, part_size, temp_dir, start_chunk=1, verbose=0):
+        self.api            = api
+        self.fileId         = fileId
+        self.local_path     = local_path        
+        self.part_size      = part_size
+        self.process_count  = process_count
+        self.verbose        = verbose
+        self.temp_dir       = temp_dir
+        self.start_chunk    = start_chunk        
+        self.setup()
     
-    def getFileResponse(self):
-        return self.remoteFile
+    def __str__(self):
+        return "MPU -  Status: " + self.exe.status +  \
+                ", Workers: " + str(self.exe.get_running_worker_count()) + \
+                ", Run Time: " + str(self.exe.get_running_time())[:5] + 's' + \
+                ", Queue Size: " + str(self.exe.get_task_count()) + \
+                ", Percent Completed: " + str(self.task_progress_ratio())[:6] + \
+                ", Avg Transfer Rate: " + self.transfer_rate() + \
+                ", Data Transferred: " + readable_bytes(self.total_bytes_transfered())
     
-    def getRunningWorkerCount(self):
-        return sum([c.is_alive() for c in self.consumers])
+    def __repr__(self):
+        return str(self)    
     
-    def getTransRate(self):
-        if not self.getRunningTime()>0: 
-            return '0 b/s' 
-        return readable_bytes((self.totalTask - self.tasks.qsize())*self.partSize/self.getRunningTime()) + '/s'
+    def setup(self):
+        '''
+        Determine number of file pieces to download, add download tasks to work queue 
+        '''
+        bs_file = self.api.getFileById(self.fileId)
+        self.file_name = bs_file.Name
+        total_size = bs_file.Size
+        self.file_count = int(math.ceil(total_size/self.part_size)) + 1
+        
+        self.exe = Executor(verbose=self.verbose)                    
+        for i in xrange(self.start_chunk,self.file_count+1):         
+            t = DownloadTask(self.api, self.fileId, self.file_name, self.local_path, i, self.part_size, total_size, 0, self.temp_dir)
+            self.exe.add_task(t)            
+        self.exe.add_workers(self.process_count)
+        self.task_total = self.exe.get_task_count()
+                        
+        if self.verbose: 
+            print "Total File Size " + str(total_size) + " bytes"
+            print "Using Split Size " + str(self.part_size) + " bytes"
+            print "File Chunk Count " + str(self.file_count)
+            print "Processes " + str(self.process_count)
+            print "Start Chunk " + str(self.start_chunk)
+            print "Queue Size " + str(self.exe.get_task_count())    
+                            
+    def start_download(self, testInterval=5):
+        '''
+        Start download workers
+        '''
+        status_callback = self.status_update_msg
+        finalize_callback = self.combine_file_chunks
+        self.exe.start_workers(status_callback, finalize_callback, testInterval)        
     
-    def getRunningTime(self):
-        if self.StartTime==-1: 
-            return 0
-        else: 
-            return time.time() - self.StartTime
+    def status_update_msg(self):
+        '''
+        Callback method to show download status
+        '''
+        return str(self)
     
-    def getTotalTransferred(self):
+    def combine_file_chunks(self):
+        '''
+        Assembles download files chunks into single large file, then cleanup by deleting file chunks
+        '''
+        if self.verbose:
+                    print "Assembling downloaded file parts into single file"                                                   
+        part_files = [os.path.join(self.temp_dir, self.file_name + '.' + str(i)) for i in xrange(self.start_chunk, self.file_count+1)]            
+        with open(os.path.join(self.local_path, self.file_name), 'w+b') as whole_file:
+            for part_file in part_files:
+                shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                         
+        for part_file in part_files:
+            os.remove(part_file)                        
+    
+    def transfer_rate(self):
+        '''
+        Returns transfer rate of download in bytes per second
+        '''
+        if not self.exe.get_running_time()>0: 
+            return '0 b/s'         
+        return readable_bytes((self.task_total - self.exe.get_task_count())*self.part_size/self.exe.get_running_time()) + '/s'    
+    
+    def total_bytes_transfered(self):
         '''
         Returns the total data amount transferred in bytes
-        '''
-        return float((self.totalTask - self.tasks.qsize())*self.partSize)
+        '''        
+        return float((self.task_total - self.exe.get_task_count())*self.part_size)
             
-    def getProgressRatio(self):
-        currentQ = float(self.tasks.qsize())
-        res = float(self.totalTask - currentQ)/self.totalTask
+    def task_progress_ratio(self):
+        '''
+        Returns the percent of completed download tasks
+        '''
+        task_cnt = float(self.exe.get_task_count())
+        res = float(self.task_total - task_cnt)/self.task_total
         if res>1.0: 
             res=1.0
         return str(res)
