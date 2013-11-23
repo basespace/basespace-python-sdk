@@ -786,14 +786,14 @@ class BaseSpaceAPI(BaseAPI):
         flo = urllib2.urlopen(req)                                 
         
         # Do the download, include size to ensure reading until end of data stream
-        #iter_size = range[0] - range[1] + 1
-        iter_size = 1024 ** 1024
+        iter_size = range[0] - range[1] + 1
+        #iter_size = 1024 ** 1024
         with open(os.path.join(localDir,name), 'wb') as fp:
-            cur = flo.read(iter_size)
-            while cur:
-                fp.write(cur)
-                cur = flo.read(iter_size)
-            #shutil.copyfileobj(flo, fp)
+            #cur = flo.read(iter_size)
+            #while cur:
+            #    fp.write(cur)
+            #    cur = flo.read(iter_size)
+            shutil.copyfileobj(flo, fp, iter_size)
         return True
 
     def fileUrl(self,Id): #@ReservedAssignment

@@ -17,6 +17,7 @@ import time
 import os
 import math
 import multiprocessing
+import Queue
 import shutil
 import sys
 
@@ -25,19 +26,22 @@ class DownloadTask(object):
         self.api = api                # BaseSpace api object
         self.bs_file_id = bs_file_id  # the baseSpace fileId
         self.file_name = file_name    # the name of the file to download
-        self.piece  = piece         # piece number
+        self.piece  = piece           # piece number
         self.part_size = part_size    # the size in bytes of each piece (except last piece)
         self.total_size  = total_size # the total size of the file in bytes
         self.local_path = local_path  # the path in which to store the downloaded file        
-        self.attempt= attempt       # the # of attempts we've made to download this piece          
+        self.attempt= attempt         # the # of attempts we've made to download this piece          
         self.temp_dir = temp_dir
         
-        self.state  = 0             # 0=pending, 1=ran, 2=error         
+        # tasks must implement these attributes
+        self.success  = False
+        self.err_msg = "no error"         
     
     def __call__(self):
         '''
         Download a chunk of the target file
         '''
+        # TODO surround with try except to avoid unpicklable exception that may block?
         self.attempt += 1
         transFile = os.path.join(self.temp_dir, self.file_name + "." + str(self.piece))
         # calculate byte range
@@ -48,14 +52,21 @@ class DownloadTask(object):
         try:
             self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte])
         except Exception as e:
-            self.state = False
+            self.success = False
             self.err_msg = str(e)
+            # TODO clean up partially downloaded file?
         else:
-            self.state = True
+            # TODO test that downloaded file is correct size
+            if os.path.getsize(os.path.join(self.local_path, transFile)) != endbyte - startbyte + 1:
+                self.success = False
+                self.err_msg = "ERROR - downloaded file chunk has incorrect size, for task: " + str(self)
+            else:
+                self.success = True
         return self
         
     def __str__(self):        
-        return 'File id %s, piece %s, piece size %s, total size %s' % (self.bs_file_id, self.piece, self.part_size, self.total_size)
+        #return 'File id %s, piece %s, piece size %s, total size %s' % (self.bs_file_id, self.piece, self.part_size, self.total_size)
+        return 'File piece %s, piece size %s' % (self.piece, self.part_size)
     
 class Consumer(multiprocessing.Process):
     
@@ -65,40 +76,54 @@ class Consumer(multiprocessing.Process):
         self.result_queue = result_queue
         self.pause = pauseEvent
         self.halt  = haltEvent
-        self.timeOutTask = 60   # seconds for a task to timeout
+       # self.timeOutTask = 60   # seconds for a task to timeout
+        
+        self.retries = 1
         
     def run(self):
-        proc_name = self.name
+        '''
+        Executes tasks from the task queue until poison pill is reached or halt signal found; has pause capability
+        '''
         while True:
+            # get next task unless paused
             if not self.pause.is_set(): 
                 next_task = self.task_queue.get()
-            # check if we are out of jobs or have been halted                
-            if next_task is None or self.task_queue.qsize()==0 or self.halt.is_set():
-                # Poison pill means shutdown
-                print '%s: Exiting' % proc_name
-                self.task_queue.task_done()
-                return
-            # if we have been paused, sleep for a bit then check back
+            print "    processing task: " + str(next_task)
+            # poison pill means we're at the end of the task queue                
+            if next_task is None:            
+                print 'Worker halting, found final task for worker %s' % self.name
+                #self.task_queue.task_done()
+                break                
+            # task queue empty -- shouldn't need this due to poison pill -- may block if queue somehow gets empty?
+            elif self.task_queue.qsize()==0:
+                print 'Worker halting, found task queue empty for worker %s' % self.name
+                #self.task_queue.task_done()
+                break
+            elif self.halt.is_set():
+                print 'Worker halting, found halt signal for worker %s' % self.name
+                #self.task_queue.task_done() # TODO hmmm, didn't process task but marked it as done...?
+                break #sys.exit()                                            
             elif self.pause.is_set():                   
-#                print '%s: Paused' % proc_name 
                 time.sleep(3)                                       
-            # do some work
-            else:                                       
-#                print '%s: %s' % (proc_name, next_task)
-                # give any download job 5 tries
-                for i in xrange(1,5):    
+            else:                                                       
+                # attempt to run tasks, with retry
+                for i in xrange(1, self.retries + 1):    
                     answer = next_task()                    
-                    if answer.state == True:
-                        self.task_queue.task_done()                   
+                    if answer.success == True:
+                        #self.task_queue.task_done()                   
                         self.result_queue.put(answer)
                         break
                     else:
-                        print "Download task " + str(next_task.piece) + " failed, retry attempt " + str(i) + " with error msg: " + answer.err_msg
-                if not answer.state == True:
-                    print "Five consecutive fails, halting download task"        
-                    # halt all other processes and set non-zero exit code
-                    self.halt.set()                 
-                    sys.exit(1)
+                        print "Worker retrying task " + str(next_task) + " after failure, retry attempt " + str(i) + " with error msg: " + answer.err_msg
+                if not answer.success == True:
+                    print "Worker halting, too many failures with retry for worker %s" % str(self)        
+                    # add failed answer to result queue and set halt event for all workers
+                    #self.task_queue.task_done()                   
+                    self.result_queue.put(answer)                    
+                    self.halt.set()
+                    break
+                    #sys.exit(1)
+        print "Worker exiting, worker %s" % self.name
         return
 
 class Executor(object):
@@ -110,11 +135,11 @@ class Executor(object):
         
         self.status = 'Initialized'
         self.zeroQCount = 0
-        self.StartTime = -1
+        self.start_time = -1
         
         # Establish communication and task queues, create consumers
-        self.tasks = multiprocessing.JoinableQueue()
-        self.completedPool = multiprocessing.Queue()                        
+        self.tasks = multiprocessing.Queue() # TODO JoinableQueue()?
+        self.completed_pool = multiprocessing.Queue()                        
         self.pauseEvent = multiprocessing.Event()
         self.haltEvent = multiprocessing.Event()
     
@@ -124,7 +149,7 @@ class Executor(object):
     def get_task_count(self):
         '''
         Returns size the task queue; may be approximate (according to multiprocessing docs)
-        Attempts to not count final 'poison pill' tasks in queue
+        Doesn't count the final 'poison pill' tasks in queue
         '''
         if self.get_running_worker_count():
             return self.tasks.qsize() - self.get_running_worker_count()
@@ -132,7 +157,7 @@ class Executor(object):
             return self.tasks.qsize() - len(self.consumers)
     
     def add_workers(self, num_workers):
-        self.consumers = [ Consumer(self.tasks, self.completedPool, self.pauseEvent, self.haltEvent) for i in xrange(num_workers) ]
+        self.consumers = [ Consumer(self.tasks, self.completed_pool, self.pauseEvent, self.haltEvent) for i in xrange(num_workers) ]
         for c in self.consumers:
             self.tasks.put(None)   # add poison pill
 
@@ -143,10 +168,10 @@ class Executor(object):
         '''
         Returns the total running time since workers were started
         '''
-        if self.StartTime==-1: 
+        if self.start_time==-1: 
             return 0
         else: 
-            return time.time() - self.StartTime
+            return time.time() - self.start_time
     
     def has_finished(self):
         '''
@@ -159,7 +184,7 @@ class Executor(object):
         if self.tasks.qsize()==0:
             self.zeroQCount +=1
         if self.zeroQCount>15:
-            self.haltWorkers()
+            self.halt_workers()
         
         return not self.get_running_worker_count()>0
     
@@ -169,9 +194,10 @@ class Executor(object):
     
     def halt_workers(self):
         for c in self.consumers: 
-            c.terminate()                
+            c.terminate()          
+            # TODO use terminate here or set halt signal?      
 
-    def start_workers(self, status_callback, finalize_callback, testInterval=5):
+    def start_workers(self, status_callback, finalize_callback, test_interval=5):
         '''
         Start workers, handle paused and other states, wait until workers finish to clean up small file downloads
         '''
@@ -179,7 +205,7 @@ class Executor(object):
             raise Exception('Cannot resume a ' + self.status + ' session.')
         
         if self.status == 'Initialized':
-            self.StartTime = time.time()
+            self.start_time = time.time()
             for w in self.consumers:
                 w.start()
         if self.status == 'Paused':
@@ -187,30 +213,54 @@ class Executor(object):
         self.status = 'Running'
         
         # wait until tasks queues are empty, then call finalize callback if all went well
+        # TODO use join() method instead of has_finished()
         i=0
         while not self.has_finished():            
             if self.verbose and i: print str(i) + ': ' + status_callback()
-            time.sleep(testInterval)
+            time.sleep(test_interval)
             i+=1
-        
+        print "***Workers finished***" # TODO TEMP
         
         if self.get_running_worker_count():
-            raise Exception('Error - finalize called on  a transfer with running processes.')
+            raise Exception('Error - trying to finalize scheduler when workers are still running.')
         if self.status=='Running':
             # check that all workers completed successfully (first sleep to make sure we're ready)
             time.sleep(1)            
             finalize = True
-            for w in self.consumers:
-                if w.exitcode is None:
-                    raise Exception('Error - at least one process is active when all processes should be terminated')
-                if w.exitcode != 0:
-                    finalize = False
+            while 1:
+                try:
+                    answer = self.completed_pool.get(False)
+                    print "getting worker answer"
+                except Queue.Empty:
+                    print "completed pool empty, breaking (hopefully exiting)"
+                    break
+                else:                    
+                    if answer.success == False:
+                        print "answer failed"
+                        finalize = False
+                    else:
+                        print "answer succeeded"                    
+            #for w in self.consumers:
+            #    if w.exitcode is None:
+            #        raise Exception('Error - at least one process is active when all processes should be terminated')
+            #    if w.exitcode != 0:
+            #        finalize = False
                     # TODO throw exception when not finalizing? offer cleanup callback (e.g. delete download pieces after failure)?
             if finalize:                              
                 finalize_callback()                                            
             self.status = 'Completed'
         else:
             raise Exception('To finalize, the status of the transfer must be "Running."')
+        
+        #TODO TEST empty task queue
+        print "purging task queue"
+        while 1:
+            try:
+                answer = self.tasks.get(False)                
+            except Queue.Empty:
+                print "completed task queue empty, breaking (hopefully exiting)"
+                break
+        print "DONE with start_workers"
 
 class MultipartDownload(object):
     '''
@@ -228,7 +278,7 @@ class MultipartDownload(object):
         self.setup()
     
     def __str__(self):
-        return "MPU -  Status: " + self.exe.status +  \
+        return "MPU - Status: " + self.exe.status +  \
                 ", Workers: " + str(self.exe.get_running_worker_count()) + \
                 ", Run Time: " + str(self.exe.get_running_time())[:5] + 's' + \
                 ", Queue Size: " + str(self.exe.get_task_count()) + \
@@ -263,13 +313,14 @@ class MultipartDownload(object):
             print "Start Chunk " + str(self.start_chunk)
             print "Queue Size " + str(self.exe.get_task_count())    
                             
-    def start_download(self, testInterval=5):
+    def start_download(self, test_interval=5):
         '''
         Start download workers
         '''
         status_callback = self.status_update_msg
         finalize_callback = self.combine_file_chunks
-        self.exe.start_workers(status_callback, finalize_callback, testInterval)        
+        self.exe.start_workers(status_callback, finalize_callback, test_interval)       
+        print "DONE DONE with start_download" 
     
     def status_update_msg(self):
         '''
@@ -284,6 +335,7 @@ class MultipartDownload(object):
         if self.verbose:
                     print "Assembling downloaded file parts into single file"                                                   
         part_files = [os.path.join(self.temp_dir, self.file_name + '.' + str(i)) for i in xrange(self.start_chunk, self.file_count+1)]            
+        # TODO check that file exists?
         with open(os.path.join(self.local_path, self.file_name), 'w+b') as whole_file:
             for part_file in part_files:
                 shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                         
