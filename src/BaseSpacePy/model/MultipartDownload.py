@@ -23,7 +23,7 @@ import sys
 import signal
 
 class DownloadTask(object):
-    def __init__(self, api, bs_file_id, file_name, local_path, piece, part_size, total_size, attempt, temp_dir):
+    def __init__(self, api, bs_file_id, file_name, local_path, piece, part_size, total_size, attempt, temp_dir=None, debug=False):
         self.api = api                # BaseSpace api object
         self.bs_file_id = bs_file_id  # the baseSpace fileId
         self.file_name = file_name    # the name of the file to download
@@ -33,6 +33,7 @@ class DownloadTask(object):
         self.local_path = local_path  # the path in which to store the downloaded file        
         self.attempt = attempt        # the # of attempts we've made to download this piece   # TODO remove?       
         self.temp_dir = temp_dir
+        self.debug = debug            # debug mode writes downloaded chunks to individual temp files
         
         # tasks must implement these attributes
         self.success  = False
@@ -41,19 +42,23 @@ class DownloadTask(object):
     def __call__(self):
         '''
         Download a chunk of the target file
+        Debug mode
         '''
         try:
-            self.attempt += 1
-            transFile = os.path.join(self.temp_dir, self.file_name)
-            #transFile = os.path.join(self.temp_dir, self.file_name + "." + str(self.piece))
+            self.attempt += 1        
+            if self.debug:
+                transFile = os.path.join(self.temp_dir, self.file_name + "." + str(self.piece))
+                standaloneRangeFile = True
+            else:
+                transFile = os.path.join(self.temp_dir, self.file_name)
+                standaloneRangeFile = False
             # calculate byte range
             startbyte = (self.piece - 1) * self.part_size
             endbyte = (self.piece * self.part_size) - 1
             if endbyte > self.total_size:
                 endbyte = self.total_size - 1
-            try:                
-                self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile=False)
-                #self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile=True)                
+            try:                                                
+                self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile)                                
             except Exception as e:
                 self.success = False
                 self.err_msg = str(e)
@@ -298,7 +303,7 @@ class MultipartDownload(object):
     '''
     Downloads a (large) file by downloading file parts in separate processes.
     '''
-    def __init__(self, api, fileId, local_path, process_count, part_size, temp_dir, start_chunk=1, verbose=0):
+    def __init__(self, api, fileId, local_path, process_count, part_size, start_chunk=1, verbose=0, temp_dir=None, debug=False):
         self.api            = api
         self.fileId         = fileId
         self.local_path     = local_path        
@@ -306,7 +311,8 @@ class MultipartDownload(object):
         self.process_count  = process_count
         self.verbose        = verbose
         self.temp_dir       = temp_dir
-        self.start_chunk    = start_chunk        
+        self.start_chunk    = start_chunk
+        self.debug          = debug           # debug mode downloads chunks to individual temp files, then cats them together        
         self.setup()
         self.start_download()
     
@@ -333,7 +339,7 @@ class MultipartDownload(object):
         
         self.exe = Executor(verbose=self.verbose)                    
         for i in xrange(self.start_chunk,self.file_count+1):         
-            t = DownloadTask(self.api, self.fileId, self.file_name, self.local_path, i, self.part_size, total_size, 0, self.temp_dir)
+            t = DownloadTask(self.api, self.fileId, self.file_name, self.local_path, i, self.part_size, total_size, 0, self.temp_dir, self.debug)
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)
         self.task_total = self.exe.get_task_count()                
@@ -351,8 +357,10 @@ class MultipartDownload(object):
         Start download workers
         '''
         status_callback = self.status_update_msg
-        #finalize_callback = self.combine_file_chunks
-        finalize_callback = self.status_update_msg # TEMP TEMP TODO
+        if self.debug:
+            finalize_callback = self.combine_file_chunks
+        else:
+            finalize_callback = lambda: None # self.status_update_msg # no-op
         self.exe.start_workers(status_callback, finalize_callback, test_interval)                
     
     def status_update_msg(self):

@@ -905,7 +905,7 @@ class BaseSpaceAPI(BaseAPI):
                 break
             yield data
 
-    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='',cpuCount=2,partSize=25,startChunk=1,verbose=0):
+    def multipartFileUpload(self,Id, localPath, fileName, directory, contentType, tempdir='', cpuCount=2, partSize=25, startChunk=1,verbose=0):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
         The call returns 
@@ -920,7 +920,6 @@ class BaseSpaceAPI(BaseAPI):
         :param partSize: The size of individual upload parts (must be between 5 and 25mb)
         :param verbose: Write process output to stdout as upload progresses
         '''
- 
         # Create file object on server
         myFile = self.appResultFileUpload(Id, localPath, fileName, directory, contentType,multipart=1)
         
@@ -928,22 +927,22 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,startChunk=startChunk,verbose=verbose)
         return myMpu,myFile
 
-    def multipartFileDownload(self, Id, localPath, tempDir='',cpuCount=2, partSize=25, startChunk=1, verbose=0):
+    def multipartFileDownload(self, Id, localPath, cpuCount=2, partSize=25, startChunk=1, verbose=0, tempDir=None, debug=False):
         '''
         Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
         The call returns TODO
         
         :param Id: The ID of the File to download 
         :param localPath: The local path in which to store the downloaded file
-        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
         :param cpuCount: The number of CPUs to be used
         :param partSize: The size of individual upload parts (must be between 5 and 25mb)
         :param verbose: Write process output to stdout as download progresses
+        :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
+        :param debug: Debug mode uses temp dir to store chunks of downloade files, then ends by 'cat'ing chunks into large file
         '''         
-        # prepare multi-part download objects
         if not tempDir:
             tempDir = localPath
-        myMpd = mpd(self, Id, localPath, cpuCount, partSize, temp_dir=tempDir, start_chunk=startChunk, verbose=verbose)
+        myMpd = mpd(self, Id, localPath, cpuCount, partSize, start_chunk=startChunk, verbose=verbose, temp_dir=tempDir, debug=debug)
         return myMpd        
 
     def markFileState(self,Id):
