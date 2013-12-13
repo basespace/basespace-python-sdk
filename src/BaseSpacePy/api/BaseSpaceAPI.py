@@ -42,7 +42,7 @@ class BaseSpaceAPI(BaseAPI):
     '''
     The main API class used for all communication with the REST server
     '''
-    def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId='', AccessToken=''):
+    def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId='', AccessToken='', timeout=10):
         if not apiServer[-1]=='/': apiServer = apiServer + '/'
         #if not version[-1]=='/': version = version + '/'
         
@@ -51,8 +51,8 @@ class BaseSpaceAPI(BaseAPI):
         self.secret         = clientSecret
         self.apiServer      = apiServer + version
         self.version        = version
-        self.weburl         = apiServer.replace('api.','')
-        super(BaseSpaceAPI, self).__init__(AccessToken)
+        self.weburl         = apiServer.replace('api.','')        
+        super(BaseSpaceAPI, self).__init__(AccessToken, timeout)
 
 
     def __getTriggerObject__(self,obj):
@@ -756,7 +756,7 @@ class BaseSpaceAPI(BaseAPI):
             return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
 
-    def fileDownload(self, Id, localDir, name, range=None): #@ReservedAssignment
+    def fileDownload(self, Id, localDir, name, range=None, standaloneRangeFile=False): #@ReservedAssignment
         '''
         Downloads a BaseSpace file to a local directory
         
@@ -764,6 +764,7 @@ class BaseSpaceAPI(BaseAPI):
         :param localDir: The local directory to place the file in
         :param name: The name of the local file
         :param range: (Optional) The byte range of the file to retrieve
+        :param standaloneRangeFile: (Optional) if True store byte range data in standalone file
         '''
         if range is None:
             range = []
@@ -781,19 +782,35 @@ class BaseSpaceAPI(BaseAPI):
         
         # get the Amazon URL
         req = urllib2.Request(response['Response']['HrefContent'])
+        # do the download; for range requests include size to ensure reading until end of data stream
+        filename = os.path.join(localDir, name)
+        if os.path.exists(filename):
+            perm = 'r+b'
+        else:
+            perm = 'w+b'
+        iter_size = 16*1024 # python default
         if len(range):
             req.add_header('Range', 'bytes=%s-%s' % (range[0], range[1]))
-        flo = urllib2.urlopen(req)                                 
-        
-        # Do the download, include size to ensure reading until end of data stream
-        iter_size = range[0] - range[1] + 1
-        #iter_size = 1024 ** 1024
-        with open(os.path.join(localDir,name), 'wb') as fp:
-            #cur = flo.read(iter_size)
-            #while cur:
-            #    fp.write(cur)
-            #    cur = flo.read(iter_size)
-            shutil.copyfileobj(flo, fp, iter_size)
+            #iter_size = range[1] - range[0] + 1
+            #iter_size = 1024 ** 1024
+        flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking                                                     
+        tot_read = 0
+        with open(filename, perm) as fp:
+            if len(range) and standaloneRangeFile == False:
+                fp.seek(range[0])
+            cur = flo.read(iter_size)                
+            while cur:                                 
+                #print "WRITING: " + str(map(ord, cur[:10]))                
+                fp.write(cur)
+                tot_read += len(cur)
+                cur = flo.read(iter_size)
+            #shutil.copyfileobj(flo, fp, iter_size)
+        # check that actual downloaded byte size is correct
+        if len(range):
+            exp_size = range[1] - range[0] + 1
+            if tot_read != exp_size:
+                raise Exception("Ranged download size is not as expected: " + str(tot_read) + " vs " + str(exp_size))
+        # TODO test that size is correct for non-range requests                     
         return True
 
     def fileUrl(self,Id): #@ReservedAssignment

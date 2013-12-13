@@ -31,7 +31,7 @@ class DownloadTask(object):
         self.part_size = part_size    # the size in bytes of each piece (except last piece)
         self.total_size  = total_size # the total size of the file in bytes
         self.local_path = local_path  # the path in which to store the downloaded file        
-        self.attempt= attempt         # the # of attempts we've made to download this piece          
+        self.attempt = attempt        # the # of attempts we've made to download this piece   # TODO remove?       
         self.temp_dir = temp_dir
         
         # tasks must implement these attributes
@@ -42,28 +42,33 @@ class DownloadTask(object):
         '''
         Download a chunk of the target file
         '''
-        # TODO surround with try except to avoid unpicklable exception that may block?
-        self.attempt += 1
-        transFile = os.path.join(self.temp_dir, self.file_name + "." + str(self.piece))
-        # calculate byte range
-        startbyte = (self.piece - 1) * self.part_size
-        endbyte = (self.piece * self.part_size) - 1
-        if endbyte > self.total_size:
-            endbyte = self.total_size - 1
         try:
-            self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte])
-            #raise Exception("TESTING")
+            self.attempt += 1
+            transFile = os.path.join(self.temp_dir, self.file_name)
+            #transFile = os.path.join(self.temp_dir, self.file_name + "." + str(self.piece))
+            # calculate byte range
+            startbyte = (self.piece - 1) * self.part_size
+            endbyte = (self.piece * self.part_size) - 1
+            if endbyte > self.total_size:
+                endbyte = self.total_size - 1
+            try:                
+                self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile=False)
+                #self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile=True)                
+            except Exception as e:
+                self.success = False
+                self.err_msg = str(e)
+                # TODO clean up partially downloaded file?
+            else:
+                # test that downloaded file is correct size
+                #if os.path.getsize(os.path.join(self.local_path, transFile)) != endbyte - startbyte + 1:
+                #    self.success = False
+                #    self.err_msg = "ERROR - downloaded file chunk has incorrect size, for task: " + str(self)
+                #else:
+                self.success = True
+        # capture exception, since unpickleable exceptions may block
         except Exception as e:
             self.success = False
             self.err_msg = str(e)
-            # TODO clean up partially downloaded file?
-        else:
-            # test that downloaded file is correct size
-            if os.path.getsize(os.path.join(self.local_path, transFile)) != endbyte - startbyte + 1:
-                self.success = False
-                self.err_msg = "ERROR - downloaded file chunk has incorrect size, for task: " + str(self)
-            else:
-                self.success = True
         return self
         
     def __str__(self):        
@@ -72,15 +77,16 @@ class DownloadTask(object):
     
 class Consumer(multiprocessing.Process):
     
-    def __init__(self, task_queue, result_queue, halt_event, verbose):    
+    def __init__(self, task_queue, result_queue, halt_event, lock, verbose):    
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue        
-        self.halt  = halt_event
+        self.halt = halt_event
+        self.lock = lock 
         self.verbose = verbose
         self.task_timeout = 5 # secs
         
-        self.retries = 10
+        self.retries = 20
         
     def run(self):
         '''
@@ -96,11 +102,11 @@ class Consumer(multiprocessing.Process):
         '''
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         while True:
-            if self.halt.is_set():
-                print 'Worker exiting, found halt signal for worker %s' % self.name
-                # purge queue in case halt was signaled from outside a worker
-                self.purge_task_queue()            
-                break                         
+            #if self.halt.is_set():
+            #    print 'Worker exiting, found halt signal for worker %s' % self.name
+            #    # purge queue in case halt was signaled from outside a worker
+            #    self.purge_task_queue()            
+            #    break                         
             try:
                 next_task = self.task_queue.get(True, self.task_timeout) # block until timeout
             except Queue.Empty:
@@ -115,14 +121,21 @@ class Consumer(multiprocessing.Process):
             else:                                                       
                 # attempt to run tasks, with retry
                 # TODO add progressively longer retries?
-                for i in xrange(1, self.retries + 1):    
-                    answer = next_task()                    
+                for i in xrange(1, self.retries + 1):                        
+                    if self.halt.is_set():
+                        print 'Worker exiting, found halt signal for worker %s' % self.name
+                        self.task_queue.task_done()
+                        self.purge_task_queue()
+                        return
+                    with self.lock:
+                        answer = next_task()                                        
                     if answer.success == True:
                         self.task_queue.task_done()                   
                         self.result_queue.put(True)
                         break
                     else:
                         print "Worker retrying task " + str(next_task) + " after failure, retry attempt " + str(i) + " with error msg: " + answer.err_msg
+                        time.sleep(1) # TODO make timeout variable                    
                 if not answer.success == True:
                     print "Worker exiting, too many failures with retry for worker %s" % str(self)        
                     self.task_queue.task_done()                   
@@ -163,6 +176,7 @@ class Executor(object):
         self.tasks = multiprocessing.JoinableQueue()
         self.result_queue = multiprocessing.Queue()                        
         self.halt_event = multiprocessing.Event()
+        self.lock = multiprocessing.Lock()
     
     def add_task(self, task):
         self.tasks.put(task)
@@ -178,7 +192,7 @@ class Executor(object):
             return self.tasks.qsize() - len(self.consumers)
     
     def add_workers(self, num_workers):
-        self.consumers = [ Consumer(self.tasks, self.result_queue, self.halt_event, self.verbose) for i in xrange(num_workers) ]
+        self.consumers = [ Consumer(self.tasks, self.result_queue, self.halt_event, self.lock, self.verbose) for i in xrange(num_workers) ]
         for c in self.consumers:
             self.tasks.put(None)   # add poison pill
 
@@ -337,9 +351,9 @@ class MultipartDownload(object):
         Start download workers
         '''
         status_callback = self.status_update_msg
-        finalize_callback = self.combine_file_chunks
-        self.exe.start_workers(status_callback, finalize_callback, test_interval)
-        self.counter.terminate()         
+        #finalize_callback = self.combine_file_chunks
+        finalize_callback = self.status_update_msg # TEMP TEMP TODO
+        self.exe.start_workers(status_callback, finalize_callback, test_interval)                
     
     def status_update_msg(self):
         '''

@@ -32,7 +32,7 @@ from model import *
 
 
 class APIClient:
-    def __init__(self, AccessToken=None, apiServer=None,timeout=10):
+    def __init__(self, AccessToken=None, apiServer=None, timeout=10):
         if AccessToken == None:
             raise Exception('You must pass an access token when instantiating the '
                             'APIClient')

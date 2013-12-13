@@ -32,9 +32,9 @@ class BaseAPI(object):
     '''
     Parent class for BaseSpaceAPI and BillingAPI objects
     '''
-    def __init__(self, AccessToken=''):
-        self.apiClient      = None
-        self.setTimeout(10)
+    def __init__(self, AccessToken='', timeout=10):
+        self.apiClient = None
+        self.setTimeout(timeout)
         self.setAccessToken(AccessToken)        # logic for setting the access-token 
 
     def __updateAccessToken__(self,AccessToken):
