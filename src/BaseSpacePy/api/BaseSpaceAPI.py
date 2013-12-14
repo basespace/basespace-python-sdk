@@ -833,6 +833,44 @@ class BaseSpaceAPI(BaseAPI):
         
         # return the Amazon URL 
         return response['Response']['HrefContent']
+
+    def fileS3metadata(self, Id):
+        '''
+        Returns the S3 url and etag (md5 of complete file) for a BaseSpace file
+                
+        :param Id: The file id
+        '''
+        ret = {}
+        resourcePath = '/files/{Id}/content'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
+        
+        response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
+        
+        # record S3 URL
+        ret['url'] = response['Response']['HrefContent']
+        
+        # TODO should use HEAD call here, instead do small GET range request
+        # GET S3 url and record etag (md5)         
+        req = urllib2.Request(response['Response']['HrefContent'])        
+        req.add_header('Range', 'bytes=%s-%s' % (0, 1))         
+        flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking  
+        try:        
+            md5 = flo.headers['etag']
+        except KeyError:
+            md5 = ''
+        # strip quotes from etag
+        if md5.startswith('"') and md5.endswith('"'):
+            md5 = md5[1:-1]
+        ret['md5'] = md5                                                
+        return ret
+    
            
     def __uploadMultipartUnit__(self,Id,partNumber,md5,data):
         '''
@@ -986,3 +1024,4 @@ class BaseSpaceAPI(BaseAPI):
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
+

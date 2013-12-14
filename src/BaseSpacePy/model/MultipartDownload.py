@@ -21,6 +21,7 @@ import Queue
 import shutil
 import sys
 import signal
+import hashlib
 
 class DownloadTask(object):
     def __init__(self, api, bs_file_id, file_name, local_path, piece, part_size, total_size, attempt, temp_dir=None, debug=False):
@@ -357,10 +358,12 @@ class MultipartDownload(object):
         Start download workers
         '''
         status_callback = self.status_update_msg
+        # TODO add md5 check with etag of final file
         if self.debug:
             finalize_callback = self.combine_file_chunks
         else:
-            finalize_callback = lambda: None # self.status_update_msg # no-op
+            finalize_callback = self.confirm_md5
+            #finalize_callback = lambda: None # self.status_update_msg # no-op            
         self.exe.start_workers(status_callback, finalize_callback, test_interval)                
     
     def status_update_msg(self):
@@ -372,6 +375,7 @@ class MultipartDownload(object):
     def combine_file_chunks(self):
         '''
         Assembles download files chunks into single large file, then cleanup by deleting file chunks
+        Then confirm md5 of large file vs s3
         '''
         if self.verbose:
                     print "Assembling downloaded file parts into single file"                                                   
@@ -382,6 +386,26 @@ class MultipartDownload(object):
                 shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                         
         for part_file in part_files:
             os.remove(part_file)                        
+        self.confirm_md5()
+    
+    def confirm_md5(self):
+        '''
+        Compares md5 of downloaded file to S3 md5 (from etag)
+        '''
+        if self.verbose:
+            print "Comparing MD5 of downloaded file and S3"
+        s3meta = self.api.fileS3metadata(self.fileId)
+        md5_s3 = s3meta['md5'] # TODO add try except?
+
+        with open(os.path.join(self.local_path, self.file_name), 'r+b') as fp:
+            md5_local = md5_for_file(fp)
+                    
+        if str(md5_s3) != str(md5_local):
+            print "ERROR - md5 mismatch between s3 and local file"
+            print "S3 md5:    %s" % str(md5_s3)
+            print "MD5 local: %s" % str(md5_local)     
+        else:
+            print "MD5 match between S3 and downloaded file"
     
     def transfer_rate(self):
         '''
@@ -406,6 +430,18 @@ class MultipartDownload(object):
         if res>1.0: 
             res=1.0
         return str(res)
+
+def md5_for_file(f, block_size=1024*1024):
+    '''
+    Returns the md5 for the provided file (opened in binary mode)
+    '''
+    md5 = hashlib.md5()
+    while True:
+        data = f.read(block_size)
+        if not data:
+            break
+        md5.update(data)
+    return md5.hexdigest()
 
 def readable_bytes(size, precision=2):
     """
