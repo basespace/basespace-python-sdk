@@ -815,6 +815,8 @@ class BaseSpaceAPI(BaseAPI):
 
     def fileUrl(self,Id): #@ReservedAssignment
         '''
+        ** Deprecated in favor of fileS3metadata() **
+        
         Returns URL of file (on S3)
         
         :param Id: The file id
@@ -836,7 +838,7 @@ class BaseSpaceAPI(BaseAPI):
 
     def fileS3metadata(self, Id):
         '''
-        Returns the S3 url and etag (md5 of complete file) for a BaseSpace file
+        Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file
                 
         :param Id: The file id
         '''
@@ -857,18 +859,18 @@ class BaseSpaceAPI(BaseAPI):
         ret['url'] = response['Response']['HrefContent']
         
         # TODO should use HEAD call here, instead do small GET range request
-        # GET S3 url and record etag (md5)         
+        # GET S3 url and record etag         
         req = urllib2.Request(response['Response']['HrefContent'])        
         req.add_header('Range', 'bytes=%s-%s' % (0, 1))         
         flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking  
         try:        
-            md5 = flo.headers['etag']
+            etag = flo.headers['etag']
         except KeyError:
-            md5 = ''
+            etag = ''
         # strip quotes from etag
-        if md5.startswith('"') and md5.endswith('"'):
-            md5 = md5[1:-1]
-        ret['md5'] = md5                                                
+        if etag.startswith('"') and etag.endswith('"'):
+            etag = etag[1:-1]
+        ret['etag'] = etag                                                
         return ret
     
            
@@ -965,7 +967,7 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self,Id,localPath,myFile,cpuCount,partSize,tempdir=tempdir,startChunk=startChunk,verbose=verbose)
         return myMpu,myFile
 
-    def multipartFileDownload(self, Id, localPath, cpuCount=2, partSize=25, startChunk=1, verbose=0, tempDir=None, debug=False):
+    def multipartFileDownload(self, Id, localPath, cpuCount=2, partSize=25, startChunk=1, tempDir=None, debug=False):
         '''
         Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
         The call returns TODO
@@ -974,13 +976,12 @@ class BaseSpaceAPI(BaseAPI):
         :param localPath: The local path in which to store the downloaded file
         :param cpuCount: The number of CPUs to be used
         :param partSize: The size of individual upload parts (must be between 5 and 25mb)
-        :param verbose: Write process output to stdout as download progresses
         :param tempdir: Temp directory to use, if blank the directory for 'localPath' will be used
         :param debug: Debug mode uses temp dir to store chunks of downloade files, then ends by 'cat'ing chunks into large file
         '''         
         if not tempDir:
             tempDir = localPath
-        myMpd = mpd(self, Id, localPath, cpuCount, partSize, start_chunk=startChunk, verbose=verbose, temp_dir=tempDir, debug=debug)
+        myMpd = mpd(self, Id, localPath, cpuCount, partSize, start_chunk=startChunk, temp_dir=tempDir, debug=debug)
         return myMpd        
 
     def markFileState(self,Id):
