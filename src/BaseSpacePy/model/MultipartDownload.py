@@ -134,7 +134,7 @@ class Consumer(multiprocessing.Process):
                         self.result_queue.put(True)
                         break
                     else:
-                        LOGGER.debug("Worker %s retrying task %s after failure, retry attempt %d, with error msg: %s" % self.name, str(next_task), i,  answer.err_msg)
+                        LOGGER.debug("Worker %s retrying task %s after failure, retry attempt %d, with error msg: %s" % (self.name, str(next_task), i, answer.err_msg))
                         time.sleep(self.retry_wait)                    
                 if not answer.success == True:
                     LOGGER.debug("Worker %s exiting, too many failures with retry for worker %s" % self.name, str(self))
@@ -232,21 +232,30 @@ class MultipartDownload(object):
         self.temp_dir       = temp_dir
         self.start_chunk    = start_chunk
         self.debug          = debug                   
+        
+        self.partial_file_ext = ".partial"
+        
         self.setup()
-        self.start_download()
+        self.start_download()                
         
     def setup(self):
         '''
-        Determine number of file pieces to download, add download tasks to work queue 
+        Determine number of file pieces to download, add download tasks to work queue
+        While download is in progress, name the file with a 'partial' extension 
         '''
         bs_file = self.api.getFileById(self.fileId)
         self.file_name = bs_file.Name
         total_size = bs_file.Size
         self.file_count = int(math.ceil(total_size/self.part_size)) + 1
         
+        file_name = self.file_name
+        if not self.debug:
+            file_name = self.file_name + self.partial_file_ext
+        
         self.exe = Executor()                    
         for i in xrange(self.start_chunk,self.file_count+1):         
-            t = DownloadTask(self.api, self.fileId, self.file_name, self.local_path, i, self.part_size, total_size, self.temp_dir, self.debug)
+            t = DownloadTask(self.api, self.fileId, file_name, self.local_path, 
+                             i, self.part_size, total_size, self.temp_dir, self.debug)
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)
         self.task_total = self.file_count                
@@ -264,8 +273,16 @@ class MultipartDownload(object):
         if self.debug:
             finalize_callback = self.combine_file_chunks
         else:
-            finalize_callback = lambda: None            
+            finalize_callback = self.rename_final_file # lambda: None            
         self.exe.start_workers(finalize_callback)                        
+    
+    def rename_final_file(self):
+        '''
+        Remove the 'partial' extension from the downloaded file
+        '''
+        final_file = os.path.join(self.local_path, self.file_name)
+        partial_file = final_file + self.partial_file_ext
+        os.rename(partial_file, final_file) 
     
     def combine_file_chunks(self):
         '''
