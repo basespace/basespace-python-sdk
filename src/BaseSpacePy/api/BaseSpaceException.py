@@ -48,3 +48,16 @@ class ModelNotInitializedException(Exception):
         self.parameter = 'The request cannot be completed as model has not been initialized - ' + value
     def __str__(self):
         return repr(self.parameter)
+    
+class ByteRangeSizeException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Byte-range request has invalid size: ' + value
+    def __str__(self):
+        return repr(self.parameter)
+    
+class DownloadFailedException(Exception):
+    def __init__(self, value):
+        self.parameter = 'BaseSpace download failed: ' + value
+    def __str__(self):
+        return repr(self.parameter)
+    

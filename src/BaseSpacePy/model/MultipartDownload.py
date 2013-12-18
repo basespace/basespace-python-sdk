@@ -22,6 +22,7 @@ import shutil
 import signal
 import hashlib
 import logging
+from BaseSpacePy.api.BaseSpaceException import DownloadFailedException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,11 +32,12 @@ class DownloadTask(object):
     Downloads a piece of a large remote file.
     In debug mode downloads to filename with piece number appended (i.e. temp file).
     '''    
-    def __init__(self, api, bs_file_id, file_name, local_path, piece, part_size, total_size, temp_dir=None, debug=False):
+    def __init__(self, api, bs_file_id, file_name, local_path, piece, total_pieces, part_size, total_size, temp_dir=None, debug=False):
         self.api = api                # BaseSpace api object
         self.bs_file_id = bs_file_id  # the baseSpace fileId
         self.file_name = file_name    # the name of the file to download
         self.piece  = piece           # piece number
+        self.total_pieces = total_pieces # total pieces being downloaded (for reporting only)
         self.part_size = part_size    # the size in bytes of each piece (except last piece)
         self.total_size  = total_size # the total size of the file in bytes
         self.local_path = local_path  # the path in which to store the downloaded file        
@@ -62,7 +64,7 @@ class DownloadTask(object):
             if endbyte > self.total_size:
                 endbyte = self.total_size - 1
             try:                                                
-                self.api.fileDownload(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile)                                
+                self.api._downloadFile(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile)                                
             except Exception as e:
                 self.success = False
                 self.err_msg = str(e)                
@@ -75,7 +77,7 @@ class DownloadTask(object):
         return self
         
     def __str__(self):                
-        return 'File piece %s, piece size %s' % (self.piece, self.part_size)
+        return 'File piece %d of %d, piece size %s of total %s' % (self.piece, self.total_pieces, Utils.readable_bytes(self.part_size), Utils.readable_bytes(self.total_size))
     
 class Consumer(multiprocessing.Process):
     '''
@@ -216,36 +218,44 @@ class Executor(object):
                     LOGGER.debug("Found a failed task -- won't call finalize callback")
                     finalize = False                                            
         if finalize:                              
-            finalize_callback()                                                                
+            finalize_callback()
+        else:
+            raise DownloadFailedException("Multi-part download from BaseSpace failed (with retry)")                                                 
 
 class MultipartDownload(object):
     '''
     Downloads a (large) file by downloading file parts in separate processes.
     Debug mode downloads chunks to individual temp files, then cats them together
+    Returns file object when complete.
     '''
-    def __init__(self, api, fileId, local_path, process_count, part_size, start_chunk=1, temp_dir=None, debug=False):
+    def __init__(self, api, fileId, local_path, process_count, part_size, debug=False, temp_dir=None):
         self.api            = api
         self.fileId         = fileId
         self.local_path     = local_path        
-        self.part_size      = part_size
-        self.process_count  = process_count
-        self.temp_dir       = temp_dir
-        self.start_chunk    = start_chunk
-        self.debug          = debug                   
-        
+        self.part_size      = part_size      # in bytes
+        self.process_count  = process_count        
+        self.debug          = debug        
+        self.temp_dir       = temp_dir           
+
+        self.start_chunk      = 1        
         self.partial_file_ext = ".partial"
+    
+    def download(self):
+        '''
+        Start the download
+        '''
+        self._setup()
+        self._start_workers()
+        return self.bs_file                
         
-        self.setup()
-        self.start_download()                
-        
-    def setup(self):
+    def _setup(self):
         '''
         Determine number of file pieces to download, add download tasks to work queue
         While download is in progress, name the file with a 'partial' extension 
         '''
-        bs_file = self.api.getFileById(self.fileId)
-        self.file_name = bs_file.Name
-        total_size = bs_file.Size
+        self.bs_file = self.api.getFileById(self.fileId)
+        self.file_name = self.bs_file.Name
+        total_size = self.bs_file.Size # in bytes
         self.file_count = int(math.ceil(total_size/self.part_size)) + 1
         
         file_name = self.file_name
@@ -255,28 +265,28 @@ class MultipartDownload(object):
         self.exe = Executor()                    
         for i in xrange(self.start_chunk,self.file_count+1):         
             t = DownloadTask(self.api, self.fileId, file_name, self.local_path, 
-                             i, self.part_size, total_size, self.temp_dir, self.debug)
+                             i, self.file_count, self.part_size, total_size, self.temp_dir, self.debug)
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)
         self.task_total = self.file_count                
                                  
-        LOGGER.info("Total File Size %d bytes" % total_size)
-        LOGGER.info("Using Split Size %d bytes" % self.part_size)
-        LOGGER.info("File Chunk Count %d" % self.file_count)
+        LOGGER.info("Total File Size %s" % Utils.readable_bytes(total_size))
+        LOGGER.info("Using Split Size %s" % Utils.readable_bytes(self.part_size))
         LOGGER.info("Processes %d" % self.process_count)
+        LOGGER.info("File Chunk Count %d" % self.file_count)
         LOGGER.info("Start Chunk %d" % self.start_chunk)
                             
-    def start_download(self):
+    def _start_workers(self):
         '''
         Start download workers, register finalize callback method
         '''        
         if self.debug:
-            finalize_callback = self.combine_file_chunks
+            finalize_callback = self._combine_file_chunks
         else:
-            finalize_callback = self.rename_final_file # lambda: None            
+            finalize_callback = self._rename_final_file # lambda: None            
         self.exe.start_workers(finalize_callback)                        
     
-    def rename_final_file(self):
+    def _rename_final_file(self):
         '''
         Remove the 'partial' extension from the downloaded file
         '''
@@ -284,7 +294,7 @@ class MultipartDownload(object):
         partial_file = final_file + self.partial_file_ext
         os.rename(partial_file, final_file) 
     
-    def combine_file_chunks(self):
+    def _combine_file_chunks(self):
         '''
         Assembles download files chunks into single large file, then cleanup by deleting file chunks
         '''        
@@ -297,30 +307,33 @@ class MultipartDownload(object):
         for part_file in part_files:
             os.remove(part_file)                        
 
-
-    
-def md5_for_file(f, block_size=1024*1024):
+class Utils(object):
     '''
-    Returns the md5 for the provided file (opened in binary mode)
-    (not currently used)
+    Utility methods for multipartDownload classes
     '''
-    md5 = hashlib.md5()
-    while True:
-        data = f.read(block_size)
-        if not data:
-            break
-        md5.update(data)
-    return md5.hexdigest()
-
-def readable_bytes(size, precision=2):
-    """
-    Utility function to display number of bytes in a human-readable form; BaseSpace uses the Base 2 definition of bytes
-    (not currently used)
-    """
-    suffixes=['B','KB','MB','GB','TB']
-    suffixIndex = 0
-    while size > 1024:
-        suffixIndex += 1 # increment the index of the suffix
-        size = size / 1024.0 # apply the division
-    return "%.*f %s"%(precision, size, suffixes[suffixIndex])
+    @staticmethod
+    def md5_for_file(f, block_size=1024*1024):
+        '''
+        Returns the md5 for the provided file (must have been opened in binary mode)
+        (not currently used)
+        '''
+        md5 = hashlib.md5()
+        while True:
+            data = f.read(block_size)
+            if not data:
+                break
+            md5.update(data)
+        return md5.hexdigest()
     
+    @staticmethod
+    def readable_bytes(size, precision=2):
+        """
+        Utility function to display number of bytes in a human-readable form; BaseSpace uses the Base 2 definition of bytes
+        """
+        suffixes=['B','KB','MB','GB','TB']
+        suffixIndex = 0
+        while size > 1024:
+            suffixIndex += 1 # increment the index of the suffix
+            size = size / 1024.0 # apply the division
+        return "%.*f %s"%(precision, size, suffixes[suffixIndex])
+        
