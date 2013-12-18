@@ -763,15 +763,23 @@ class BaseSpaceAPI(BaseAPI):
         Byte-range requests are supported for only small byte ranges (single-part downloads).
         Returns file object when complete, exception raised if download fails.
         
+        Byte-range requests are restricted to a single request of 'start' and 'end' bytes, without support for
+        negative or empty values for 'start' or 'end'.
+        
         :param Id: The file id
         :param localDir: The local directory to place the file in    
         :param byteRange: (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values        
         '''
         multipart_min_file_size = 5000000 # bytes
         if byteRange:
-            rangeSize = byteRange[1] - byteRange[0] + 1
+            try:
+                rangeSize = byteRange[1] - byteRange[0] + 1
+            except IndexError:
+                raise ByteRangeException("Byte range must include both start and end byte values")
+            if rangeSize <= 0:
+                raise ByteRangeException("Byte range must have smaller byte number first")
             if rangeSize > multipart_min_file_size:
-                raise ByteRangeSizeException("Byte range %d larger than maximum allowed size %d" % (rangeSize, multipart_min_file_size))
+                raise ByteRangeException("Byte range %d larger than maximum allowed size %d" % (rangeSize, multipart_min_file_size))
         
         bs_file = self.getFileById(Id)
         if (bs_file.Size < multipart_min_file_size) or (byteRange and (rangeSize < multipart_min_file_size)):
@@ -783,7 +791,7 @@ class BaseSpaceAPI(BaseAPI):
     def _downloadFile(self, Id, localDir, name, byteRange=None, standaloneRangeFile=False): #@ReservedAssignment
         '''
         Downloads a BaseSpace file to a local directory. Supports byte-range requests, with option
-        to seek() into local file for multipart downloads or save range data in standalone file.
+        to seek() into local file for multipart downloads or save range data in standalone file.                
         
         :param Id: The file id
         :param localDir: The local directory to place the file in

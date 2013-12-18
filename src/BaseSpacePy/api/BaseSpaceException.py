@@ -49,9 +49,9 @@ class ModelNotInitializedException(Exception):
     def __str__(self):
         return repr(self.parameter)
     
-class ByteRangeSizeException(Exception):
+class ByteRangeException(Exception):
     def __init__(self, value):
-        self.parameter = 'Byte-range request has invalid size: ' + value
+        self.parameter = 'Byte-range invalid: ' + value
     def __str__(self):
         return repr(self.parameter)
     
