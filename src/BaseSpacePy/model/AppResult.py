@@ -78,12 +78,9 @@ class AppResult(object):
         '''
         res = []
         ids = self.getReferencedSamplesIds()
-        for id in ids:
-            try:
-                sample = api.getSampleById(id)
-                res.append(sample)
-            except:
-                e=1
+        for id in ids:            
+            sample = api.getSampleById(id)
+            res.append(sample)                            
         return res
     
     def getFiles(self,api,myQp={}):

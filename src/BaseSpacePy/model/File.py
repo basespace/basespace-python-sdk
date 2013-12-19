@@ -75,17 +75,16 @@ class File(object):
             except:
                 raise WrongFiletypeException(self.Name)
 
-    def downloadFile(self,api,localDir,range=[]):
+    def downloadFile(self, api, localDir, byteRange=None):
         '''
         Download the file object to the specified localDir or a byte range of the file, by specifying the 
         start and stop byte in the range.
         
         :param api: A BaseSpaceAPI with read access on the scope including the file object.
         :param loadlDir: The local directory to place the file in.
-        :param range: Specify the start and stop byte of the file chunk that needs retrieved.
-        '''
-        if len(range): return api.fileDownload(self.Id,localDir, self.Name, range=range)
-        else: return api.fileDownload(self.Id,localDir,self.Name)
+        :param byteRange: Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).
+        '''        
+        return api.fileDownload(self.Id, localDir, byteRange=byteRange)        
 
     def getFileUrl(self,api):
         '''
