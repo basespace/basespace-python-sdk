@@ -22,9 +22,63 @@ import shutil
 import signal
 import hashlib
 import logging
+from hashlib import md5
 from BaseSpacePy.api.BaseSpaceException import DownloadFailedException
 
 LOGGER = logging.getLogger(__name__)
+
+class UploadTask(object):
+    '''
+    Uploads a piece of a large local file.    
+    '''    
+    def __init__(self, api, bs_file_id, piece, total_pieces, local_file, total_size, temp_dir):
+        self.api        = api
+        self.bs_file_id = bs_file_id  # the BaseSpace File Id
+        self.piece      = piece       # piece number 
+        self.total_pieces = total_pieces # out of total piece count
+        self.file       = local_file  # the local file to be uploaded        
+        self.total_size = total_size  # total file size of upload, for reporting
+        # TODO auto-create temp dir?
+        self.temp_dir   = temp_dir
+        
+
+        # tasks must implement these attributes
+        self.success  = False
+        self.err_msg = "no error"      
+    
+    def __call__(self):
+        '''
+        Upload a piece of the target file, first splitting the local file into a temp file.
+        Calculate md5 of file piece and pass to upload method.
+        '''
+        # TODO add try except to capture unpickleable exceptions        
+        # TODO add exception logic to popen and process commands
+        fname = self.file.split('/')[-1]
+        transFile = os.path.join(self.temp_dir, fname + str(self.piece))
+        cmd = "split -d -n " + str(self.piece) + '/' + str(self.total_pieces) + ' ' + self.file
+        process = os.popen(cmd)
+        out = process.read()
+        process.close()
+        with open(transFile,'w') as f:
+            f.write(out)        
+        self.md5 = md5(out).digest().encode('base64')
+        try:
+            res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece,self.md5,transFile)
+        except Exception as e:
+            self.success = False
+            self.err_msg = str(e)                
+        else:
+            # TODO why is ETag presence considered success?
+            if res and res['Response'].has_key('ETag'):                
+                self.success = True
+            else:
+                self.success = False
+                self.err_msg = "Error - empty reponse from uploading file piece or missing ETag in response"
+        os.remove(transFile)
+        return self
+        
+    def __str__(self):
+        return 'File piece %d of %d, total file size %s' % (self.piece, self.total_pieces, Utils.readable_bytes(self.total_size))
 
 
 class DownloadTask(object):
@@ -100,7 +154,9 @@ class Consumer(multiprocessing.Process):
         '''
         Executes tasks from the task queue until poison pill is reached, halt 
         signal is found, or something went wrong such as a timeout when getting
-        new tasks. Use lock, for download tasks, to ensure sole access (among worker
+        new tasks. 
+        
+        For download tasks, use lock to ensure sole access (among worker
         processes) to downloaded file.
         
         Retries failed tasks, and add task results to result_queue.
@@ -129,8 +185,9 @@ class Consumer(multiprocessing.Process):
                         self.task_queue.task_done()
                         self.purge_task_queue()
                         return
-                    with self.lock:
-                        answer = next_task()                                        
+                    # TODO need to lock only file writing for multi-part download -- how to do this?
+                    #with self.lock: # acquired lock blocks other workers
+                    answer = next_task()                                        
                     if answer.success == True:
                         self.task_queue.task_done()                   
                         self.result_queue.put(True)
@@ -140,7 +197,7 @@ class Consumer(multiprocessing.Process):
                         time.sleep(self.retry_wait)                    
                 if not answer.success == True:
                     LOGGER.debug("Worker %s exiting, too many failures with retry for worker %s" % self.name, str(self))
-                    LOGGER.warning("Download failed after too many retries")        
+                    LOGGER.warning("Task failed after too many retries")        
                     self.task_queue.task_done()                   
                     self.result_queue.put(False)
                     self.purge_task_queue() # purge task queue in case there's only one worker                    
@@ -165,11 +222,12 @@ class Consumer(multiprocessing.Process):
                 
 class Executor(object):
     '''
-    Multi-processing task manager, with callback to finalize once workers are completed
-    Task queue contains tasks, with poison pill for each worker
-    Result queue contains True/False results for task success/failure
-    Halt event will tell workers to halt themselves
-    Lock is to ensure that only one worker writes to a local (downloaded) file at a time 
+    Multi-processing task manager, with callback to finalize once workers are completed.
+    Task queue contains tasks, with poison pill for each worker.
+    Result queue contains True/False results for task success/failure.
+    Halt event will tell workers to halt themselves.
+    
+    For downloads, lock is to ensure that only one worker writes to a local downloaded file at a time. 
     '''
     def __init__(self):                                        
         self.tasks = multiprocessing.JoinableQueue()
@@ -222,6 +280,64 @@ class Executor(object):
         else:
             raise DownloadFailedException("Multi-part download from BaseSpace failed (with retry)")                                                 
 
+class MultipartUpload(object):
+    '''
+    Uploads a (large) file by uploading file parts in separate processes.    
+    '''
+    def __init__(self, api, local_file, bs_file, process_count, part_size, temp_dir):
+        self.api            = api    
+        self.local_file     = local_file    # full path include file name of local file
+        self.remote_file    = bs_file       # File object
+        self.process_count  = process_count
+        self.part_size      = part_size
+        self.temp_dir       = temp_dir       
+
+        # TODO validate part size between 5 and 25 MB
+                                           
+        self.start_chunk    = 1
+    
+    def upload(self):
+        '''
+        Start the upload
+        '''
+        self._setup()
+        self._start_workers()
+        return self.remote_file                    
+    
+    def _setup(self):        
+        '''
+        Determine number of file pieces to upload, add upload tasks to work queue         
+        '''                
+        total_size = os.path.getsize(self.local_file)        
+        # TODO convert part_size to bytes?
+        fileCount = int(math.ceil(total_size/(self.part_size*1024.0*1000)))
+
+        self.exe = Executor()                    
+        for i in xrange(self.start_chunk, fileCount+1):
+            t = UploadTask(self.api, self.remote_file.Id, i, fileCount, self.local_file, total_size, self.temp_dir)            
+            self.exe.add_task(t)            
+        self.exe.add_workers(self.process_count)
+        self.task_total = fileCount - self.start_chunk + 1                                                
+
+        LOGGER.info("Total File Size %s" % Utils.readable_bytes(total_size))
+        LOGGER.info("Using split size %d Mb" % self.part_size)
+        LOGGER.info("Processes %d" % self.process_count)
+        LOGGER.info("File Chunk Count %d" % self.task_total)
+        LOGGER.info("Start Chunk %d" % self.start_chunk)    
+
+    def _start_workers(self):
+        '''
+        Start upload workers, register finalize callback method
+        '''                
+        finalize_callback = self._finalize_upload # lambda: None            
+        self.exe.start_workers(finalize_callback)
+    
+    def _finalize_upload(self):
+        '''
+        Set file upload status as complete in BaseSpace
+        '''
+        self.api.markFileState(self.remote_file.Id)
+
 class MultipartDownload(object):
     '''
     Downloads a (large) file by downloading file parts in separate processes.
@@ -263,12 +379,12 @@ class MultipartDownload(object):
             file_name = self.file_name + self.partial_file_ext
         
         self.exe = Executor()                    
-        for i in xrange(self.start_chunk,self.file_count+1):         
+        for i in xrange(self.start_chunk, self.file_count+1):         
             t = DownloadTask(self.api, self.fileId, file_name, self.local_path, 
                              i, self.file_count, self.part_size, total_size, self.temp_dir, self.debug)
             self.exe.add_task(t)            
-        self.exe.add_workers(self.process_count)
-        self.task_total = self.file_count                
+        self.exe.add_workers(self.process_count)        
+        self.task_total = self.file_count - self.start_chunk + 1                                                
                                  
         LOGGER.info("Total File Size %s" % Utils.readable_bytes(total_size))
         LOGGER.info("Using Split Size %s" % Utils.readable_bytes(self.part_size))

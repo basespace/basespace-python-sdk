@@ -27,7 +27,7 @@ import re
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
-from BaseSpacePy.model.MultipartUpload import MultipartUpload as mpu #@UnresolvedImport
+from BaseSpacePy.model.MultipartDownload import MultipartUpload as mpu #@UnresolvedImport
 from BaseSpacePy.model.MultipartDownload import MultipartDownload as mpd #@UnresolvedImport
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@UnresolvedImport
 from BaseSpacePy.model import * #@UnusedWildImport
@@ -902,7 +902,7 @@ class BaseSpaceAPI(BaseAPI):
         ret['etag'] = etag                                                
         return ret
                
-    def __uploadMultipartUnit__(self,Id,partNumber,md5,data):
+    def __uploadMultipartUnit__(self, Id, partNumber, md5, data):
         '''
         Helper method, do not call
         
@@ -918,10 +918,10 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath                 = resourcePath.replace('{partNumber}', str(partNumber))
         queryParams                  = {}
         headerParams                 = {'Content-MD5':md5.strip()}
-        out = self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams,forcePost=0)
+        out = self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams, forcePost=0)
         return out
 
-    def multipartFileUpload(self,Id, localDir, fileName, directory, contentType, tempdir='', cpuCount=2, partSize=25, startChunk=1,verbose=0):
+    def multipartFileUpload(self, Id, localDir, fileName, directory, contentType, tempDir='', cpuCount=2, partSize=25, verbose=0):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
         The call returns 
@@ -936,12 +936,15 @@ class BaseSpaceAPI(BaseAPI):
         :param partSize: The size of individual upload parts (must be between 5 and 25mb)
         :param verbose: Write process output to stdout as upload progresses
         '''
-        # Create file object on server
-        myFile = self.appResultFileUpload(Id, localDir, fileName, directory, contentType,multipart=1)
+        # TODO add separate argument for path since local path now gets put into BaseSpace file object
+        # TODO create convenience method to auto-determine whether to use single of multi-part upload
+        # First create file object in BaeSpace
+        bsFile = self.appResultFileUpload(Id, localDir, fileName, directory, contentType, multipart=1)
         
-        # prepare multi-part upload objects
-        myMpu = mpu(self,Id,localDir,myFile,cpuCount,partSize,tempdir=tempdir,startChunk=startChunk,verbose=verbose)
-        return myMpu,myFile
+        # TODO add verbose mode
+        myMpu = mpu(self, localDir, bsFile, cpuCount, partSize, temp_dir=tempDir)                
+        myMpu.upload()        
+        return bsFile
 
     def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8000000, debug=False, tempDir=None):
         '''
@@ -961,6 +964,7 @@ class BaseSpaceAPI(BaseAPI):
         bsFile = myMpd.download()
         return bsFile        
 
+    # TODO change name to include upload
     def markFileState(self,Id):
         '''
         Marks a multi-part upload file as complete  
