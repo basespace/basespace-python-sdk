@@ -5,11 +5,14 @@ from tempfile import mkdtemp
 import shutil
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import ByteRangeException
+from BaseSpacePy.model.MultipartDownload import Utils
 import app_data
 
 # on cloud-hoth (your BaseSpace account must have access to this data)
 tconst = { 'file_id_small': '9895886', # 4 KB,     public data B. cereus
-           'file_id_large': '9896135', # 55.31 MB  public data B. cereus                    
+           'file_small_md5': 'e8b5a1d82b659763df69783ef57e0180',
+           'file_id_large': '9896135', # 55.31 MB  public data B. cereus
+           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', 
           }
 
 class TestFileMethods(unittest.TestCase):
@@ -35,8 +38,10 @@ class TestFileMethods(unittest.TestCase):
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
-        # confirm file size is correct
+        # confirm file size and md5 are correct
         self.assertTrue(new_file.Size == os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertTrue(Utils.md5_for_file(fp) == tconst['file_small_md5'])
         os.remove(file_path)
         
     def test_file_byte_range_download(self):
@@ -73,8 +78,10 @@ class TestAPIDownloadMethods(unittest.TestCase):
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
-        # confirm file size is correct
+        # confirm file size and md5 are correct
         self.assertTrue(new_file.Size == os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertTrue(Utils.md5_for_file(fp) == tconst['file_small_md5'])
         os.remove(file_path)
 
 #    @unittest.skip('speeding up tests but skipping multi-part download :(')
@@ -87,6 +94,8 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertTrue(new_file.Size == os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertTrue(Utils.md5_for_file(fp) == tconst['file_large_md5'])
         os.remove(file_path)
 
     def test_byte_range_download(self):
@@ -134,8 +143,10 @@ class TestAPIDownloadMethods(unittest.TestCase):
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
-        # confirm file size is correct
+        # confirm file size and md5 are correct
         self.assertTrue(new_file.Size == os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertTrue(Utils.md5_for_file(fp) == tconst['file_small_md5'])
         os.remove(file_path)
 
     def test_multipartDownload_via_temp_file(self):
@@ -146,8 +157,10 @@ class TestAPIDownloadMethods(unittest.TestCase):
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
-        # confirm file size is correct        
+        # confirm file size and md5 are correct        
         self.assertTrue(new_file.Size == os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertTrue(Utils.md5_for_file(fp) == tconst['file_small_md5'])
         os.remove(file_path)
 
 #if __name__ == '__main__':   
