@@ -38,43 +38,46 @@ class UploadTask(object):
         self.total_pieces = total_pieces # out of total piece count
         self.file       = local_file  # the local file to be uploaded        
         self.total_size = total_size  # total file size of upload, for reporting
-        # TODO auto-create temp dir?
-        self.temp_dir   = temp_dir
+        self.temp_dir   = temp_dir    # temp location to store file chunks for upload
         
-
-        # tasks must implement these attributes
+        # tasks must implement these attributes and execute()
         self.success  = False
         self.err_msg = "no error"      
     
-    def __call__(self):
+    def execute(self, lock):
         '''
         Upload a piece of the target file, first splitting the local file into a temp file.
         Calculate md5 of file piece and pass to upload method.
-        '''
-        # TODO add try except to capture unpickleable exceptions        
+        Lock is not used (but needed since worker sends it for multipart download)
+        '''            
         # TODO add exception logic to popen and process commands
-        fname = self.file.split('/')[-1]
-        transFile = os.path.join(self.temp_dir, fname + str(self.piece))
-        cmd = "split -d -n " + str(self.piece) + '/' + str(self.total_pieces) + ' ' + self.file
-        process = os.popen(cmd)
-        out = process.read()
-        process.close()
-        with open(transFile,'w') as f:
-            f.write(out)        
-        self.md5 = md5(out).digest().encode('base64')
         try:
-            res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece,self.md5,transFile)
+            fname = self.file.split('/')[-1]
+            transFile = os.path.join(self.temp_dir, fname + str(self.piece))
+            cmd = "split -d -n " + str(self.piece) + '/' + str(self.total_pieces) + ' ' + self.file
+            process = os.popen(cmd)
+            out = process.read()
+            process.close()
+            with open(transFile,'w') as f:
+                f.write(out)        
+            self.md5 = md5(out).digest().encode('base64')
+            try:
+                res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece,self.md5,transFile)
+            except Exception as e:
+                self.success = False
+                self.err_msg = str(e)                
+            else:
+                # TODO why is ETag presence considered success?
+                if res and res['Response'].has_key('ETag'):                
+                    self.success = True
+                else:
+                    self.success = False
+                    self.err_msg = "Error - empty reponse from uploading file piece or missing ETag in response"
+            os.remove(transFile)
+        # capture exception, since unpickleable exceptions may block
         except Exception as e:
             self.success = False
-            self.err_msg = str(e)                
-        else:
-            # TODO why is ETag presence considered success?
-            if res and res['Response'].has_key('ETag'):                
-                self.success = True
-            else:
-                self.success = False
-                self.err_msg = "Error - empty reponse from uploading file piece or missing ETag in response"
-        os.remove(transFile)
+            self.err_msg = str(e)
         return self
         
     def __str__(self):
@@ -98,13 +101,14 @@ class DownloadTask(object):
         self.temp_dir = temp_dir      # temp dir for debug mode
         self.debug = debug            # debug mode writes downloaded chunks to individual temp files
         
-        # tasks must implement these attributes
+        # tasks must implement these attributes and execute()
         self.success  = False
         self.err_msg = "no error"         
     
-    def __call__(self):
+    def execute(self, lock):
         '''
         Download a piece of the target file, first calculating start/end bytes for piece.
+        Lock is to ensure that multiple processes don't write to same file concurrently.
         '''
         try:
             if self.debug:
@@ -116,9 +120,9 @@ class DownloadTask(object):
             startbyte = (self.piece - 1) * self.part_size
             endbyte = (self.piece * self.part_size) - 1
             if endbyte > self.total_size:
-                endbyte = self.total_size - 1
-            try:                                                
-                self.api._downloadFile(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile)                                
+                endbyte = self.total_size - 1            
+            try:                
+                self.api._downloadFile(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile, lock)                                
             except Exception as e:
                 self.success = False
                 self.err_msg = str(e)                
@@ -184,10 +188,8 @@ class Consumer(multiprocessing.Process):
                         LOGGER.debug('Worker %s exiting, found halt signal' % self.name)
                         self.task_queue.task_done()
                         self.purge_task_queue()
-                        return
-                    # TODO need to lock only file writing for multi-part download -- how to do this?
-                    #with self.lock: # acquired lock blocks other workers
-                    answer = next_task()                                        
+                        return                                                            
+                    answer = next_task.execute(self.lock) # acquired lock will block other workers                                       
                     if answer.success == True:
                         self.task_queue.task_done()                   
                         self.result_queue.put(True)
@@ -263,6 +265,7 @@ class Executor(object):
             LOGGER.debug("Halting all workers -- received exit signal")
             self.result_queue.put(False)
             self.halt_event.set()
+            self.tasks.join() # wait for workers to finish current work then exit from response to halt signal
         else:                        
             LOGGER.debug("Workers finished - task queue joined")                                   
         finalize = True
@@ -273,12 +276,12 @@ class Executor(object):
                 break
             else:                    
                 if success == False:                        
-                    LOGGER.debug("Found a failed task -- won't call finalize callback")
+                    LOGGER.debug("Found a failed or cancelled task -- won't call finalize callback")
                     finalize = False                                            
-        if finalize:                              
+        if finalize == True:                              
             finalize_callback()
         else:
-            raise DownloadFailedException("Multi-part download from BaseSpace failed (with retry)")                                                 
+            raise DownloadFailedException("Multi-part download from BaseSpace did not complete successfully")                                                 
 
 class MultipartUpload(object):
     '''
@@ -431,7 +434,6 @@ class Utils(object):
     def md5_for_file(f, block_size=1024*1024):
         '''
         Returns the md5 for the provided file (must have been opened in binary mode)
-        (not currently used)
         '''
         md5 = hashlib.md5()
         while True:

@@ -23,6 +23,9 @@ import cStringIO
 import json
 import os
 import re
+from tempfile import mkdtemp
+import socket
+#import requests
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
@@ -788,16 +791,17 @@ class BaseSpaceAPI(BaseAPI):
         else:                        
             return self.multipartFileDownload(Id, localDir)
 
-    def _downloadFile(self, Id, localDir, name, byteRange=None, standaloneRangeFile=False): #@ReservedAssignment
+    def _downloadFile(self, Id, localDir, name, byteRange=None, standaloneRangeFile=False, lock=None): #@ReservedAssignment
         '''
-        Downloads a BaseSpace file to a local directory. Supports byte-range requests, with option
-        to seek() into local file for multipart downloads or save range data in standalone file.                
+        Downloads a BaseSpace file to a local directory. Supports byte-range requests; by default
+        will seek() into local file for multipart downloads, with option to save range data in standalone file.                
         
         :param Id: The file id
         :param localDir: The local directory to place the file in
         :param name: The name of the local file
         :param byteRange: (Optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
         :param standaloneRangeFile: (Optional) if True store byte-range data in standalone file
+        :param lock: (Optional) Multiprocessing lock to prevent multiple processes from writing to same output file concurrently - only needed when using multipart download
         '''
         if byteRange is None:
             byteRange = []
@@ -813,28 +817,37 @@ class BaseSpaceAPI(BaseAPI):
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         
-        # get the Amazon URL
+        # get the Amazon URL, then do the download; for range requests include
+        # size to ensure reading until end of data stream. Create local file if
+        # it doesn't exist (don't truncate in case other processes from 
+        # multipart download also do this)
         req = urllib2.Request(response['Response']['HrefContent'])
-        # do the download; for range requests include size to ensure reading until end of data stream
         filename = os.path.join(localDir, name)
-        if os.path.exists(filename):
-            perm = 'r+b'
-        else:
-            perm = 'w+b'
+        if not os.path.exists(filename):
+            open(filename, 'a').close()
         iter_size = 16*1024 # python default
+        #headers = {}
         if len(byteRange):
-            req.add_header('Range', 'bytes=%s-%s' % (byteRange[0], byteRange[1]))            
-        flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking                                                     
+            req.add_header('Range', 'bytes=%s-%s' % (byteRange[0], byteRange[1]))
+            #headers = {'Range': 'bytes=%s-%s' % (byteRange[0], byteRange[1]) }            
+        flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking                
+        #r = requests.get(response['Response']['HrefContent'], headers=headers)                                                                     
         tot_read = 0
-        with open(filename, perm) as fp:
+        with open(filename, 'r+b', 0) as fp:
             if len(byteRange) and standaloneRangeFile == False:
                 fp.seek(byteRange[0])
+            #with lock:
+            #    fp.write(r.content)
+            #tot_read = len(r.content)
             cur = flo.read(iter_size)                
-            while cur:                                                         
-                fp.write(cur)
+            while cur:                             
+                if lock is not None:
+                    with lock:                           
+                        fp.write(cur)
+                else:
+                    fp.write(cur)
                 tot_read += len(cur)
                 cur = flo.read(iter_size)
-            #shutil.copyfileobj(flo, fp, iter_size)
         # check that actual downloaded byte size is correct
         if len(byteRange):
             exp_size = byteRange[1] - byteRange[0] + 1
@@ -921,7 +934,7 @@ class BaseSpaceAPI(BaseAPI):
         out = self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams, forcePost=0)
         return out
 
-    def multipartFileUpload(self, Id, localDir, fileName, directory, contentType, tempDir='', cpuCount=2, partSize=25, verbose=0):
+    def multipartFileUpload(self, Id, localDir, fileName, directory, contentType, tempDir=None, cpuCount=2, partSize=25, verbose=0):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
         The call returns 
@@ -931,7 +944,7 @@ class BaseSpaceAPI(BaseAPI):
         :param fileName: The desired filename on the server
         :param directory: The server directory to place the file in (empty string will place it in the root directory)
         :param contentType: The content type of the file
-        :param tempdir: Temp directory to use, if blank the directory for 'localDir' will be used
+        :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
         :param cpuCount: The number of CPUs to be used
         :param partSize: The size of individual upload parts (must be between 5 and 25mb)
         :param verbose: Write process output to stdout as upload progresses
@@ -941,6 +954,8 @@ class BaseSpaceAPI(BaseAPI):
         # First create file object in BaeSpace
         bsFile = self.appResultFileUpload(Id, localDir, fileName, directory, contentType, multipart=1)
         
+        if tempDir is None:
+            tempDir = mkdtemp()
         # TODO add verbose mode
         myMpu = mpu(self, localDir, bsFile, cpuCount, partSize, temp_dir=tempDir)                
         myMpu.upload()        
@@ -955,7 +970,7 @@ class BaseSpaceAPI(BaseAPI):
         :param localDir: The local path in which to store the downloaded file
         :param processCount: The number of processes to be used
         :param partSize: The size in bytes of individual download parts
-        :param debug: (optional) Debug mode uses tempDir to store chunks of downloade files, then ends by 'cat'ing chunks into large file
+        :param debug: (optional) Debug mode uses tempDir to store chunks of downloaded files, then ends by 'cat'ing chunks into large file
         :param tempDir: (optional) Temp directory to use for debug mode; if not provided, 'localDir' will be used
         '''         
         if not tempDir:
