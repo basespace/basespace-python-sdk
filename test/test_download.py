@@ -8,11 +8,18 @@ from BaseSpacePy.api.BaseSpaceException import ByteRangeException
 from BaseSpacePy.model.MultipartDownload import Utils
 import app_data
 
-# on cloud-hoth (your BaseSpace account must have access to this data)
-tconst = { 'file_id_small': '9895886', # 4 KB,     public data B. cereus
-           'file_small_md5': 'e8b5a1d82b659763df69783ef57e0180',
+# on cloud-hoth (your BaseSpace account must have access to this public data)
+tconst = { # download
+           'file_id_small': '9895886', # 4 KB,     public data B. cereus
            'file_id_large': '9896135', # 55.31 MB  public data B. cereus
-           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', 
+           'file_small_md5': 'e8b5a1d82b659763df69783ef57e0180', # file id 9895886           
+           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', # file id 9896135 
+           # upload
+           'file_small_upload': 'data/test.small.upload.txt',
+           'file_large_upload': 'data/BC-12_S12_L001_R2_001.fastq.gz',
+           'file_small_upload_size': 11,
+           'file_large_upload_size': 57995799,
+           'test_upload_project_name': 'Python SDK Unit Test Data',
           }
 
 class TestFileMethods(unittest.TestCase):
@@ -56,9 +63,59 @@ class TestFileMethods(unittest.TestCase):
         self.assertTrue(1001 == os.stat(file_path).st_size)
         os.remove(file_path)        
 
+class TestAPIUploadMethods(unittest.TestCase):
+    '''
+    Tests single and multi-part upload methods
+    '''
+    def setUp(self):
+        '''
+        Create a new 'unit test' project, or get it if exists, to upload to data to.
+        Then create a new app result in this project, getting a new app session id
+        '''
+        try:
+            unit_test_app = app_data.unit_test_app
+        except Exception as e:
+            raise Exception("You must first enter your app's credentials to run tests")                
+        self.api = unit_test_app.bs_api()        
+        self.proj = self.api.createProject(tconst['test_upload_project_name'])                        
+        self.ar = self.proj.createAppResult(self.api, "test small upload", "test small upload", appSessionId="")
+
+    def test_small_upload(self):            
+        myFile = self.api.appResultFileUpload(
+            Id=self.ar.Id, 
+            localPath=tconst['file_small_upload'], 
+            fileName=os.path.basename(tconst['file_small_upload']), 
+            directory="", 
+            contentType='text/plain') # TODO test other content types?
+        self.assertTrue(myFile.Size == tconst['file_small_upload_size'])
+
+#    @unittest.skip('speeding up tests but skipping multi-part upload :(')
+    def test_multipart_upload(self):
+        myFile = self.api.multipartFileUpload(
+            Id=self.ar.Id,
+            localDir=tconst['file_large_upload'], 
+            fileName=os.path.basename(tconst['file_large_upload']), 
+            directory="",                          
+            contentType='application/octet-stream',
+            tempDir=None, 
+            cpuCount = 4, # processors
+            partSize= 10, # MB, chunk size
+            verbose = False,
+            #tempDir = args.temp_dir
+            )            
+        self.assertTrue(myFile.Size == tconst['file_large_upload_size'])
+        
+#        ar.uploadFile(self.api, tconst['file_small_upload'], 
+#            args.file_path, 
+#            os.path.basename(args.file_path), 
+#            os.path.dirname(args.file_path), 
+#            'text/plain')
+ 
+
+
 class TestAPIDownloadMethods(unittest.TestCase):
     '''
-    Tests single download and multi-part download methods
+    Tests single and multi-part download methods
     '''
     def setUp(self):
         try:
@@ -166,6 +223,8 @@ class TestAPIDownloadMethods(unittest.TestCase):
 #if __name__ == '__main__':   
 #    unittest.main()
 suite1 = unittest.TestLoader().loadTestsFromTestCase(TestFileMethods)
-suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
-alltests = unittest.TestSuite([suite1, suite2])
+suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
+suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
+alltests = unittest.TestSuite([suite2])
+#alltests = unittest.TestSuite([suite1, suite2, suite3])
 unittest.TextTestRunner(verbosity=2).run(alltests)
