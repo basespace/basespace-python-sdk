@@ -946,11 +946,12 @@ class BaseSpaceAPI(BaseAPI):
         :param contentType: The content type of the file
         :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
         :param cpuCount: The number of CPUs to be used
-        :param partSize: The size of individual upload parts (must be between 5 and 25mb)
+        :param partSize: The size of individual upload parts (must be >5mb and <=25mb)
         :param verbose: Write process output to stdout as upload progresses
         '''
         # TODO add separate argument for path since local path now gets put into BaseSpace file object
         # TODO create convenience method to auto-determine whether to use single of multi-part upload
+        # TODO add validation on part size
         # First create file object in BaeSpace
         bsFile = self.appResultFileUpload(Id, localDir, fileName, directory, contentType, multipart=1)
         
@@ -958,8 +959,7 @@ class BaseSpaceAPI(BaseAPI):
             tempDir = mkdtemp()
         # TODO add verbose mode
         myMpu = mpu(self, localDir, bsFile, cpuCount, partSize, temp_dir=tempDir)                
-        myMpu.upload()        
-        return bsFile
+        return myMpu.upload()                
 
     def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8000000, debug=False, tempDir=None):
         '''
