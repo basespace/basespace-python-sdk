@@ -301,11 +301,12 @@ class MultipartUpload(object):
     
     def upload(self):
         '''
-        Start the upload
+        Start the upload, then when complete retrieve and return the file object from
+        BaseSpace that has updated (completed) attributes.
         '''
         self._setup()
-        self._start_workers()
-        return self.remote_file                    
+        self._start_workers()        
+        return self.api.getFileById(self.remote_file.Id)                        
     
     def _setup(self):        
         '''
@@ -339,6 +340,7 @@ class MultipartUpload(object):
         '''
         Set file upload status as complete in BaseSpace
         '''
+        LOGGER.debug("Marking uploaded file status as complete")                                                   
         self.api.markFileState(self.remote_file.Id)
 
 class MultipartDownload(object):
