@@ -4,7 +4,7 @@ import sys
 from tempfile import mkdtemp
 import shutil
 from BaseSpacePy.api.APIClient import APIClient
-from BaseSpacePy.api.BaseSpaceException import ByteRangeException
+from BaseSpacePy.api.BaseSpaceException import ByteRangeException, UploadPartSizeException
 from BaseSpacePy.model.MultipartDownload import Utils
 import app_data
 
@@ -89,22 +89,49 @@ class TestAPIUploadMethods(unittest.TestCase):
             contentType='text/plain') # TODO test other content types?
         self.assertTrue(myFile.Size == tconst['file_small_upload_size'])
 
-#    @unittest.skip('speeding up tests but skipping multi-part upload :(')
+#    @unittest.skip('speeding up tests but skipping multi-part upload')
     def test_multipart_upload(self):
+        new_dir_name = "testing_upload"
+        new_file_name = os.path.basename(tconst['file_large_upload']) 
         myFile = self.api.multipartFileUpload(
             Id=self.ar.Id,
-            localDir=tconst['file_large_upload'], 
-            fileName=os.path.basename(tconst['file_large_upload']), 
-            directory="",                          
+            localPath=tconst['file_large_upload'], 
+            fileName=new_file_name, 
+            directory=new_dir_name,                          
             contentType='application/octet-stream',
             tempDir=None, 
-            cpuCount = 4, # processors
-            partSize= 10, # MB, chunk size
-            verbose = False,
+            processCount = 4,
+            partSize= 10, # MB, chunk size            
             #tempDir = args.temp_dir
             )            
-        self.assertTrue(myFile.Size == tconst['file_large_upload_size'])
-        
+        self.assertEqual(myFile.Size, tconst['file_large_upload_size'])
+        self.assertEqual(myFile.Name, new_file_name)
+        self.assertEqual(myFile.Path, os.path.join(new_dir_name, new_file_name))        
+
+    def test_small_part_size_multipart_upload_exception(self):
+        with self.assertRaises(UploadPartSizeException):
+            myFile = self.api.multipartFileUpload(
+                Id=self.ar.Id,
+                localPath=tconst['file_large_upload'], 
+                fileName=os.path.basename(tconst['file_large_upload']), 
+                directory="",                          
+                contentType='application/octet-stream',            
+                partSize=5, # MB, chunk size                        
+                )
+
+    def test_large_part_size_multipart_upload_exception(self):
+        with self.assertRaises(UploadPartSizeException):
+            myFile = self.api.multipartFileUpload(
+                Id=self.ar.Id,
+                localPath=tconst['file_large_upload'], 
+                fileName=os.path.basename(tconst['file_large_upload']), 
+                directory="",                          
+                contentType='application/octet-stream',            
+                partSize=26, # MB, chunk size                        
+                )
+
+
+# Upload methods on AppResult object        
 #        ar.uploadFile(self.api, tconst['file_small_upload'], 
 #            args.file_path, 
 #            os.path.basename(args.file_path), 
@@ -225,6 +252,6 @@ class TestAPIDownloadMethods(unittest.TestCase):
 suite1 = unittest.TestLoader().loadTestsFromTestCase(TestFileMethods)
 suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
 suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
-alltests = unittest.TestSuite([suite2])
-#alltests = unittest.TestSuite([suite1, suite2, suite3])
+#alltests = unittest.TestSuite([suite2])
+alltests = unittest.TestSuite([suite1, suite2, suite3])
 unittest.TextTestRunner(verbosity=2).run(alltests)

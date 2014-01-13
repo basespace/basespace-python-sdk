@@ -31,12 +31,12 @@ class UploadTask(object):
     '''
     Uploads a piece of a large local file.    
     '''    
-    def __init__(self, api, bs_file_id, piece, total_pieces, local_file, total_size, temp_dir):
+    def __init__(self, api, bs_file_id, piece, total_pieces, local_path, total_size, temp_dir):
         self.api        = api
         self.bs_file_id = bs_file_id  # the BaseSpace File Id
         self.piece      = piece       # piece number 
         self.total_pieces = total_pieces # out of total piece count
-        self.file       = local_file  # the local file to be uploaded        
+        self.local_path = local_path  # the path of the local file to be uploaded, including file name        
         self.total_size = total_size  # total file size of upload, for reporting
         self.temp_dir   = temp_dir    # temp location to store file chunks for upload
         
@@ -52,9 +52,9 @@ class UploadTask(object):
         '''            
         # TODO add exception logic to popen and process commands
         try:
-            fname = self.file.split('/')[-1]
+            fname = os.path.basename(self.local_path)
             transFile = os.path.join(self.temp_dir, fname + str(self.piece))
-            cmd = "split -d -n " + str(self.piece) + '/' + str(self.total_pieces) + ' ' + self.file
+            cmd = "split -d -n " + str(self.piece) + '/' + str(self.total_pieces) + ' ' + self.local_path
             process = os.popen(cmd)
             out = process.read()
             process.close()
@@ -89,15 +89,15 @@ class DownloadTask(object):
     Downloads a piece of a large remote file.
     In debug mode downloads to filename with piece number appended (i.e. temp file).
     '''    
-    def __init__(self, api, bs_file_id, file_name, local_path, piece, total_pieces, part_size, total_size, temp_dir=None, debug=False):
+    def __init__(self, api, bs_file_id, file_name, local_dir, piece, total_pieces, part_size, total_size, temp_dir=None, debug=False):
         self.api = api                # BaseSpace api object
-        self.bs_file_id = bs_file_id  # the baseSpace fileId
+        self.bs_file_id = bs_file_id  # the Id of the File in BaseSpace
         self.file_name = file_name    # the name of the file to download
         self.piece  = piece           # piece number
         self.total_pieces = total_pieces # total pieces being downloaded (for reporting only)
         self.part_size = part_size    # the size in bytes of each piece (except last piece)
         self.total_size  = total_size # the total size of the file in bytes
-        self.local_path = local_path  # the path in which to store the downloaded file        
+        self.local_dir = local_dir    # the path in which to store the downloaded file        
         self.temp_dir = temp_dir      # temp dir for debug mode
         self.debug = debug            # debug mode writes downloaded chunks to individual temp files
         
@@ -122,7 +122,7 @@ class DownloadTask(object):
             if endbyte > self.total_size:
                 endbyte = self.total_size - 1            
             try:                
-                self.api._downloadFile(self.bs_file_id, self.local_path, transFile, [startbyte, endbyte], standaloneRangeFile, lock)                                
+                self.api._downloadFile(self.bs_file_id, self.local_dir, transFile, [startbyte, endbyte], standaloneRangeFile, lock)                                
             except Exception as e:
                 self.success = False
                 self.err_msg = str(e)                
@@ -287,15 +287,23 @@ class MultipartUpload(object):
     '''
     Uploads a (large) file by uploading file parts in separate processes.    
     '''
-    def __init__(self, api, local_file, bs_file, process_count, part_size, temp_dir):
+    def __init__(self, api, local_path, bs_file, process_count, part_size, temp_dir):
+        '''
+        Create a multipart upload object
+        
+        :param api:           the BaseSpace API object        
+        :param local_path:    the path of the local file, including file name
+        :param bs_file:       the File object of the newly created BaseSpace File to upload 
+        :param process_count: the number of process to use for uploading
+        :param part_size:     in MB, the size of each uploaded part        
+        :param temp_dir:      temp directory to store file pieces for upload 
+        '''
         self.api            = api    
-        self.local_file     = local_file    # full path include file name of local file
-        self.remote_file    = bs_file       # File object
+        self.local_path     = local_path    
+        self.remote_file    = bs_file
         self.process_count  = process_count
         self.part_size      = part_size
-        self.temp_dir       = temp_dir       
-
-        # TODO validate part size between 5 and 25 MB
+        self.temp_dir       = temp_dir               
                                            
         self.start_chunk    = 1
     
@@ -312,13 +320,13 @@ class MultipartUpload(object):
         '''
         Determine number of file pieces to upload, add upload tasks to work queue         
         '''                
-        total_size = os.path.getsize(self.local_file)        
+        total_size = os.path.getsize(self.local_path)        
         # TODO convert part_size to bytes?
         fileCount = int(math.ceil(total_size/(self.part_size*1024.0*1000)))
 
         self.exe = Executor()                    
         for i in xrange(self.start_chunk, fileCount+1):
-            t = UploadTask(self.api, self.remote_file.Id, i, fileCount, self.local_file, total_size, self.temp_dir)            
+            t = UploadTask(self.api, self.remote_file.Id, i, fileCount, self.local_path, total_size, self.temp_dir)            
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)
         self.task_total = fileCount - self.start_chunk + 1                                                
@@ -341,7 +349,7 @@ class MultipartUpload(object):
         Set file upload status as complete in BaseSpace
         '''
         LOGGER.debug("Marking uploaded file status as complete")                                                   
-        self.api.markFileState(self.remote_file.Id)
+        self.api.__finalizeMultipartFileUpload__(self.remote_file.Id)
 
 class MultipartDownload(object):
     '''
@@ -349,14 +357,25 @@ class MultipartDownload(object):
     Debug mode downloads chunks to individual temp files, then cats them together
     Returns file object when complete.
     '''
-    def __init__(self, api, fileId, local_path, process_count, part_size, debug=False, temp_dir=None):
-        self.api            = api
-        self.fileId         = fileId
-        self.local_path     = local_path        
-        self.part_size      = part_size      # in bytes
-        self.process_count  = process_count        
-        self.debug          = debug        
-        self.temp_dir       = temp_dir           
+    def __init__(self, api, file_id, local_dir, process_count, part_size, debug=False, temp_dir=None):
+        '''
+        Create a multipart download object
+        
+        :param api:           the BaseSpace API object
+        :param file_id:       the BaseSpace File Id of the file to download
+        :param local_dir:     the local directory in which to store the downloaded file
+        :param process_count: the number of process to use for downloading
+        :param part_size:     in bytes, the size of each downloaded part
+        :param debug:         optional debug mode, when True, downloads to individual temp files
+        :param temp_dir:      optional temp directory for debug mode, defaults to local_dir
+        '''
+        self.api            = api            
+        self.file_id        = file_id         
+        self.local_dir      = local_dir               
+        self.process_count  = process_count  
+        self.part_size      = part_size              
+        self.debug          = debug          
+        self.temp_dir       = temp_dir            
 
         self.start_chunk      = 1        
         self.partial_file_ext = ".partial"
@@ -374,7 +393,7 @@ class MultipartDownload(object):
         Determine number of file pieces to download, add download tasks to work queue
         While download is in progress, name the file with a 'partial' extension 
         '''
-        self.bs_file = self.api.getFileById(self.fileId)
+        self.bs_file = self.api.getFileById(self.file_id)
         self.file_name = self.bs_file.Name
         total_size = self.bs_file.Size # in bytes
         self.file_count = int(math.ceil(total_size/self.part_size)) + 1
@@ -385,7 +404,7 @@ class MultipartDownload(object):
         
         self.exe = Executor()                    
         for i in xrange(self.start_chunk, self.file_count+1):         
-            t = DownloadTask(self.api, self.fileId, file_name, self.local_path, 
+            t = DownloadTask(self.api, self.file_id, file_name, self.local_dir, 
                              i, self.file_count, self.part_size, total_size, self.temp_dir, self.debug)
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)        
@@ -411,7 +430,7 @@ class MultipartDownload(object):
         '''
         Remove the 'partial' extension from the downloaded file
         '''
-        final_file = os.path.join(self.local_path, self.file_name)
+        final_file = os.path.join(self.local_dir, self.file_name)
         partial_file = final_file + self.partial_file_ext
         os.rename(partial_file, final_file) 
     
@@ -422,7 +441,7 @@ class MultipartDownload(object):
         LOGGER.debug("Assembling downloaded file parts into single file")                                                   
         part_files = [os.path.join(self.temp_dir, self.file_name + '.' + str(i)) for i in xrange(self.start_chunk, self.file_count+1)]            
         # TODO check that file exists?
-        with open(os.path.join(self.local_path, self.file_name), 'w+b') as whole_file:
+        with open(os.path.join(self.local_dir, self.file_name), 'w+b') as whole_file:
             for part_file in part_files:
                 shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                         
         for part_file in part_files:

@@ -60,4 +60,11 @@ class DownloadFailedException(Exception):
         self.parameter = 'BaseSpace download failed: ' + value
     def __str__(self):
         return repr(self.parameter)
+
+class UploadPartSizeException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Upload part size invalid: ' + value
+    def __str__(self):
+        return repr(self.parameter)
+
     
