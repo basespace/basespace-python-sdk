@@ -728,13 +728,15 @@ class BaseSpaceAPI(BaseAPI):
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType):
         '''
-        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object  
+        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
+        Small files are uploaded with a single-part upload method, while larger files (< 25 MB) are uploaded
+        with multipart upload.  
         
         :param Id: AppResult id.
         :param localPath: The local path to the file to be uploaded, including file name.
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
-        :param contentType: The content-type of the file.         
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files    
         '''
         multipart_min_file_size = 25000000 # bytes
         if os.path.getsize(localPath) > multipart_min_file_size:
@@ -766,44 +768,23 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
             queryParams, headerParams, postData=postData, verbose=0)
             
-    def __initiateMultipartFileUpload__(self, Id, fileName, directory, contentType):
-        '''
-        Initiates multipart upload of a file to an AppResult in BaseSpace (does not actually upload file).  
-        
-        :param Id: AppResult id.        
-        :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
-        :param directory: The directory the file should be placed in on the BaseSpace server.
-        :param contentType: The content-type of the file.         
-        '''
-        resourcePath = '/appresults/{Id}/files'
-        resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'POST'
-        resourcePath                 = resourcePath.replace('{Id}', Id)
-        queryParams                  = {}
-        queryParams['name']          = fileName
-        queryParams['directory']     = directory 
-        headerParams                 = {}
-        headerParams['Content-Type'] = contentType
-                
-        queryParams['multipart']          = 'true'
-        postData = None
-        # Set force post as this need to use POST though no data is being streamed
-        return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
-                                  queryParams, headerParams,postData=postData,verbose=0,forcePost=1)                    
-
-    def fileDownload(self, Id, localDir, byteRange=None):
+    def fileDownload(self, Id, localDir, byteRange=None, createBsDir=True):
         '''
         Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
-        If the file is large, use multi-part download.
-        Byte-range requests are supported for only small byte ranges (single-part downloads).
-        Returns file object when complete, exception raised if download fails.
+        If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir 
+        (to disable this, set createBsPath=False).
         
+        If the file is large, multi-part download will be used. 
+        Returns file object when complete; raises exception if download fails.
+        
+        Byte-range requests are supported for only small byte ranges (single-part downloads).
         Byte-range requests are restricted to a single request of 'start' and 'end' bytes, without support for
         negative or empty values for 'start' or 'end'.
         
         :param Id: The file id
         :param localDir: The local directory to place the file in    
-        :param byteRange: (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values        
+        :param byteRange: (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
+        :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default); when False, ignore Bs directory                
         '''
         multipart_min_file_size = 5000000 # bytes
         if byteRange:
@@ -815,19 +796,28 @@ class BaseSpaceAPI(BaseAPI):
                 raise ByteRangeException("Byte range must have smaller byte number first")
             if rangeSize > multipart_min_file_size:
                 raise ByteRangeException("Byte range %d larger than maximum allowed size %d" % (rangeSize, multipart_min_file_size))
-        
-        bs_file = self.getFileById(Id)
-        if (bs_file.Size < multipart_min_file_size) or (byteRange and (rangeSize < multipart_min_file_size)):
-            self._downloadFile(Id, localDir, bs_file.Name, byteRange, standaloneRangeFile=True)
-            return bs_file
+                
+        bsFile = self.getFileById(Id)
+        if (bsFile.Size < multipart_min_file_size) or (byteRange and (rangeSize < multipart_min_file_size)):
+            # append File's directory to local dir, and create this path if it doesn't exist
+            localDest = localDir
+            if createBsDir:            
+                localDest = os.path.join(localDir, os.path.dirname(bsFile.Path))            
+                if not os.path.exists(localDest):
+                    os.makedirs(localDest)            
+            self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
+            return bsFile
         else:                        
-            return self.multipartFileDownload(Id, localDir)
+            return self.multipartFileDownload(Id, localDir, createBsDir=createBsDir)
 
-    def _downloadFile(self, Id, localDir, name, byteRange=None, standaloneRangeFile=False, lock=None): #@ReservedAssignment
+    def __downloadFile__(self, Id, localDir, name, byteRange=None, standaloneRangeFile=False, lock=None): #@ReservedAssignment
         '''
         Downloads a BaseSpace file to a local directory. 
         Supports byte-range requests; by default will seek() into local file for multipart downloads, 
-        with option to save range data in standalone file.                
+        with option to save range data in standalone file.
+        
+        This method is for downloading relatively small files, eg. < 5 MB. 
+        For larger files, use multipart download (which uses this method for file parts).                
         
         :param Id: The file id
         :param localDir: The local directory to place the file in
@@ -846,7 +836,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
         
-        response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
+        response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         
@@ -859,19 +849,13 @@ class BaseSpaceAPI(BaseAPI):
         if not os.path.exists(filename):
             open(filename, 'a').close()
         iter_size = 16*1024 # python default
-        #headers = {}
         if len(byteRange):
             req.add_header('Range', 'bytes=%s-%s' % (byteRange[0], byteRange[1]))
-            #headers = {'Range': 'bytes=%s-%s' % (byteRange[0], byteRange[1]) }            
         flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking                
-        #r = requests.get(response['Response']['HrefContent'], headers=headers)                                                                     
-        tot_read = 0
+        totRead = 0
         with open(filename, 'r+b', 0) as fp:
             if len(byteRange) and standaloneRangeFile == False:
                 fp.seek(byteRange[0])
-            #with lock:
-            #    fp.write(r.content)
-            #tot_read = len(r.content)
             cur = flo.read(iter_size)                
             while cur:                             
                 if lock is not None:
@@ -879,14 +863,17 @@ class BaseSpaceAPI(BaseAPI):
                         fp.write(cur)
                 else:
                     fp.write(cur)
-                tot_read += len(cur)
+                totRead += len(cur)
                 cur = flo.read(iter_size)
         # check that actual downloaded byte size is correct
         if len(byteRange):
-            exp_size = byteRange[1] - byteRange[0] + 1
-            if tot_read != exp_size:
-                raise Exception("Ranged download size is not as expected: " + str(tot_read) + " vs " + str(exp_size))
-        # TODO test that size is correct for non-range requests                     
+            expSize = byteRange[1] - byteRange[0] + 1
+            if totRead != expSize:
+                raise DownloadFailedException("Ranged download size is not as expected: %d vs %d" % (totRead, expSize))        
+        else:
+            bsFile = self.getFileById(Id)
+            if totRead != bsFile.Size:
+                raise DownloadFailedException("Downloaded file size doesn't match file size in BaseSpace: %d vs %d" % (totRead, bsFile.Size))                     
 
     def fileUrl(self,Id): #@ReservedAssignment
         '''
@@ -906,9 +893,7 @@ class BaseSpaceAPI(BaseAPI):
         
         response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
         if response['ResponseStatus'].has_key('ErrorCode'):
-            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-        
-        # return the Amazon URL 
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                
         return response['Response']['HrefContent']
 
     def fileS3metadata(self, Id):
@@ -947,10 +932,35 @@ class BaseSpaceAPI(BaseAPI):
             etag = etag[1:-1]
         ret['etag'] = etag                                                
         return ret
+
+    def __initiateMultipartFileUpload__(self, Id, fileName, directory, contentType):
+        '''
+        Initiates multipart upload of a file to an AppResult in BaseSpace (does not actually upload file).  
+        
+        :param Id: AppResult id.        
+        :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file.         
+        '''
+        resourcePath = '/appresults/{Id}/files'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'POST'
+        resourcePath                 = resourcePath.replace('{Id}', Id)
+        queryParams                  = {}
+        queryParams['name']          = fileName
+        queryParams['directory']     = directory 
+        headerParams                 = {}
+        headerParams['Content-Type'] = contentType
+                
+        queryParams['multipart']          = 'true'
+        postData = None
+        # Set force post as this need to use POST though no data is being streamed
+        return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
+                                  queryParams, headerParams,postData=postData,verbose=0,forcePost=1)                    
                
     def __uploadMultipartUnit__(self, Id, partNumber, md5, data):
         '''
-        Helper method, do not call
+        Uploads file part for multipart upload
         
         :param Id: file id 
         :param partNumber: the file part to be uploaded
@@ -979,9 +989,8 @@ class BaseSpaceAPI(BaseAPI):
         :param contentType: The content type of the file
         :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
         :param processCount: The number of processes to be used
-        :param partSize: The size of individual upload parts (must be >5 Mb and <=25 Mb)
+        :param partSize: The size in MB of individual upload parts (must be >5 Mb and <=25 Mb)
         '''
-        # TODO create convenience method to auto-determine whether to use single of multi-part upload        
         # First create file object in BaseSpace, then create multipart upload object and start upload
         if partSize <= 5 or partSize > 25:
             raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
@@ -991,7 +1000,7 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
         return myMpu.upload()                
 
-    def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8000000, debug=False, tempDir=None):
+    def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8, createBsDir=True, tempDir=""):
         '''
         Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
         Returns a file object, exception raised on download failure.
@@ -999,13 +1008,11 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The ID of the File to download 
         :param localDir: The local path in which to store the downloaded file
         :param processCount: The number of processes to be used
-        :param partSize: The size in bytes of individual download parts
-        :param debug: (optional) Debug mode uses tempDir to store chunks of downloaded files, then ends by 'cat'ing chunks into large file
-        :param tempDir: (optional) Temp directory to use for debug mode; if not provided, 'localDir' will be used
+        :param partSize: The size in MB of individual file parts to download
+        :param createBsDir: (optional) create BaseSpace File's directory in local_dir (default); when False, ignore Bs directory        
+        :param tempDir: (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by 'cat'ing chunks into large file
         '''         
-        if not tempDir:
-            tempDir = localDir
-        myMpd = mpd(self, Id, localDir, processCount, partSize, temp_dir=tempDir, debug=debug)
+        myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)
         bsFile = myMpd.download()
         return bsFile        
     
@@ -1028,13 +1035,12 @@ class BaseSpaceAPI(BaseAPI):
 
     def setAppSessionState(self,Id,Status,Summary):
         '''
-        Set the status of an AppResult object
+        Set the status of an AppSession in BaseSpace
         
-        :param Id: The id of the AppResult
-        :param Status: The status assignment string must
-        :param Summary: The summary string
+        :param Id: The id of the AppSession
+        :param Status: The AppSession status string, must be one of: running, complete, needsattention, timedout, aborted
+        :param Summary: The status summary string
         '''
-        # Parse inputs
         resourcePath = '/appsessions/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'POST'
@@ -1042,9 +1048,9 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         postData = {}
-        statusAllowed = ['running', 'complete', 'needsattention', 'aborted','error']
+        statusAllowed = ['running', 'complete', 'needsattention', 'timedout', 'aborted']
         if not Status.lower() in statusAllowed:
-            raise Exception("AppResult state must be in " + str(statusAllowed))
+            raise Exception("AppSession state must be in " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\

@@ -75,16 +75,17 @@ class File(object):
             except:
                 raise WrongFiletypeException(self.Name)
 
-    def downloadFile(self, api, localDir, byteRange=None):
+    def downloadFile(self, api, localDir, byteRange=None, createBsDir=True):
         '''
         Download the file object to the specified localDir or a byte range of the file, by specifying the 
         start and stop byte in the range.
         
         :param api: A BaseSpaceAPI with read access on the scope including the file object.
         :param loadlDir: The local directory to place the file in.
-        :param byteRange: Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).
+        :param byteRange: (optional) Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).
+        :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default); when False, ignore Bs directory                
         '''        
-        return api.fileDownload(self.Id, localDir, byteRange=byteRange)        
+        return api.fileDownload(self.Id, localDir, byteRange=byteRange, createBsDir=createBsDir)        
 
     def getFileUrl(self,api):
         '''
@@ -150,13 +151,13 @@ class File(object):
         Id = self.HrefVariants.split('/')[-1]
         return api.getVariantMetadata(Id,'txt')
     
-    def markAsComplete(self,api):
-        '''
-        Mark a file object created as part of a multipart upload as complete
-        :param api: An instance of BaseSpaceAPI
-        '''
-        api.markFileState(self.Id)
-        self.UploadStatus ='Complete'
+#    def markAsComplete(self,api):
+#        '''
+#        Mark a file object created as part of a multipart upload as complete
+#        :param api: An instance of BaseSpaceAPI
+#        '''
+#        api.markFileState(self.Id)
+#        self.UploadStatus ='Complete'
         
         
     

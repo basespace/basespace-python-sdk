@@ -98,28 +98,13 @@ class AppResult(object):
         Uploads a local file to the BaseSpace AppResult
         
         :param api: An instance of BaseSpaceAPI
-        :param localPath: The local path of the file
-        :param fileName: The filename
-        :param directory: The remote directory to upload to
+        :param localPath: The local path of the file (including file name)
+        :param fileName: The file name to use on the server
+        :param directory: The remote directory to upload the file to on the server
         :param contentType: The content-type of the file
         '''
         self.isInit()
         return api.appResultFileUpload(self.Id,localPath, fileName, directory, contentType)
-
-#    def uploadMultipartFile(self, api, localPath, fileName, directory, contentType,tempDir='',cpuCount=1,partSize=10,verbose=0):
-#        '''
-#        Upload a file in multi-part mode. Returns an object of type MultipartUpload used for managing the upload.
-#        
-#        :param api:An instance of BaseSpaceAPI
-#        :param localPath: The local path of the file
-#        :param fileName: The filename
-#        :param directory: The remote directory to upload to
-#        :param contentType: The content-type of the file
-#        :param cpuCount: The number of CPUs to used for the upload
-#        :param partSize:
-#        '''
-#        self.isInit()
-#        return api.multipartFileUpload(self.Id, localPath, fileName, directory, contentType, tempDir,cpuCount,partSize,verbose=verbose)
 
         self.Name               = None
         self.Description        = None
