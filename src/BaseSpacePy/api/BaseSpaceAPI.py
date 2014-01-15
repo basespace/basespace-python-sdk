@@ -768,7 +768,7 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
             queryParams, headerParams, postData=postData, verbose=0)
             
-    def fileDownload(self, Id, localDir, byteRange=None, createBsDir=True):
+    def fileDownload(self, Id, localDir, byteRange=None, createBsDir=False):
         '''
         Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
         If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir 
@@ -784,7 +784,7 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The file id
         :param localDir: The local directory to place the file in    
         :param byteRange: (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
-        :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default); when False, ignore Bs directory                
+        :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default: False)                
         '''
         multipart_min_file_size = 5000000 # bytes
         if byteRange:
@@ -1000,7 +1000,7 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
         return myMpu.upload()                
 
-    def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8, createBsDir=True, tempDir=""):
+    def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8, createBsDir=False, tempDir=""):
         '''
         Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
         Returns a file object, exception raised on download failure.
@@ -1009,7 +1009,7 @@ class BaseSpaceAPI(BaseAPI):
         :param localDir: The local path in which to store the downloaded file
         :param processCount: The number of processes to be used
         :param partSize: The size in MB of individual file parts to download
-        :param createBsDir: (optional) create BaseSpace File's directory in local_dir (default); when False, ignore Bs directory        
+        :param createBsDir: (optional) create BaseSpace File's directory in local_dir (default: False)        
         :param tempDir: (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by 'cat'ing chunks into large file
         '''         
         myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)

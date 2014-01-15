@@ -87,7 +87,7 @@ class TestFileDownloadMethods(unittest.TestCase):
             self.api,
             localDir = self.temp_dir,            
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -95,13 +95,13 @@ class TestFileDownloadMethods(unittest.TestCase):
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
         
-    def test_file_small_download_no_directory(self):
+    def test_file_small_download_with_directory(self):
         new_file = self.file.downloadFile(
             self.api,
             localDir = self.temp_dir,
-            createBsDir = False,    
+            createBsDir = True,    
             )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
+        file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -115,7 +115,7 @@ class TestFileDownloadMethods(unittest.TestCase):
             localDir = self.temp_dir,
             byteRange = [1000,2000]            
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertEqual(1001, os.stat(file_path).st_size)
@@ -227,7 +227,7 @@ class TestAPIUploadMethods(unittest.TestCase):
             directory="test_upload_download_dir", 
             contentType=tconst['file_small_upload_content_type'])        
         tempDir = mkdtemp()        
-        downFile = self.api.fileDownload(upFile.Id, tempDir)
+        downFile = self.api.fileDownload(upFile.Id, tempDir, createBsDir=True)
         downPath = os.path.join(tempDir, upFile.Path)
         self.assertTrue(os.path.isfile(downPath), "Failed to find path %s" % downPath)
         # confirm file size and md5 are correct
@@ -245,7 +245,7 @@ class TestAPIUploadMethods(unittest.TestCase):
             directory="test_upload_download_dir", 
             contentType=tconst['file_large_upload_content_type'])        
         tempDir = mkdtemp()        
-        downFile = self.api.fileDownload(upFile.Id, tempDir)
+        downFile = self.api.fileDownload(upFile.Id, tempDir, createBsDir=True)
         downPath = os.path.join(tempDir, upFile.Path)
         self.assertTrue(os.path.isfile(downPath), "Failed to find path %s" % downPath)
         # confirm file size and md5 are correct
@@ -274,7 +274,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
             tconst['file_id_small'],                    
             localDir = self.temp_dir,            
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -282,13 +282,13 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-    def test_small_download_no_directory(self):
+    def test_small_download_with_directory(self):
         new_file = self.api.fileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,
-            createBsDir = False,         
+            createBsDir = True,         
             )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
+        file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -302,7 +302,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
             tconst['file_id_large'],                    
             localDir = self.temp_dir,            
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -311,13 +311,13 @@ class TestAPIDownloadMethods(unittest.TestCase):
         os.remove(file_path)
 
 #    @unittest.skip('large download')
-    def test_large_download_no_directory(self):
+    def test_large_download_with_directory(self):
         new_file = self.api.fileDownload(
             tconst['file_id_large'],                    
             localDir = self.temp_dir,
-            createBsDir = False,         
+            createBsDir = True,         
             )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
+        file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -331,7 +331,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
             localDir = self.temp_dir,
             byteRange = [1000,2000]            
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertEqual(1001, os.stat(file_path).st_size)
@@ -368,7 +368,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
             processCount = 10,
             partSize = 12
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path), "Failed to find file, expected here: %s" % file_path)
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -384,7 +384,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
             processCount = 10,
             partSize = 12
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path), "Failed to find file, expected here: %s" % file_path)
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -392,15 +392,15 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
         os.remove(file_path)
 
-    def test_multipartDownload_no_directory(self):
+    def test_multipartDownload_with_directory(self):
         new_file = self.api.multipartFileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,
             processCount = 10,
             partSize = 12,
-            createBsDir = False,
+            createBsDir = True,
             )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
+        file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path), "Failed to find file, expected here: %s" % file_path)
         # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -414,7 +414,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
             localDir = self.temp_dir,            
             tempDir = self.temp_dir
             )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
+        file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size and md5 are correct        
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
@@ -422,14 +422,14 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-    def test_multipartDownload_via_temp_file_no_directory(self):
+    def test_multipartDownload_via_temp_file_with_directory(self):
         new_file = self.api.multipartFileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,            
             tempDir = self.temp_dir,
-            createBsDir = False,
+            createBsDir = True,
             )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
+        file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size and md5 are correct        
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
