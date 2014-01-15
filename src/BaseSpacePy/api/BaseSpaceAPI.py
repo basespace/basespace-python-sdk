@@ -30,8 +30,8 @@ import socket
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
-from BaseSpacePy.model.MultipartDownload import MultipartUpload as mpu #@UnresolvedImport
-from BaseSpacePy.model.MultipartDownload import MultipartDownload as mpd #@UnresolvedImport
+from BaseSpacePy.model.MultipartFileTransfer import MultipartUpload as mpu #@UnresolvedImport
+from BaseSpacePy.model.MultipartFileTransfer import MultipartDownload as mpd #@UnresolvedImport
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@UnresolvedImport
 from BaseSpacePy.model import * #@UnusedWildImport
 

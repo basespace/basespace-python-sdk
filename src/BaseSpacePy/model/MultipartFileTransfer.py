@@ -21,9 +21,9 @@ import Queue
 import shutil
 import signal
 import hashlib
+from subprocess import call
 import logging
-from hashlib import md5
-from BaseSpacePy.api.BaseSpaceException import DownloadFailedException
+from BaseSpacePy.api.BaseSpaceException import MultiProcessingTaskFailedException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -50,29 +50,32 @@ class UploadTask(object):
         Calculate md5 of file piece and pass to upload method.
         Lock is not used (but needed since worker sends it for multipart download)
         '''            
-        # TODO add exception logic to popen and process commands
         try:
             fname = os.path.basename(self.local_path)
-            transFile = os.path.join(self.temp_dir, fname + str(self.piece))
-            cmd = "split -d -n " + str(self.piece) + '/' + str(self.total_pieces) + ' ' + self.local_path
-            process = os.popen(cmd)
-            out = process.read()
-            process.close()
-            with open(transFile,'w') as f:
-                f.write(out)        
-            self.md5 = md5(out).digest().encode('base64')
+            transFile = os.path.join(self.temp_dir, fname + str(self.piece))            
+            # TODO replace os.popen() with subprocess.call()
+            cmd = ['split', '-d', '-n', str(self.piece) + '/' + str(self.total_pieces), self.local_path]                        
+            with open(transFile, "w") as fp:                                                    
+                rc = call(cmd, stdout=fp)
+                if rc != 0:
+                    self.sucess = False
+                    self.err_msg = "Splitting local file failed for piece %s" % str(self.piece)
+                    return self            
+            with open(transFile, "r") as f:
+                out = f.read()
+                self.md5 = hashlib.md5(out).digest().encode('base64')            
             try:
                 res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece,self.md5,transFile)
             except Exception as e:
                 self.success = False
                 self.err_msg = str(e)                
             else:
-                # TODO why is ETag presence considered success?
+                # ETag contains hex encoded MD5 of part data on success
                 if res and res['Response'].has_key('ETag'):                
                     self.success = True
                 else:
                     self.success = False
-                    self.err_msg = "Error - empty reponse from uploading file piece or missing ETag in response"
+                    self.err_msg = "Error - empty response from uploading file piece or missing ETag in response"
             os.remove(transFile)
         # capture exception, since unpickleable exceptions may block
         except Exception as e:
@@ -284,8 +287,8 @@ class Executor(object):
                     finalize = False                                            
         if finalize == True:                              
             finalize_callback()
-        else:
-            raise DownloadFailedException("Multi-part download from BaseSpace did not complete successfully")                                                 
+        else:            
+            raise MultiProcessingTaskFailedException("Multiprocessing task did not complete successfully")                                                 
 
 class MultipartUpload(object):
     '''
@@ -325,7 +328,8 @@ class MultipartUpload(object):
         Determine number of file pieces to upload, add upload tasks to work queue         
         '''                
         total_size = os.path.getsize(self.local_path)        
-        fileCount = int(math.ceil(total_size/(self.part_size*1024.0*1000)))
+        #fileCount = int(math.ceil(total_size/(self.part_size*1024.0*1000)))
+        fileCount = int(total_size/(self.part_size*1024*1024)) + 1
 
         self.exe = Executor()                    
         for i in xrange(self.start_chunk, fileCount+1):
@@ -456,10 +460,9 @@ class MultipartDownload(object):
         Assembles download files chunks into single large file, then cleanup by deleting file chunks
         '''        
         LOGGER.debug("Assembling downloaded file parts into single file")                                                   
-        part_files = [os.path.join(self.full_temp_dir, self.file_name + '.' + str(i)) for i in xrange(self.start_chunk, self.file_count+1)]            
-        # TODO check that files exists?
+        part_files = [os.path.join(self.full_temp_dir, self.file_name + '.' + str(i)) for i in xrange(self.start_chunk, self.file_count+1)]                    
         with open(os.path.join(self.full_local_dir, self.file_name), 'w+b') as whole_file:
-            for part_file in part_files:
+            for part_file in part_files:                
                 shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                         
         for part_file in part_files:
             os.remove(part_file)                        

@@ -5,18 +5,19 @@ from tempfile import mkdtemp
 import shutil
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import ByteRangeException, UploadPartSizeException
-from BaseSpacePy.model.MultipartDownload import Utils
+from BaseSpacePy.model.MultipartFileTransfer import Utils
 import app_data
 
-# on cloud-hoth (your BaseSpace account must have access to the B. cereus Project, which is in Public Data)
-tconst = { # download
-           #'file_id_small': '9895886', # 4 KB,     public data B. cereus Project, CompletedJobInfo.xml (no directory)
+###
+# on cloud-hoth, your BaseSpace account must have access to the B. cereus Project, which is in Public Data (Project name 'BaseSpaceDemo', Id 596596)
+###
+tconst = { 
+           # for download tests
            'file_id_small': '9896072', # 2.2 KB,  public data B. cereus Project, data/intentisties/basecalls/Alignment/DemultiplexSummaryF1L1.9.txt
-           'file_id_large': '9896135', # 55.31 MB  public data B. cereus Project, data/intensities/basecalls/BC-12_S12_L001_R2_001.fastq.gz
-           #'file_small_md5': 'e8b5a1d82b659763df69783ef57e0180', # file id 9895886           
-           'file_small_md5': '4c3328bcf26ffb54da4de7b3c8879f94', # file id 9896072
-           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', # file id 9896135 
-           # upload
+           'file_id_large': '9896135', # 55.31 MB  public data B. cereus Project, data/intensities/basecalls/BC-12_S12_L001_R2_001.fastq.gz           
+           'file_small_md5': '4c3328bcf26ffb54da4de7b3c8879f94', # for file id 9896072
+           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', # for file id 9896135 
+           # for upload tests
            'file_small_upload': 'data/test.small.upload.txt',
            'file_large_upload': 'data/BC-12_S12_L001_R2_001.fastq.gz',
            'file_small_upload_size': 11,

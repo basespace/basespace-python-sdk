@@ -55,9 +55,9 @@ class ByteRangeException(Exception):
     def __str__(self):
         return repr(self.parameter)
     
-class DownloadFailedException(Exception):
+class MultiProcessingTaskFailedException(Exception):
     def __init__(self, value):
-        self.parameter = 'BaseSpace download failed: ' + value
+        self.parameter = 'Multiprocessing task failed failed: ' + value
     def __str__(self):
         return repr(self.parameter)
 
