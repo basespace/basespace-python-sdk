@@ -39,7 +39,6 @@ __all__= [
  'CoverageResponse',
  'Variant',
  'VariantInfo',
- 'MultipartUpload',
  'AppSessionResponse',
  'AppSession',
  'AppResult',
@@ -87,5 +86,5 @@ __all__= [
  'MultiValuePropertyStringsList',
  'RunResponse',
  'Run',
- 'MultipartDownload',
+ 'MultipartFileTransfer',
  ]
