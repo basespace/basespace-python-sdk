@@ -977,7 +977,7 @@ class BaseSpaceAPI(BaseAPI):
         out = self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams, forcePost=0)
         return out
 
-    def multipartFileUpload(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=4, partSize=25):
+    def multipartFileUpload(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
         Returns a File object (that is updated after the upload has completed). 
@@ -1000,7 +1000,7 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
         return myMpu.upload()                
 
-    def multipartFileDownload(self, Id, localDir, processCount=4, partSize=8, createBsDir=False, tempDir=""):
+    def multipartFileDownload(self, Id, localDir, processCount=10, partSize=25, createBsDir=False, tempDir=""):
         '''
         Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
         Returns a file object, exception raised on download failure.
