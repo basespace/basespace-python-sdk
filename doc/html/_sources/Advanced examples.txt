@@ -1,8 +1,0 @@
-Advanced examples
-========================
-
-
-Multi-part upload
-----------------------------
-
-To-do
