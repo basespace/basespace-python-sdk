@@ -20,13 +20,11 @@ REQUIREMENTS
 
 Python 2.6 with the packages 'pycurl', and 'python-dateutil' installed. You can install these on Ubuntu with 'apt-get install python-pycurl' and 'apt-get install python-dateutil'.
 
-The multi-part file upload will currently only run on a unix setup.
-
 
 INSTALL
 =========================================
 
-Version 0.1.2 of BaseSpacePy can be checked out here:
+BaseSpacePy can be checked out here:
 
 	git clone https://github.com/basespace/basespace-python-sdk.git
 
@@ -62,8 +60,15 @@ To test that everything is working as expected, launch a Python prompt and try i
 CHANGELOG
 =========================================
 
+v 0.1.3
+-----------------------------------------
+- Added support for large-file (multipart) upload and download.
+- Added methods to get a Run's Files or Samples
+
 v 0.1.2
 -----------------------------------------
+- Added support for getting item Properties
+- Added support for purchases and refunds
 - Added use of os.path.join when forming path in file-download from a Sample
 - Added support for custom http-timeouts in the BaseSpaceAPI class
 - Added link to Sample class in AppResult class

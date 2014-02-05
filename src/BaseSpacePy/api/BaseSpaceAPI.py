@@ -62,6 +62,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Warning this method is not for general use and should only be called 
         from the getAppSession.
+        
         :param obj: The appTrigger json 
         '''
         response = obj
@@ -97,9 +98,10 @@ class BaseSpaceAPI(BaseAPI):
 
     def getAppSession(self,Id=''):
         '''
-        Returns an AppSession instance containing user and data-type the app was triggered by/on 
-        :param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating
-        the BaseSpaceAPI instance.
+        Returns an AppSession instance containing user and data-type the app was triggered by/on
+        Note that Properties are not currently supported for this method, use getAppSessionPropertiesById()
+        
+        :param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating the BaseSpaceAPI instance.
         
         :param Id: (Optional) AppSession id, if not supplied the AppSession id used to initialize the 
         '''
@@ -130,7 +132,9 @@ class BaseSpaceAPI(BaseAPI):
     def getAppSessionPropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of an AppSession
-        :param Id: The AppSessionId            
+        
+        :param Id: The AppSessionId
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering            
         '''                
         if queryPars is None:
             queryPars = qp()
@@ -143,12 +147,14 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
 
-    def getAppSessionPropertyByName(self, Id, queryPars=None, name=''):
+    def getAppSessionPropertyByName(self, Id, name, queryPars=None):
         '''
         Returns the multi-value Property of the provided AppSession that has the provided Property name.
         Note - this method (and REST API) is supported for ONLY multi-value Properties.
+        
         :param Id: The AppSessionId
-        :param name: Name of the multi-value property to retrieve        
+        :param name: Name of the multi-value property to retrieve
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
         '''                
         if queryPars is None:
             queryPars = qp()        
@@ -164,7 +170,10 @@ class BaseSpaceAPI(BaseAPI):
 
     def getAppSessionInputsById(self, Id, queryPars=None):
         '''
-        Returns a dictionary of input properties from the provided AppSessions, keyed by input Name        
+        Returns a dictionary of input properties from the provided AppSessions, keyed by input Name
+        
+        :param Id: The AppSessionId
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
         '''
         if queryPars is None:
             queryPars = qp()        
@@ -282,6 +291,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns an AppResult object corresponding to Id
         
         :param Id: The Id of the AppResult
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         # Parse inputs
         if queryPars is None:
@@ -300,6 +310,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns the Properties of an AppResult object corresponding to Id
         
         :param Id: The Id of the AppResult
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         # Parse inputs
         if queryPars is None:
@@ -337,6 +348,7 @@ class BaseSpaceAPI(BaseAPI):
         Request a project object by Id
         
         :param Id: The Id of the project
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
             queryPars = qp()                
@@ -354,6 +366,7 @@ class BaseSpaceAPI(BaseAPI):
         Request the Properties of a project object by Id
         
         :param Id: The Id of the project
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
             queryPars = qp()                
@@ -407,6 +420,7 @@ class BaseSpaceAPI(BaseAPI):
         Request a run object by Id
         
         :param Id: The Id of the run
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
             queryPars = qp()                
@@ -424,6 +438,7 @@ class BaseSpaceAPI(BaseAPI):
         Request the Properties of a run object by Id
         
         :param Id: The Id of the run
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
             queryPars = qp()                
@@ -435,7 +450,43 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = queryPars.getParameterDict()
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
-    
+
+    def getRunFilesById(self, Id, queryPars=None):
+        '''        
+        Request the files associated with a Run, using the Run's Id
+        
+        :param Id: The Id of the run
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        '''        
+        if queryPars is None:
+            queryPars = qp()                
+        resourcePath = '/runs/{Id}/files'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()        
+        headerParams = {}         
+        return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams, verbose=0)
+
+    def getRunSamplesById(self, Id, queryPars=None):
+        '''        
+        Request the Samples associated with a Run, using the Run's Id
+        
+        :param Id: The Id of the run
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        '''        
+        if queryPars is None:
+            queryPars = qp()                
+        resourcePath = '/runs/{Id}/samples'
+        resourcePath = resourcePath.replace('{format}', 'json')
+        method = 'GET'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()        
+        headerParams = {}         
+        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams, verbose=0)
+  
     def getAppResultsByProject(self, Id, queryPars=None, statuses=None):
         '''
         Returns a list of AppResult object associated with the project with Id
@@ -481,6 +532,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns a Sample object
         
         :param Id: The id of the sample
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
             queryPars = qp()        
@@ -498,6 +550,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns the Properties of a Sample object
         
         :param Id: The id of the sample
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
             queryPars = qp()                        
@@ -533,6 +586,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns a file object by Id
         
         :param Id: The id of the file
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
             queryPars = qp()                
@@ -551,6 +605,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns the Properties of a file object by Id
         
         :param Id: The id of the file
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
             queryPars = qp()                
@@ -691,8 +746,7 @@ class BaseSpaceAPI(BaseAPI):
         :param name: The name of the AppResult
         :param desc: A describtion of the AppResult
         :param samples: (Optional) The samples 
-        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance
-        will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
+        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
         '''
         if (not self.appSessionId) and (appSessionId==None):
             raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method createAppResult")
@@ -988,8 +1042,8 @@ class BaseSpaceAPI(BaseAPI):
         :param directory: The desired directory name on the server (empty string will place it in the root directory)
         :param contentType: The content type of the file
         :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
-        :param processCount: The number of processes to be used
-        :param partSize: The size in MB of individual upload parts (must be >5 Mb and <=25 Mb)
+        :param processCount: (optional) The number of processes to be used, default 10
+        :param partSize: (optional) The size in MB of individual upload parts (must be >5 Mb and <=25 Mb), default 25
         '''
         # First create file object in BaseSpace, then create multipart upload object and start upload
         if partSize <= 5 or partSize > 25:
@@ -1007,18 +1061,19 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The ID of the File to download 
         :param localDir: The local path in which to store the downloaded file
-        :param processCount: The number of processes to be used
-        :param partSize: The size in MB of individual file parts to download
-        :param createBsDir: (optional) create BaseSpace File's directory in local_dir (default: False)        
+        :param processCount: (optional) The number of processes to be used, default 10
+        :param partSize: (optional) The size in MB of individual file parts to download, default 25
+        :param createBsDir: (optional) create BaseSpace File's directory in local_dir, default False        
         :param tempDir: (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by 'cat'ing chunks into large file
         '''         
         myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)
         bsFile = myMpd.download()
         return bsFile        
     
-    def __finalizeMultipartFileUpload__(self,Id):
+    def __finalizeMultipartFileUpload__(self, Id):
         '''
         Marks a multipart upload file as complete  
+        
         :param Id: file id.
         '''
         resourcePath = '/files/{Id}'
@@ -1033,7 +1088,7 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
             queryParams, headerParams, postData=postData, verbose=0, forcePost=1)
 
-    def setAppSessionState(self,Id,Status,Summary):
+    def setAppSessionState(self, Id, Status, Summary):
         '''
         Set the status of an AppSession in BaseSpace
         

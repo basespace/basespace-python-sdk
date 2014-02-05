@@ -374,7 +374,7 @@ class MultipartDownload(object):
         :param process_count: the number of process to use for downloading
         :param part_size:     in MB, the size of each file part to download        
         :param create_bs_dir: when True, create BaseSpace File's directory in local_dir; when False, ignore Bs directory
-        :param temp_dir:      optional temp directory for debug mode        
+        :param temp_dir:      (optional) temp directory for debug mode        
         '''
         self.api            = api            
         self.file_id        = file_id         

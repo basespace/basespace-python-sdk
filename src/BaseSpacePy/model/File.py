@@ -81,7 +81,7 @@ class File(object):
         start and stop byte in the range.
         
         :param api: A BaseSpaceAPI with read access on the scope including the file object.
-        :param loadlDir: The local directory to place the file in.
+        :param localDir: The local directory to place the file in.
         :param byteRange: (optional) Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).
         :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default: False)                
         '''        

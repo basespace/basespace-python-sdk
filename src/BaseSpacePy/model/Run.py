@@ -13,6 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException
+from BaseSpacePy.model.QueryParameters import QueryParameters as qp
+
 class Run(object):
 
     def __init__(self):
@@ -41,4 +44,34 @@ class Run(object):
         return self.Name
     def __repr__(self):
         return str(self)
+
+    def isInit(self):
+        '''
+        Tests if the Project instance has been initialized
+        
+        Throws: ModelNotInitializedException  - if the instance has not been populated.
+        '''
+        try:
+            self.Id
+        except:
+            raise ModelNotInitializedException('The Run model has not been initialized yet')
     
+    def getFiles(self, api, myQp={}):
+        '''
+        Returns a list of File objects associated with the Run
+        
+        :param api: An instance of BaseSpaceAPI
+        :param myQp: (Optional) dictionary of query parameters for sorting and filtering the file list 
+        '''
+        self.isInit()
+        return api.getRunFilesById(self.Id, queryPars=qp(myQp))
+       
+    def getSamples(self, api, myQp={}):
+        '''
+        Returns a list of Sample objects associated with the Run
+        
+        :param api: An instance of BaseSpaceAPI
+        :param myQp: (Optional) dictionary of query parameters for sorting and filtering the samples list 
+        '''
+        self.isInit()
+        return api.getRunSamplesById(self.Id, queryPars=qp(myQp))

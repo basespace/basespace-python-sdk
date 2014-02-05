@@ -6,10 +6,12 @@ import shutil
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import ByteRangeException, UploadPartSizeException
 from BaseSpacePy.model.MultipartFileTransfer import Utils
+from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 import app_data
 
 ###
-# on cloud-hoth, your BaseSpace account must have access to the B. cereus Project, which is in Public Data (Project name 'BaseSpaceDemo', Id 596596)
+# on cloud-hoth, your BaseSpace account must have access to the B. cereus Project and Run
+# which are in Public Data (Project name 'BaseSpaceDemo', Id 596596) and (Run name 'BacillusCereus', Id 555555)
 ###
 tconst = { 
            # for download tests
@@ -27,6 +29,14 @@ tconst = {
            'file_small_upload_md5' : 'ff88b8bdbb86f219d19a22a3a0795429',
            'file_large_upload_md5' : '9267236a2d870da1d4cb73868bb51b35',
            'test_upload_project_name': 'Python SDK Unit Test Data',
+           # for runs
+           'run_id': '555555', # public data B. cereus Run
+           'run_name': 'BacillusCereus',
+           'run_property_samples_0_name': 'BC_1',
+           'run_files_len': 100,
+           'run_file_0_name': 'RTAComplete.txt',
+           'run_samples_len': 12,
+           'run_sample_0_name': 'BC_1'
           }
 
 class TestAppResultUploadMethods(unittest.TestCase):
@@ -438,12 +448,92 @@ class TestAPIDownloadMethods(unittest.TestCase):
         os.remove(file_path)
 
 
+class TestRunMethods(unittest.TestCase):
+    '''
+    Tests Run object methods
+    '''        
+    def setUp(self):        
+        '''
+        Get Run and API objects
+        '''        
+        try:
+            unit_test_app = app_data.unit_test_app
+        except Exception as e:
+            raise Exception("You must first enter your app's credentials to run tests")                
+        self.api = unit_test_app.bs_api()
+        self.run = self.api.getRunById(tconst['run_id'])                                        
+
+    def test_run_files(self):
+        rf = self.run.getFiles(self.api)
+        self.assertEqual(len(rf), tconst['run_files_len'])
+        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
+        
+    def test_run_files_with_qp_limit(self):
+        rf = self.run.getFiles(self.api, {'Limit':10})
+        self.assertEqual(len(rf), 10)
+
+    def test_run_samples(self):
+        rs = self.run.getSamples(self.api)
+        self.assertEqual(len(rs), tconst['run_samples_len'])
+        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        
+    def test_run_samples_with_qp_limit(self):
+        rs = self.run.getSamples(self.api, {'Limit':10})
+        self.assertEqual(len(rs), 10)
+
+class TestAPIRunMethods(unittest.TestCase):
+    '''
+    Tests API object Run methods
+    '''        
+    def setUp(self):        
+        '''
+        Get an API object
+        '''        
+        try:
+            unit_test_app = app_data.unit_test_app
+        except Exception as e:
+            raise Exception("You must first enter your app's credentials to run tests")                
+        self.api = unit_test_app.bs_api()
+
+    def test_run(self):                                                    
+        rf = self.api.getRunById(tconst['run_id'])        
+        self.assertEqual(rf.Name, tconst['run_name'])
+        
+    # not testing query parameter argument for getRunById()
+
+    def test_run_properties(self):                                                    
+        rp = self.api.getRunPropertiesById(tconst['run_id'])        
+        self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
+        
+    # not testing query parameter argument for getRunPropertiesById()
+
+    def test_run_files(self):                                                    
+        rf = self.api.getRunFilesById(tconst['run_id'])
+        self.assertEqual(len(rf), tconst['run_files_len'])
+        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
+        
+    def test_run_files_with_qp_limit(self):
+        rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':10}))
+        self.assertEqual(len(rf), 10)
+
+    def test_run_samples(self):
+        rs = self.api.getRunSamplesById(tconst['run_id'])
+        self.assertEqual(len(rs), tconst['run_samples_len'])
+        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        
+    def test_run_samples_with_qp_limit(self):
+        rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':10}))
+        self.assertEqual(len(rs), 10)
+
 #if __name__ == '__main__':   
 #    unittest.main()
 suite1 = unittest.TestLoader().loadTestsFromTestCase(TestAppResultUploadMethods)
 suite2 = unittest.TestLoader().loadTestsFromTestCase(TestFileDownloadMethods)
 suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
 suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
-#alltests = unittest.TestSuite([suite3])
-alltests = unittest.TestSuite([suite1, suite2, suite3, suite4])
+# non-file-transfer tests
+suite5 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
+suite6 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
+#alltests = unittest.TestSuite([suite6])
+alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6])
 unittest.TextTestRunner(verbosity=2).run(alltests)
