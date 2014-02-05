@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Available modules &mdash; BaseSpacePy 0.1.2 documentation</title>
+    <title>Available modules &mdash; BaseSpacePy 0.1.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.2',
+        VERSION:     '0.1.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BaseSpacePy 0.1.2 documentation" href="index.html" />
+    <link rel="top" title="BaseSpacePy 0.1.3 documentation" href="index.html" />
+    <link rel="next" title="Getting Started" href="Getting Started.html" />
     <link rel="prev" title="BaseSpacePy" href="index.html" /> 
   </head>
   <body>
@@ -36,9 +37,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="Getting Started.html" title="Getting Started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
           <a href="index.html" title="BaseSpacePy"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BaseSpacePy 0.1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BaseSpacePy 0.1.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,22 +57,24 @@
 <h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI">
-<em class="property">class </em><tt class="descclassname">BaseSpacePy.api.BaseSpaceAPI.</tt><tt class="descname">BaseSpaceAPI</tt><big>(</big><em>clientKey</em>, <em>clientSecret</em>, <em>apiServer</em>, <em>version</em>, <em>appSessionId=''</em>, <em>AccessToken=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI" title="Permalink to this definition">¶</a></dt>
-<dd><p>The main API class used for all communication with with the REST server</p>
+<em class="property">class </em><tt class="descclassname">BaseSpacePy.api.BaseSpaceAPI.</tt><tt class="descname">BaseSpaceAPI</tt><big>(</big><em>clientKey</em>, <em>clientSecret</em>, <em>apiServer</em>, <em>version</em>, <em>appSessionId=''</em>, <em>AccessToken=''</em>, <em>timeout=10</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main API class used for all communication with the REST server</p>
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload">
-<tt class="descname">appResultFileUpload</tt><big>(</big><em>Id</em>, <em>localPath</em>, <em>fileName</em>, <em>directory</em>, <em>contentType</em>, <em>multipart=0</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.appResultFileUpload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object</p>
+<tt class="descname">appResultFileUpload</tt><big>(</big><em>Id</em>, <em>localPath</em>, <em>fileName</em>, <em>directory</em>, <em>contentType</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.appResultFileUpload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
+Small files are uploaded with a single-part upload method, while larger files (&lt; 25 MB) are uploaded
+with multipart upload.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>Id</strong> &#8211; AppResult id.</li>
-<li><strong>localPath</strong> &#8211; The local path to the file to be uploaded.</li>
+<li><strong>localPath</strong> &#8211; The local path to the file to be uploaded, including file name.</li>
 <li><strong>fileName</strong> &#8211; The desired filename in the AppResult folder on the BaseSpace server.</li>
-<li><strong>directory</strong> &#8211; The directory the file should be placed in.</li>
-<li><strong>contentType</strong> &#8211; The content-type of the file.</li>
+<li><strong>directory</strong> &#8211; The directory the file should be placed in on the BaseSpace server.</li>
+<li><strong>contentType</strong> &#8211; The content-type of the file, eg. &#8216;text/plain&#8217; for text files, &#8216;application/octet-stream&#8217; for binary files</li>
 </ul>
 </td>
 </tr>
@@ -78,7 +84,7 @@
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult">
-<tt class="descname">createAppResult</tt><big>(</big><em>Id</em>, <em>name</em>, <em>desc</em>, <em>samples=</em><span class="optional">[</span><span class="optional">]</span>, <em>appSessionId=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.createAppResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">createAppResult</tt><big>(</big><em>Id</em>, <em>name</em>, <em>desc</em>, <em>samples=None</em>, <em>appSessionId=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.createAppResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an AppResult object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -89,19 +95,18 @@
 <li><strong>name</strong> &#8211; The name of the AppResult</li>
 <li><strong>desc</strong> &#8211; A describtion of the AppResult</li>
 <li><strong>samples</strong> &#8211; (Optional) The samples</li>
-<li><strong>appSessionId</strong> &#8211; (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance</li>
+<li><strong>appSessionId</strong> &#8211; (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject">
-<tt class="descname">createProject</tt><big>(</big><em>Name</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a project with the specified name and returns the project object. 
+<tt class="descname">createProject</tt><big>(</big><em>Name</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.createProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a project with the specified name and returns a project object. 
 If a project with this name already exists, the existing project is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -115,8 +120,15 @@ If a project with this name already exists, the existing project is returned.</p
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileDownload">
-<tt class="descname">fileDownload</tt><big>(</big><em>Id</em>, <em>localDir</em>, <em>name</em>, <em>range=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.fileDownload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileDownload" title="Permalink to this definition">¶</a></dt>
-<dd><p>Downloads a BaseSpace file to a local directory</p>
+<tt class="descname">fileDownload</tt><big>(</big><em>Id</em>, <em>localDir</em>, <em>byteRange=None</em>, <em>createBsDir=False</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.fileDownload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileDownload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
+If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir 
+(to disable this, set createBsPath=False).</p>
+<p>If the file is large, multi-part download will be used. 
+Returns file object when complete; raises exception if download fails.</p>
+<p>Byte-range requests are supported for only small byte ranges (single-part downloads).
+Byte-range requests are restricted to a single request of &#8216;start&#8217; and &#8216;end&#8217; bytes, without support for
+negative or empty values for &#8216;start&#8217; or &#8216;end&#8217;.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -124,8 +136,8 @@ If a project with this name already exists, the existing project is returned.</p
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>Id</strong> &#8211; The file id</li>
 <li><strong>localDir</strong> &#8211; The local directory to place the file in</li>
-<li><strong>name</strong> &#8211; The name of the local file</li>
-<li><strong>range</strong> &#8211; (Optional) The byte range of the file to retrieve (not yet implemented)</li>
+<li><strong>byteRange</strong> &#8211; (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values</li>
+<li><strong>createBsDir</strong> &#8211; (optional) create BaseSpace File&#8217;s directory inside localDir (default: False)</li>
 </ul>
 </td>
 </tr>
@@ -134,8 +146,37 @@ If a project with this name already exists, the existing project is returned.</p
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileS3metadata">
+<tt class="descname">fileS3metadata</tt><big>(</big><em>Id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.fileS3metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileS3metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; The file id</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileUrl">
+<tt class="descname">fileUrl</tt><big>(</big><em>Id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.fileUrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileUrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>** Deprecated in favor of fileS3metadata() **</p>
+<p>Returns URL of file (on S3)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; The file id</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet">
-<tt class="descname">filterVariantSet</tt><big>(</big><em>Id</em>, <em>Chrom</em>, <em>StartPos</em>, <em>EndPos</em>, <em>Format</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Position'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.filterVariantSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">filterVariantSet</tt><big>(</big><em>Id</em>, <em>Chrom</em>, <em>StartPos</em>, <em>EndPos</em>, <em>Format</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.filterVariantSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the variants in a set of variants. Maximum returned records is 1000</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -146,7 +187,7 @@ If a project with this name already exists, the existing project is returned.</p
 <li><strong>Chrom</strong> &#8211; The chromosome of interest</li>
 <li><strong>StartPos</strong> &#8211; The start position of the sequence of interest</li>
 <li><strong>EndPos</strong> &#8211; The start position of the sequence of interest</li>
-<li><strong>Format</strong> &#8211; Set to &#8216;vcf&#8217; to get the results as lines in VCF format</li>
+<li><strong>Format</strong> &#8211; Set to &#8216;vcf&#8217; to get the results as lines in VCF format (default is &#8216;json&#8217;)</li>
 <li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
 </ul>
 </td>
@@ -157,7 +198,7 @@ If a project with this name already exists, the existing project is returned.</p
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess">
-<tt class="descname">getAccess</tt><big>(</big><em>obj</em>, <em>accessType='write'</em>, <em>web=0</em>, <em>redirectURL=''</em>, <em>state=''</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAccess</tt><big>(</big><em>obj</em>, <em>accessType='write'</em>, <em>web=0</em>, <em>redirectURL=''</em>, <em>state=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAccess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -176,14 +217,8 @@ If a project with this name already exists, the existing project is returned.</p
 </dd></dl>
 
 <dl class="method">
-<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessToken">
-<tt class="descname">getAccessToken</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAccessToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessToken" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the access-token that was used to initialize the BaseSpaceAPI object.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser">
-<tt class="descname">getAccessibleRunsByUser</tt><big>(</big><em>Id</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAccessibleRunsByUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAccessibleRunsByUser</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAccessibleRunsByUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of accessible runs for the User with id=Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -201,13 +236,17 @@ If a project with this name already exists, the existing project is returned.</p
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultById">
-<tt class="descname">getAppResultById</tt><big>(</big><em>Id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultById" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAppResultById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultById" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an AppResult object corresponding to Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; The Id of the AppResult</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the AppResult</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -215,7 +254,7 @@ If a project with this name already exists, the existing project is returned.</p
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles">
-<tt class="descname">getAppResultFiles</tt><big>(</big><em>Id</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAppResultFiles</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of File object for the AppResult with id  = Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -232,8 +271,26 @@ If a project with this name already exists, the existing project is returned.</p
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultPropertiesById">
+<tt class="descname">getAppResultPropertiesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultPropertiesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultPropertiesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Properties of an AppResult object corresponding to Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the AppResult</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultsByProject">
-<tt class="descname">getAppResultsByProject</tt><big>(</big><em>Id</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em>, <em>statuses=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultsByProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultsByProject" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAppResultsByProject</tt><big>(</big><em>Id</em>, <em>queryPars=None</em>, <em>statuses=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppResultsByProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultsByProject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of AppResult object associated with the project with Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -253,14 +310,17 @@ If a project with this name already exists, the existing project is returned.</p
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSession">
 <tt class="descname">getAppSession</tt><big>(</big><em>Id=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSession" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an AppSession instance containing user and data-type the app was triggered by/on 
-:param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating
-the BaseSpaceAPI instance.</p>
+<dd><p>Returns an AppSession instance containing user and data-type the app was triggered by/on
+Note that Properties are not currently supported for this method, use getAppSessionPropertiesById()</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; (Optional) AppSession id, if not supplied the AppSession id used to initialize the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating the BaseSpaceAPI instance.</li>
+<li><strong>Id</strong> &#8211; (Optional) AppSession id, if not supplied the AppSession id used to initialize the</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -268,7 +328,7 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById">
-<tt class="descname">getAppSessionById</tt><big>(</big><em>id</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAppSessionById</tt><big>(</big><em>id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppSessionById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the appSession identified by id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -281,8 +341,64 @@ the BaseSpaceAPI instance.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionInputsById">
+<tt class="descname">getAppSessionInputsById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppSessionInputsById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionInputsById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of input properties from the provided AppSessions, keyed by input Name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The AppSessionId</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionPropertiesById">
+<tt class="descname">getAppSessionPropertiesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppSessionPropertiesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionPropertiesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Properties of an AppSession</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The AppSessionId</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionPropertyByName">
+<tt class="descname">getAppSessionPropertyByName</tt><big>(</big><em>Id</em>, <em>name</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAppSessionPropertyByName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionPropertyByName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the multi-value Property of the provided AppSession that has the provided Property name.
+Note - this method (and REST API) is supported for ONLY multi-value Properties.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The AppSessionId</li>
+<li><strong>name</strong> &#8211; Name of the multi-value property to retrieve</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes">
-<tt class="descname">getAvailableGenomes</tt><big>(</big><em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAvailableGenomes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getAvailableGenomes</tt><big>(</big><em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getAvailableGenomes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of all available genomes</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -314,13 +430,35 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFileById">
-<tt class="descname">getFileById</tt><big>(</big><em>Id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getFileById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFileById" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getFileById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getFileById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFileById" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a file object by Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; The id of the file</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The id of the file</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilePropertiesById">
+<tt class="descname">getFilePropertiesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getFilePropertiesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilePropertiesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Properties of a file object by Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The id of the file</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -328,7 +466,7 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample">
-<tt class="descname">getFilesBySample</tt><big>(</big><em>Id</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getFilesBySample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getFilesBySample</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getFilesBySample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of File objects associated with sample with Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -381,13 +519,17 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectById">
-<tt class="descname">getProjectById</tt><big>(</big><em>Id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getProjectById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectById" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getProjectById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getProjectById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectById" title="Permalink to this definition">¶</a></dt>
 <dd><p>Request a project object by Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; The Id of the project</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the project</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -395,7 +537,7 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser">
-<tt class="descname">getProjectByUser</tt><big>(</big><em>Id</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getProjectByUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getProjectByUser</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getProjectByUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list available projects for a User with the specified Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -412,14 +554,126 @@ the BaseSpaceAPI instance.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectPropertiesById">
+<tt class="descname">getProjectPropertiesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getProjectPropertiesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectPropertiesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request the Properties of a project object by Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the project</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunById">
+<tt class="descname">getRunById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getRunById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request a run object by Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the run</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunFilesById">
+<tt class="descname">getRunFilesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getRunFilesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunFilesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request the files associated with a Run, using the Run&#8217;s Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the run</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunPropertiesById">
+<tt class="descname">getRunPropertiesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getRunPropertiesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunPropertiesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request the Properties of a run object by Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the run</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunSamplesById">
+<tt class="descname">getRunSamplesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getRunSamplesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunSamplesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request the Samples associated with a Run, using the Run&#8217;s Id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The Id of the run</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSampleById">
-<tt class="descname">getSampleById</tt><big>(</big><em>Id</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getSampleById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSampleById" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getSampleById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getSampleById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSampleById" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a Sample object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Id</strong> &#8211; The id of the sample</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The id of the sample</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplePropertiesById">
+<tt class="descname">getSamplePropertiesById</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getSamplePropertiesById"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplePropertiesById" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Properties of a Sample object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The id of the sample</li>
+<li><strong>queryPars</strong> &#8211; An (optional) object of type QueryParameters for custom sorting and filtering</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -427,7 +681,7 @@ the BaseSpaceAPI instance.</p>
 
 <dl class="method">
 <dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplesByProject">
-<tt class="descname">getSamplesByProject</tt><big>(</big><em>Id</em>, <em>queryPars={'Limit': '100'</em>, <em>'SortBy': 'Id'</em>, <em>'SortDir': 'Asc'</em>, <em>'Offset': '0'}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getSamplesByProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplesByProject" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getSamplesByProject</tt><big>(</big><em>Id</em>, <em>queryPars=None</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getSamplesByProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplesByProject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of samples associated with a project with Id</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -441,12 +695,6 @@ the BaseSpaceAPI instance.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getServerUri">
-<tt class="descname">getServerUri</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.getServerUri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getServerUri" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the server uri used by this instance</p>
 </dd></dl>
 
 <dl class="method">
@@ -522,31 +770,21 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 </dd></dl>
 
 <dl class="method">
-<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken">
-<tt class="descname">obtainAccessToken</tt><big>(</big><em>deviceCode</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.obtainAccessToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a user specific access token.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deviceCode</strong> &#8211; The device code returned by the verification code method</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState">
-<tt class="descname">setAppSessionState</tt><big>(</big><em>Id</em>, <em>Status</em>, <em>Summary</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.setAppSessionState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the status of an AppResult object</p>
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileDownload">
+<tt class="descname">multipartFileDownload</tt><big>(</big><em>Id</em>, <em>localDir</em>, <em>processCount=10</em>, <em>partSize=25</em>, <em>createBsDir=False</em>, <em>tempDir=''</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.multipartFileDownload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileDownload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
+Returns a file object, exception raised on download failure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Id</strong> &#8211; The id of the AppResult</li>
-<li><strong>Status</strong> &#8211; The status assignment string must</li>
-<li><strong>Summary</strong> &#8211; The summary string</li>
+<li><strong>Id</strong> &#8211; The ID of the File to download</li>
+<li><strong>localDir</strong> &#8211; The local path in which to store the downloaded file</li>
+<li><strong>processCount</strong> &#8211; (optional) The number of processes to be used, default 10</li>
+<li><strong>partSize</strong> &#8211; (optional) The size in MB of individual file parts to download, default 25</li>
+<li><strong>createBsDir</strong> &#8211; (optional) create BaseSpace File&#8217;s directory in local_dir, default False</li>
+<li><strong>tempDir</strong> &#8211; (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by &#8216;cat&#8217;ing chunks into large file</li>
 </ul>
 </td>
 </tr>
@@ -555,14 +793,63 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 </dd></dl>
 
 <dl class="method">
-<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setTimeout">
-<tt class="descname">setTimeout</tt><big>(</big><em>time</em><big>)</big><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setTimeout" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specify the timeout in seconds for each request made</p>
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileUpload">
+<tt class="descname">multipartFileUpload</tt><big>(</big><em>Id</em>, <em>localPath</em>, <em>fileName</em>, <em>directory</em>, <em>contentType</em>, <em>tempDir=None</em>, <em>processCount=10</em>, <em>partSize=25</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.multipartFileUpload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileUpload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
+Returns a File object (that is updated after the upload has completed).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time</strong> &#8211; timeout in second</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The AppResult ID</li>
+<li><strong>localPath</strong> &#8211; The local path of the file to upload, including file name; local path will not be stored in BaseSpace (use directory argument for this)</li>
+<li><strong>fileName</strong> &#8211; The desired filename on the server</li>
+<li><strong>directory</strong> &#8211; The desired directory name on the server (empty string will place it in the root directory)</li>
+<li><strong>contentType</strong> &#8211; The content type of the file</li>
+<li><strong>tempdir</strong> &#8211; (optional) Temp directory to use for temporary file chunks to upload</li>
+<li><strong>processCount</strong> &#8211; (optional) The number of processes to be used, default 10</li>
+<li><strong>partSize</strong> &#8211; (optional) The size in MB of individual upload parts (must be &gt;5 Mb and &lt;=25 Mb), default 25</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken">
+<tt class="descname">obtainAccessToken</tt><big>(</big><em>code</em>, <em>grantType='device'</em>, <em>redirect_uri='http://www.myRedirect.com'</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.obtainAccessToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a user specific access token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>code</strong> &#8211; The device code returned by the verification code method</li>
+<li><strong>grantType</strong> &#8211; Grant-type may be either device or &#8216;device&#8217; or &#8216;authorization_code&#8217;</li>
+<li><strong>redirect_uri</strong> &#8211; The uri we should redirect to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState">
+<tt class="descname">setAppSessionState</tt><big>(</big><em>Id</em>, <em>Status</em>, <em>Summary</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/api/BaseSpaceAPI.html#BaseSpaceAPI.setAppSessionState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status of an AppSession in BaseSpace</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Id</strong> &#8211; The id of the AppSession</li>
+<li><strong>Status</strong> &#8211; The AppSession status string, must be one of: running, complete, needsattention, timedout, aborted</li>
+<li><strong>Summary</strong> &#8211; The status summary string</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -590,7 +877,7 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>api</strong> &#8211; An instance of BaseSpaceAPI</li>
 <li><strong>name</strong> &#8211; The name of the app result</li>
-<li><strong>desc</strong> &#8211; A describtion of the app result</li>
+<li><strong>desc</strong> &#8211; A description of the app result</li>
 </ul>
 </td>
 </tr>
@@ -721,13 +1008,13 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 
 <dl class="method">
 <dt id="BaseSpacePy.model.AppResult.AppResult.getReferencedSamples">
-<tt class="descname">getReferencedSamples</tt><big>(</big><em>api</em><big>)</big><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.getReferencedSamples" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getReferencedSamples</tt><big>(</big><em>api</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/AppResult.html#AppResult.getReferencedSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.getReferencedSamples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds">
-<tt class="descname">getReferencedSamplesIds</tt><big>(</big><big>)</big><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getReferencedSamplesIds</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/AppResult.html#AppResult.getReferencedSamplesIds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of sample ids for the samples referenced.</p>
 </dd></dl>
 
@@ -751,9 +1038,9 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>api</strong> &#8211; An instance of BaseSpaceAPI</li>
-<li><strong>localPath</strong> &#8211; The local path of the file</li>
-<li><strong>fileName</strong> &#8211; The filename</li>
-<li><strong>directory</strong> &#8211; The remote directory to upload to</li>
+<li><strong>localPath</strong> &#8211; The local path of the file (including file name)</li>
+<li><strong>fileName</strong> &#8211; The file name to use on the server</li>
+<li><strong>directory</strong> &#8211; The remote directory to upload the file to on the server</li>
 <li><strong>contentType</strong> &#8211; The content-type of the file</li>
 </ul>
 </td>
@@ -805,7 +1092,7 @@ curlCall = &#8216;curl -d &#8220;response_type=device_code&#8221; -d &#8220;clie
 
 <dl class="method">
 <dt id="BaseSpacePy.model.Sample.Sample.getReferencedAppResults">
-<tt class="descname">getReferencedAppResults</tt><big>(</big><em>api</em><big>)</big><a class="headerlink" href="#BaseSpacePy.model.Sample.Sample.getReferencedAppResults" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">getReferencedAppResults</tt><big>(</big><em>api</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Sample.html#Sample.getReferencedAppResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Sample.Sample.getReferencedAppResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the AppResults referenced by this sample. Note the returned AppResult objects
 do not have their &#8220;References&#8221; field set, to get a fully populate AppResult object
 you must use getAppResultById in BaseSpaceAPI.</p>
@@ -832,7 +1119,7 @@ you must use getAppResultById in BaseSpaceAPI.</p>
 <dd><p>Represents a BaseSpace file object.</p>
 <dl class="method">
 <dt id="BaseSpacePy.model.File.File.downloadFile">
-<tt class="descname">downloadFile</tt><big>(</big><em>api</em>, <em>localDir</em>, <em>range=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/File.html#File.downloadFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.File.File.downloadFile" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">downloadFile</tt><big>(</big><em>api</em>, <em>localDir</em>, <em>byteRange=None</em>, <em>createBsDir=False</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/File.html#File.downloadFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.File.File.downloadFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Download the file object to the specified localDir or a byte range of the file, by specifying the 
 start and stop byte in the range.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -841,8 +1128,9 @@ start and stop byte in the range.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>api</strong> &#8211; A BaseSpaceAPI with read access on the scope including the file object.</li>
-<li><strong>loadlDir</strong> &#8211; The local directory to place the file in.</li>
-<li><strong>range</strong> &#8211; Specify the start and stop byte of the file chunk that needs retrieved.</li>
+<li><strong>localDir</strong> &#8211; The local directory to place the file in.</li>
+<li><strong>byteRange</strong> &#8211; (optional) Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).</li>
+<li><strong>createBsDir</strong> &#8211; (optional) create BaseSpace File&#8217;s directory inside localDir (default: False)</li>
 </ul>
 </td>
 </tr>
@@ -884,6 +1172,20 @@ start and stop byte in the range.</p>
 <li><strong>Chrom</strong> &#8211; The chromosome of interest.</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.model.File.File.getFileUrl">
+<tt class="descname">getFileUrl</tt><big>(</big><em>api</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/File.html#File.getFileUrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.File.File.getFileUrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the S3 url of the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>api</strong> &#8211; A BaseSpaceAPI with read access on the scope including the file object.</td>
 </tr>
 </tbody>
 </table>
@@ -950,6 +1252,57 @@ start and stop byte in the range.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="run">
+<h3>Run<a class="headerlink" href="#run" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="BaseSpacePy.model.Run.Run">
+<em class="property">class </em><tt class="descclassname">BaseSpacePy.model.Run.</tt><tt class="descname">Run</tt><a class="reference internal" href="_modules/BaseSpacePy/model/Run.html#Run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Run.Run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="BaseSpacePy.model.Run.Run.getFiles">
+<tt class="descname">getFiles</tt><big>(</big><em>api</em>, <em>myQp={}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Run.html#Run.getFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Run.Run.getFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of File objects associated with the Run</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>api</strong> &#8211; An instance of BaseSpaceAPI</li>
+<li><strong>myQp</strong> &#8211; (Optional) QueryParameters for sorting and filtering the file list</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.model.Run.Run.getSamples">
+<tt class="descname">getSamples</tt><big>(</big><em>api</em>, <em>myQp={}</em><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Run.html#Run.getSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Run.Run.getSamples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of Sample objects associated with the Run</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>api</strong> &#8211; An instance of BaseSpaceAPI</li>
+<li><strong>myQp</strong> &#8211; (Optional) QueryParameters for sorting and filtering the file list</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="BaseSpacePy.model.Run.Run.isInit">
+<tt class="descname">isInit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/BaseSpacePy/model/Run.html#Run.isInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#BaseSpacePy.model.Run.Run.isInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests if the Project instance has been initialized</p>
+<p>Throws: ModelNotInitializedException  - if the instance has not been populated.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="queryparameters">
 <h3>QueryParameters<a class="headerlink" href="#queryparameters" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -977,6 +1330,7 @@ start and stop byte in the range.</p>
 <li><a class="reference internal" href="#appsession-and-appresult">AppSession and AppResult</a></li>
 <li><a class="reference internal" href="#sample">Sample</a></li>
 <li><a class="reference internal" href="#file">File</a></li>
+<li><a class="reference internal" href="#run">Run</a></li>
 <li><a class="reference internal" href="#queryparameters">QueryParameters</a></li>
 </ul>
 </li>
@@ -987,6 +1341,9 @@ start and stop byte in the range.</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
                         title="previous chapter">BaseSpacePy</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Getting Started.html"
+                        title="next chapter">Getting Started</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/Available modules.txt"
@@ -1016,13 +1373,16 @@ start and stop byte in the range.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="Getting Started.html" title="Getting Started"
+             >next</a> |</li>
+        <li class="right" >
           <a href="index.html" title="BaseSpacePy"
              >previous</a> |</li>
-        <li><a href="index.html">BaseSpacePy 0.1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BaseSpacePy 0.1.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2012, Morten Kallberg.
+        &copy; Copyright 2014, Illumina.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>

@@ -13,9 +13,9 @@
 
 
 \title{BaseSpacePy Documentation}
-\date{October 08, 2012}
-\release{0.1.2}
-\author{Morten Kallberg}
+\date{February 04, 2014}
+\release{0.1.3}
+\author{Illumina}
 \newcommand{\sphinxlogo}{}
 \renewcommand{\releasename}{Release}
 \makeindex
@@ -114,6 +114,8 @@
 \phantomsection\label{index::doc}
 
 
+Contents:
+
 
 \chapter{Available modules}
 \label{Available modules:available-modules}\label{Available modules::doc}\label{Available modules:basespacepy}
@@ -122,29 +124,31 @@
 \label{Available modules:api}\index{BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey}, \emph{clientSecret}, \emph{apiServer}, \emph{version}, \emph{appSessionId='`}, \emph{AccessToken='`}}{}
-The main API class used for all communication with with the REST server
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey}, \emph{clientSecret}, \emph{apiServer}, \emph{version}, \emph{appSessionId='`}, \emph{AccessToken='`}, \emph{timeout=10}}{}
+The main API class used for all communication with the REST server
 \index{appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload}\pysiglinewithargsret{\bfcode{appResultFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{multipart=0}}{}
-Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.appResultFileUpload}\pysiglinewithargsret{\bfcode{appResultFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}}{}
+Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
+Small files are uploaded with a single-part upload method, while larger files (\textless{} 25 MB) are uploaded
+with multipart upload.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{Id} -- AppResult id.
 
 \item {} 
-\textbf{localPath} -- The local path to the file to be uploaded.
+\textbf{localPath} -- The local path to the file to be uploaded, including file name.
 
 \item {} 
 \textbf{fileName} -- The desired filename in the AppResult folder on the BaseSpace server.
 
 \item {} 
-\textbf{directory} -- The directory the file should be placed in.
+\textbf{directory} -- The directory the file should be placed in on the BaseSpace server.
 
 \item {} 
-\textbf{contentType} -- The content-type of the file.
+\textbf{contentType} -- The content-type of the file, eg. `text/plain' for text files, `application/octet-stream' for binary files
 
 \end{itemize}
 
@@ -155,7 +159,7 @@ Uploads a file associated with an AppResult to BaseSpace and returns the corresp
 \index{createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{Id}, \emph{name}, \emph{desc}, \emph{samples=}\optional{}, \emph{appSessionId=None}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{Id}, \emph{name}, \emph{desc}, \emph{samples=None}, \emph{appSessionId=None}}{}
 Create an AppResult object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -172,13 +176,11 @@ Create an AppResult object
 \textbf{samples} -- (Optional) The samples
 
 \item {} 
-\textbf{appSessionId} -- (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance
+\textbf{appSessionId} -- (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object
 
 \end{itemize}
 
 \end{description}\end{quote}
-
-will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the
 
 \end{fulllineitems}
 
@@ -186,7 +188,7 @@ will be used. If appSessionId is set equal to an empty string, a new appsession 
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createProject}\pysiglinewithargsret{\bfcode{createProject}}{\emph{Name}}{}
-Creates a project with the specified name and returns the project object. 
+Creates a project with the specified name and returns a project object. 
 If a project with this name already exists, the existing project is returned.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -199,8 +201,17 @@ If a project with this name already exists, the existing project is returned.
 \index{fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileDownload}\pysiglinewithargsret{\bfcode{fileDownload}}{\emph{Id}, \emph{localDir}, \emph{name}, \emph{range=}\optional{}}{}
-Downloads a BaseSpace file to a local directory
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileDownload}\pysiglinewithargsret{\bfcode{fileDownload}}{\emph{Id}, \emph{localDir}, \emph{byteRange=None}, \emph{createBsDir=False}}{}
+Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
+If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir 
+(to disable this, set createBsPath=False).
+
+If the file is large, multi-part download will be used. 
+Returns file object when complete; raises exception if download fails.
+
+Byte-range requests are supported for only small byte ranges (single-part downloads).
+Byte-range requests are restricted to a single request of `start' and `end' bytes, without support for
+negative or empty values for `start' or `end'.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -210,12 +221,40 @@ Downloads a BaseSpace file to a local directory
 \textbf{localDir} -- The local directory to place the file in
 
 \item {} 
-\textbf{name} -- The name of the local file
+\textbf{byteRange} -- (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
 
 \item {} 
-\textbf{range} -- (Optional) The byte range of the file to retrieve (not yet implemented)
+\textbf{createBsDir} -- (optional) create BaseSpace File's directory inside localDir (default: False)
 
 \end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{fileS3metadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileS3metadata}\pysiglinewithargsret{\bfcode{fileS3metadata}}{\emph{Id}}{}
+Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{Id} -- The file id
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{fileUrl() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.fileUrl}\pysiglinewithargsret{\bfcode{fileUrl}}{\emph{Id}}{}
+** Deprecated in favor of fileS3metadata() **
+
+Returns URL of file (on S3)
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{Id} -- The file id
 
 \end{description}\end{quote}
 
@@ -224,7 +263,7 @@ Downloads a BaseSpace file to a local directory
 \index{filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet}\pysiglinewithargsret{\bfcode{filterVariantSet}}{\emph{Id}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}, \emph{Format}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Position'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet}\pysiglinewithargsret{\bfcode{filterVariantSet}}{\emph{Id}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}, \emph{Format}, \emph{queryPars=None}}{}
 List the variants in a set of variants. Maximum returned records is 1000
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -241,7 +280,7 @@ List the variants in a set of variants. Maximum returned records is 1000
 \textbf{EndPos} -- The start position of the sequence of interest
 
 \item {} 
-\textbf{Format} -- Set to `vcf' to get the results as lines in VCF format
+\textbf{Format} -- Set to `vcf' to get the results as lines in VCF format (default is `json')
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
@@ -278,18 +317,10 @@ List the variants in a set of variants. Maximum returned records is 1000
 
 \end{fulllineitems}
 
-\index{getAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessToken}\pysiglinewithargsret{\bfcode{getAccessToken}}{}{}
-Returns the access-token that was used to initialize the BaseSpaceAPI object.
-
-\end{fulllineitems}
-
 \index{getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser}\pysiglinewithargsret{\bfcode{getAccessibleRunsByUser}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser}\pysiglinewithargsret{\bfcode{getAccessibleRunsByUser}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a list of accessible runs for the User with id=Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -308,11 +339,17 @@ Returns a list of accessible runs for the User with id=Id
 \index{getAppResultById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultById}\pysiglinewithargsret{\bfcode{getAppResultById}}{\emph{Id}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultById}\pysiglinewithargsret{\bfcode{getAppResultById}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns an AppResult object corresponding to Id
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{Id} -- The Id of the AppResult
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -321,7 +358,7 @@ Returns an AppResult object corresponding to Id
 \index{getAppResultFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles}\pysiglinewithargsret{\bfcode{getAppResultFiles}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles}\pysiglinewithargsret{\bfcode{getAppResultFiles}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a list of File object for the AppResult with id  = Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -337,10 +374,29 @@ Returns a list of File object for the AppResult with id  = Id
 
 \end{fulllineitems}
 
+\index{getAppResultPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultPropertiesById}\pysiglinewithargsret{\bfcode{getAppResultPropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns the Properties of an AppResult object corresponding to Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The Id of the AppResult
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{getAppResultsByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultsByProject}\pysiglinewithargsret{\bfcode{getAppResultsByProject}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}, \emph{statuses=}\optional{}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultsByProject}\pysiglinewithargsret{\bfcode{getAppResultsByProject}}{\emph{Id}, \emph{queryPars=None}, \emph{statuses=None}}{}
 Returns a list of AppResult object associated with the project with Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -363,12 +419,17 @@ Returns a list of AppResult object associated with the project with Id
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSession}\pysiglinewithargsret{\bfcode{getAppSession}}{\emph{Id='`}}{}
-Returns an AppSession instance containing user and data-type the app was triggered by/on 
-:param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating
-the BaseSpaceAPI instance.
+Returns an AppSession instance containing user and data-type the app was triggered by/on
+Note that Properties are not currently supported for this method, use getAppSessionPropertiesById()
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating the BaseSpaceAPI instance.
+
+\item {} 
 \textbf{Id} -- (Optional) AppSession id, if not supplied the AppSession id used to initialize the
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -387,10 +448,71 @@ Returns the appSession identified by id
 
 \end{fulllineitems}
 
+\index{getAppSessionInputsById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionInputsById}\pysiglinewithargsret{\bfcode{getAppSessionInputsById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns a dictionary of input properties from the provided AppSessions, keyed by input Name
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The AppSessionId
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getAppSessionPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionPropertiesById}\pysiglinewithargsret{\bfcode{getAppSessionPropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns the Properties of an AppSession
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The AppSessionId
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getAppSessionPropertyByName() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionPropertyByName}\pysiglinewithargsret{\bfcode{getAppSessionPropertyByName}}{\emph{Id}, \emph{name}, \emph{queryPars=None}}{}
+Returns the multi-value Property of the provided AppSession that has the provided Property name.
+Note - this method (and REST API) is supported for ONLY multi-value Properties.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The AppSessionId
+
+\item {} 
+\textbf{name} -- Name of the multi-value property to retrieve
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{getAvailableGenomes() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes}\pysiglinewithargsret{\bfcode{getAvailableGenomes}}{\emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAvailableGenomes}\pysiglinewithargsret{\bfcode{getAvailableGenomes}}{\emph{queryPars=None}}{}
 Returns a list of all available genomes
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -422,11 +544,36 @@ Returns Metadata about coverage as a CoverageMetadata instance
 \index{getFileById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFileById}\pysiglinewithargsret{\bfcode{getFileById}}{\emph{Id}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFileById}\pysiglinewithargsret{\bfcode{getFileById}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a file object by Id
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{Id} -- The id of the file
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getFilePropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilePropertiesById}\pysiglinewithargsret{\bfcode{getFilePropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns the Properties of a file object by Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The id of the file
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -435,7 +582,7 @@ Returns a file object by Id
 \index{getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample}\pysiglinewithargsret{\bfcode{getFilesBySample}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample}\pysiglinewithargsret{\bfcode{getFilesBySample}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a list of File objects associated with sample with Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -494,11 +641,17 @@ Mean coverage levels over a sequence interval
 \index{getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectById}\pysiglinewithargsret{\bfcode{getProjectById}}{\emph{Id}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectById}\pysiglinewithargsret{\bfcode{getProjectById}}{\emph{Id}, \emph{queryPars=None}}{}
 Request a project object by Id
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{Id} -- The Id of the project
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -507,7 +660,7 @@ Request a project object by Id
 \index{getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser}\pysiglinewithargsret{\bfcode{getProjectByUser}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser}\pysiglinewithargsret{\bfcode{getProjectByUser}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a list available projects for a User with the specified Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -523,14 +676,134 @@ Returns a list available projects for a User with the specified Id
 
 \end{fulllineitems}
 
+\index{getProjectPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectPropertiesById}\pysiglinewithargsret{\bfcode{getProjectPropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Request the Properties of a project object by Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The Id of the project
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getRunById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunById}\pysiglinewithargsret{\bfcode{getRunById}}{\emph{Id}, \emph{queryPars=None}}{}
+Request a run object by Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The Id of the run
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getRunFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunFilesById}\pysiglinewithargsret{\bfcode{getRunFilesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Request the files associated with a Run, using the Run's Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The Id of the run
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getRunPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunPropertiesById}\pysiglinewithargsret{\bfcode{getRunPropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Request the Properties of a run object by Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The Id of the run
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getRunSamplesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getRunSamplesById}\pysiglinewithargsret{\bfcode{getRunSamplesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Request the Samples associated with a Run, using the Run's Id
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The Id of the run
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSampleById}\pysiglinewithargsret{\bfcode{getSampleById}}{\emph{Id}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSampleById}\pysiglinewithargsret{\bfcode{getSampleById}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a Sample object
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{Id} -- The id of the sample
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getSamplePropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplePropertiesById}\pysiglinewithargsret{\bfcode{getSamplePropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns the Properties of a Sample object
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The id of the sample
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -539,7 +812,7 @@ Returns a Sample object
 \index{getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplesByProject}\pysiglinewithargsret{\bfcode{getSamplesByProject}}{\emph{Id}, \emph{queryPars=\{`Limit': `100'}, \emph{`SortBy': `Id'}, \emph{`SortDir': `Asc'}, \emph{`Offset': `0'\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSamplesByProject}\pysiglinewithargsret{\bfcode{getSamplesByProject}}{\emph{Id}, \emph{queryPars=None}}{}
 Returns a list of samples associated with a project with Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -552,14 +825,6 @@ Returns a list of samples associated with a project with Id
 \end{itemize}
 
 \end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{getServerUri() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getServerUri}\pysiglinewithargsret{\bfcode{getServerUri}}{}{}
-Returns the server uri used by this instance
 
 \end{fulllineitems}
 
@@ -637,14 +902,93 @@ An optional state parameter that will passed through to the redirect response
 
 \end{fulllineitems}
 
+\index{multipartFileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileDownload}\pysiglinewithargsret{\bfcode{multipartFileDownload}}{\emph{Id}, \emph{localDir}, \emph{processCount=10}, \emph{partSize=25}, \emph{createBsDir=False}, \emph{tempDir='`}}{}
+Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
+Returns a file object, exception raised on download failure.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The ID of the File to download
+
+\item {} 
+\textbf{localDir} -- The local path in which to store the downloaded file
+
+\item {} 
+\textbf{processCount} -- (optional) The number of processes to be used, default 10
+
+\item {} 
+\textbf{partSize} -- (optional) The size in MB of individual file parts to download, default 25
+
+\item {} 
+\textbf{createBsDir} -- (optional) create BaseSpace File's directory in local\_dir, default False
+
+\item {} 
+\textbf{tempDir} -- (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by `cat'ing chunks into large file
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{multipartFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileUpload}\pysiglinewithargsret{\bfcode{multipartFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{tempDir=None}, \emph{processCount=10}, \emph{partSize=25}}{}
+Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
+Returns a File object (that is updated after the upload has completed).
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The AppResult ID
+
+\item {} 
+\textbf{localPath} -- The local path of the file to upload, including file name; local path will not be stored in BaseSpace (use directory argument for this)
+
+\item {} 
+\textbf{fileName} -- The desired filename on the server
+
+\item {} 
+\textbf{directory} -- The desired directory name on the server (empty string will place it in the root directory)
+
+\item {} 
+\textbf{contentType} -- The content type of the file
+
+\item {} 
+\textbf{tempdir} -- (optional) Temp directory to use for temporary file chunks to upload
+
+\item {} 
+\textbf{processCount} -- (optional) The number of processes to be used, default 10
+
+\item {} 
+\textbf{partSize} -- (optional) The size in MB of individual upload parts (must be \textgreater{}5 Mb and \textless{}=25 Mb), default 25
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken}\pysiglinewithargsret{\bfcode{obtainAccessToken}}{\emph{deviceCode}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken}\pysiglinewithargsret{\bfcode{obtainAccessToken}}{\emph{code}, \emph{grantType='device'}, \emph{redirect\_uri='http://www.myRedirect.com'}}{}
 Returns a user specific access token.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
-\textbf{deviceCode} -- The device code returned by the verification code method
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{code} -- The device code returned by the verification code method
+
+\item {} 
+\textbf{grantType} -- Grant-type may be either device or `device' or `authorization\_code'
+
+\item {} 
+\textbf{redirect\_uri} -- The uri we should redirect to
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -654,32 +998,19 @@ Returns a user specific access token.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState}\pysiglinewithargsret{\bfcode{setAppSessionState}}{\emph{Id}, \emph{Status}, \emph{Summary}}{}
-Set the status of an AppResult object
+Set the status of an AppSession in BaseSpace
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The id of the AppResult
+\textbf{Id} -- The id of the AppSession
 
 \item {} 
-\textbf{Status} -- The status assignment string must
+\textbf{Status} -- The AppSession status string, must be one of: running, complete, needsattention, timedout, aborted
 
 \item {} 
-\textbf{Summary} -- The summary string
+\textbf{Summary} -- The status summary string
 
 \end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{setTimeout() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setTimeout}\pysiglinewithargsret{\bfcode{setTimeout}}{\emph{time}}{}
-Specify the timeout in seconds for each request made
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
-\textbf{time} -- timeout in second
 
 \end{description}\end{quote}
 
@@ -713,7 +1044,7 @@ Return a newly created app result object
 \textbf{name} -- The name of the app result
 
 \item {} 
-\textbf{desc} -- A describtion of the app result
+\textbf{desc} -- A description of the app result
 
 \end{itemize}
 
@@ -890,13 +1221,13 @@ Uploads a local file to the BaseSpace AppResult
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{localPath} -- The local path of the file
+\textbf{localPath} -- The local path of the file (including file name)
 
 \item {} 
-\textbf{fileName} -- The filename
+\textbf{fileName} -- The file name to use on the server
 
 \item {} 
-\textbf{directory} -- The remote directory to upload to
+\textbf{directory} -- The remote directory to upload the file to on the server
 
 \item {} 
 \textbf{contentType} -- The content-type of the file
@@ -987,7 +1318,7 @@ Represents a BaseSpace file object.
 \index{downloadFile() (BaseSpacePy.model.File.File method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.File.File.downloadFile}\pysiglinewithargsret{\bfcode{downloadFile}}{\emph{api}, \emph{localDir}, \emph{range=}\optional{}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.File.File.downloadFile}\pysiglinewithargsret{\bfcode{downloadFile}}{\emph{api}, \emph{localDir}, \emph{byteRange=None}, \emph{createBsDir=False}}{}
 Download the file object to the specified localDir or a byte range of the file, by specifying the 
 start and stop byte in the range.
 \begin{quote}\begin{description}
@@ -996,10 +1327,13 @@ start and stop byte in the range.
 \textbf{api} -- A BaseSpaceAPI with read access on the scope including the file object.
 
 \item {} 
-\textbf{loadlDir} -- The local directory to place the file in.
+\textbf{localDir} -- The local directory to place the file in.
 
 \item {} 
-\textbf{range} -- Specify the start and stop byte of the file chunk that needs retrieved.
+\textbf{byteRange} -- (optional) Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).
+
+\item {} 
+\textbf{createBsDir} -- (optional) create BaseSpace File's directory inside localDir (default: False)
 
 \end{itemize}
 
@@ -1049,6 +1383,19 @@ Return an object of CoverageMetadata for the selected region
 \textbf{Chrom} -- The chromosome of interest.
 
 \end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getFileUrl() (BaseSpacePy.model.File.File method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.File.File.getFileUrl}\pysiglinewithargsret{\bfcode{getFileUrl}}{\emph{api}}{}
+Return the S3 url of the file.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{api} -- A BaseSpaceAPI with read access on the scope including the file object.
 
 \end{description}\end{quote}
 
@@ -1123,6 +1470,63 @@ Is called to test if the File instance is matches the filtype parameter
 
 
 
+\subsection{Run}
+\label{Available modules:run}\index{Run (class in BaseSpacePy.model.Run)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run}\pysigline{\strong{class }\code{BaseSpacePy.model.Run.}\bfcode{Run}}~\index{getFiles() (BaseSpacePy.model.Run.Run method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{myQp=\{\}}}{}
+Returns a list of File objects associated with the Run
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{api} -- An instance of BaseSpaceAPI
+
+\item {} 
+\textbf{myQp} -- (Optional) QueryParameters for sorting and filtering the file list
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getSamples() (BaseSpacePy.model.Run.Run method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getSamples}\pysiglinewithargsret{\bfcode{getSamples}}{\emph{api}, \emph{myQp=\{\}}}{}
+Returns a list of Sample objects associated with the Run
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{api} -- An instance of BaseSpaceAPI
+
+\item {} 
+\textbf{myQp} -- (Optional) QueryParameters for sorting and filtering the file list
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{isInit() (BaseSpacePy.model.Run.Run method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
+Tests if the Project instance has been initialized
+
+Throws: ModelNotInitializedException  - if the instance has not been populated.
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+
 \subsection{QueryParameters}
 \label{Available modules:queryparameters}\index{QueryParameters (class in BaseSpacePy.model.QueryParameters)}
 
@@ -1134,13 +1538,566 @@ The QueryParameters class can be passed as an optional arguments for a specific 
 
 
 
+\chapter{Getting Started}
+\label{Getting Started:getting-started}\label{Getting Started::doc}
+
+\section{Introduction}
+\label{Getting Started:introduction}
+\code{BaseSpacePy} is a Python based SDK to be used in the development of Apps and scripts for working with Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis.
+The primary purpose of the SDK is to provide an easy-to-use Python environment enabling developers to authenticate a user, retrieve data, and upload data/results from their own analysis to BaseSpace.
+
+If you haven't already done so, you may wish to familiarize yourself with the BaseSpace developer documentation (\href{https://developer.basespace.illumina.com/}{https://developer.basespace.illumina.com/}) prior to working through the example scripts below.
+
+\begin{notice}{note}{Note:}
+It will be necessary to have created a BaseSpace account with a new App and have the \code{client\_key} and \code{client\_secret} codes for the App available to run a number of the following examples.
+\end{notice}
+
+
+\subsection{Availability}
+\label{Getting Started:availability}
+Version 0.1 of \code{BaseSpacePy} can be checked out here:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{git} \PYG{n}{clone} \PYG{n}{git}\PYG{n+nd}{@github.com}\PYG{p}{:}\PYG{n}{basespace}\PYG{o}{/}\PYG{n}{basespace}\PYG{o}{-}\PYG{n}{python}\PYG{o}{-}\PYG{n}{sdk}\PYG{o}{.}\PYG{n}{git}
+\end{Verbatim}
+
+
+\subsection{Setup}
+\label{Getting Started:setup}
+\emph{Requirements:} Python 2.6 with the packages `urllib2', `pycurl', `multiprocessing' and `shutil' available.
+
+The multi-part file upload will currently only run on a unix setup.
+
+To install `BaseSpacePy' run the `setup.py' script in the \code{src} directory (for a global install you will need to run this command with root privileges):
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{cd} \PYG{n}{basespace}\PYG{o}{-}\PYG{n}{python}\PYG{o}{-}\PYG{n}{sdk}\PYG{o}{/}\PYG{n}{src}
+\PYG{n}{python} \PYG{n}{setup}\PYG{o}{.}\PYG{n}{py} \PYG{n}{install}
+\end{Verbatim}
+
+If you do not have root access, you may use the \code{-{-}prefix} option to specify the install directory (make sure this directory is in you PYTHONPATH):
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{python} \PYG{n}{setup}\PYG{o}{.}\PYG{n}{py} \PYG{n}{install} \PYG{o}{-}\PYG{o}{-}\PYG{n}{prefix}\PYG{o}{=}\PYG{o}{/}\PYG{n}{folder}\PYG{o}{/}\PYG{o+ow}{in}\PYG{o}{/}\PYG{n}{my}\PYG{o}{/}\PYG{n}{pythonpath}
+\end{Verbatim}
+
+For more install options type:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{python} \PYG{n}{setup}\PYG{o}{.}\PYG{n}{py} \PYG{o}{-}\PYG{o}{-}\PYG{n}{help}
+\end{Verbatim}
+
+Altenatively you may include the src directory in your PYTHONPATH by doing the following export:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+export PYTHONPATH=\$PYTHONPATH:/my/path/basespace-python-sdk/src
+\end{Verbatim}
+
+or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{sys}
+\PYG{n}{sys}\PYG{o}{.}\PYG{n}{path}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{/my/path/BaseSpacePy\PYGZus{}vx.x/src}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k+kn}{import} \PYG{n+nn}{BaseSpacePy}
+\end{Verbatim}
+
+To test that everything is working as expected, launch a Python prompt and try importing `BaseSpacePy':
+
+\begin{Verbatim}[commandchars=\\\{\}]
+mkallberg@ubuntu:\textasciitilde{}/\$ python
+\textgreater{}\textgreater{}\textgreater{} import BaseSpacePy
+\end{Verbatim}
+
+
+\section{Application triggering}
+\label{Getting Started:application-triggering}
+This section demonstrates how to retrieve the \code{AppLaunch} object produced when a user triggers a BaseSpace App.
+Further, we cover how to automatically generate the scope strings to request access to the data object (be it a project, a sample, or an analysis)
+that the App was triggered to analyze.
+
+The initial http request to our App from BaseSpace is identified by an \code{ApplicationActionId}, using this piece of information
+we are able to obtain information about the user who launched the App and the data that is sought analyzed by the App.
+First, we instantiate a BaseSpaceAuth object using the \code{client\_key} and \code{client\_secret} codes provided on the BaseSpace developers website when registering our App:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{BaseSpacePy.api.BaseSpaceAuth} \PYG{k+kn}{import} \PYG{n}{BaseSpaceAuth}
+
+\PYG{c}{\PYGZsh{} initialize an authentication object using the key and secret from your app}
+\PYG{c}{\PYGZsh{} Fill in with your own values}
+\PYG{n}{client\PYGZus{}key}                 \PYG{o}{=} \PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{key}\PYG{o}{\textgreater{}}
+\PYG{n}{client\PYGZus{}secret}              \PYG{o}{=} \PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{secret}\PYG{o}{\textgreater{}}
+\PYG{n}{ApplicationActionId}        \PYG{o}{=} \PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{action} \PYG{n+nb}{id}\PYG{o}{\textgreater{}}
+\PYG{n}{BaseSpaceUrl}               \PYG{o}{=} \PYG{l+s}{'}\PYG{l+s}{https://api.cloud-endor.illumina.com/}\PYG{l+s}{'}
+\PYG{n}{version}                    \PYG{o}{=} \PYG{l+s}{'}\PYG{l+s}{v1pre2/}\PYG{l+s}{'}
+
+\PYG{c}{\PYGZsh{} First we will initialize a BaseSpace authentication object}
+\PYG{n}{BSauth} \PYG{o}{=} \PYG{n}{BaseSpaceAuth}\PYG{p}{(}\PYG{n}{client\PYGZus{}key}\PYG{p}{,}\PYG{n}{client\PYGZus{}secret}\PYG{p}{,}\PYG{n}{BaseSpaceUrl}\PYG{p}{,}\PYG{n}{version}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} By supplying the application trigger id we can get out an AppLaunch object}
+\PYG{n}{triggerObj} \PYG{o}{=} \PYG{n}{BSauth}\PYG{o}{.}\PYG{n}{getAppTrigger}\PYG{p}{(}\PYG{n}{ApplicationActionId}\PYG{p}{)}
+\PYG{k}{print} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{triggerObj}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{https}\PYG{p}{:}\PYG{o}{/}\PYG{o}{/}\PYG{n}{api}\PYG{o}{.}\PYG{n}{cloud}\PYG{o}{-}\PYG{n}{endor}\PYG{o}{.}\PYG{n}{illumina}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{v1pre2}\PYG{o}{/}\PYG{n}{applicationactions}\PYG{o}{/}\PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{action} \PYG{n+nb}{id}\PYG{o}{\textgreater{}}
+\end{Verbatim}
+
+We can get the type of object the app was triggered on from the \code{getLaunchType}-method in the \code{BaseSpaceAuth} instance:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} The trigger type is a list with two items, the first a string taking the one of the values ('Projects','Samples','Analyses')}
+\PYG{c}{\PYGZsh{} and the second a list of the objects of that type}
+\PYG{n}{triggerType} \PYG{o}{=} \PYG{n}{triggerObj}\PYG{o}{.}\PYG{n}{getLaunchType}\PYG{p}{(}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{Type of data the app was triggered on}\PYG{l+s}{"}
+\PYG{k}{print} \PYG{n}{triggerType}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{We can get a handle for the user who triggered the app}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{triggerObj}\PYG{o}{.}\PYG{n}{User}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{Type} \PYG{n}{of} \PYG{n}{data} \PYG{n}{the} \PYG{n}{app} \PYG{n}{was} \PYG{n}{triggered} \PYG{n}{on}
+\PYG{p}{[}\PYG{l+s}{'}\PYG{l+s}{Projects}\PYG{l+s}{'}\PYG{p}{,} \PYG{p}{[}\PYG{n}{YourProject}\PYG{p}{]}\PYG{p}{]}
+
+\PYG{n}{We} \PYG{n}{can} \PYG{n}{get} \PYG{n}{a} \PYG{n}{handle} \PYG{k}{for} \PYG{n}{the} \PYG{n}{user} \PYG{n}{who} \PYG{n}{triggered} \PYG{n}{the} \PYG{n}{app}
+\PYG{l+m+mi}{152152}\PYG{p}{:} \PYG{n}{Morten} \PYG{n}{Kallberg}
+\end{Verbatim}
+
+To start working, we will want to expand our permission scope for the trigger object so we can read and write data. The details of this process is the subject of the next section.
+We end this section by demonstrating how one can easily obtain the so-called ``scope string,'' used when requesting further access, from the trigger object:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{triggerObj} \PYG{o}{=} \PYG{n}{triggerType}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{[}\PYG{o}{-}\PYG{l+m+mi}{1}\PYG{p}{]}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The scope string for requesting write access to the trigger object is:}\PYG{l+s}{"}
+\PYG{k}{print} \PYG{n}{triggerObj}\PYG{o}{.}\PYG{n}{getAccessStr}\PYG{p}{(}\PYG{n}{scope}\PYG{o}{=}\PYG{l+s}{'}\PYG{l+s}{write}\PYG{l+s}{'}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{The} \PYG{n}{scope} \PYG{n}{string} \PYG{k}{for} \PYG{n}{requesting} \PYG{n}{write} \PYG{n}{access} \PYG{n}{to} \PYG{n}{the} \PYG{n}{trigger} \PYG{n+nb}{object} \PYG{o+ow}{is}\PYG{p}{:}
+\PYG{n}{write} \PYG{n}{project} \PYG{l+m+mi}{89}
+\end{Verbatim}
+
+
+\section{Requesting an access-token for data browsing}
+\label{Getting Started:requesting-an-access-token-for-data-browsing}
+Here we demonstrate the basic BaseSpace authentication process. The work-flow outlined here is
+\begin{enumerate}
+\item {} 
+Request of access to a specific data-scope
+
+\item {} 
+User approval of access request
+
+\item {} 
+Browsing data
+
+\end{enumerate}
+
+\begin{notice}{note}{Note:}
+It will be useful if you are logged in to the BaseSpace web-site before launching this example to make the access grant procedure faster.
+\end{notice}
+
+Again we will start out by initializing a \code{BaseSpaceAuth} object:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{BaseSpacePy.api.BaseSpaceAuth} \PYG{k+kn}{import} \PYG{n}{BaseSpaceAuth}
+\PYG{k+kn}{import} \PYG{n+nn}{time}
+
+\PYG{c}{\PYGZsh{} initialize an authentication object using the key and secret from your app}
+\PYG{n}{client\PYGZus{}key}                 \PYG{o}{=} \PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{key}\PYG{o}{\textgreater{}}
+\PYG{n}{client\PYGZus{}secret}              \PYG{o}{=} \PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{secret}\PYG{o}{\textgreater{}}
+\PYG{n}{BaseSpaceUrl}               \PYG{o}{=} \PYG{l+s}{'}\PYG{l+s}{https://api.cloud-endor.illumina.com/}\PYG{l+s}{'}
+\PYG{n}{version}                    \PYG{o}{=} \PYG{l+s}{'}\PYG{l+s}{v1pre2/}\PYG{l+s}{'}
+\PYG{n}{BSauth} \PYG{o}{=} \PYG{n}{BaseSpaceAuth}\PYG{p}{(}\PYG{n}{client\PYGZus{}key}\PYG{p}{,}\PYG{n}{client\PYGZus{}secret}\PYG{p}{,}\PYG{n}{BaseSpaceUrl}\PYG{p}{,}\PYG{n}{version}\PYG{p}{)}
+\end{Verbatim}
+
+First get verification code and uri for scope `browse global'
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{deviceInfo} \PYG{o}{=} \PYG{n}{BSauth}\PYG{o}{.}\PYG{n}{getVerificationCode}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{browse global}\PYG{l+s}{'}\PYG{p}{)}
+\end{Verbatim}
+
+At this point the user must visit the verification uri to grant us access
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{}\PYGZsh{} PAUSE HERE}
+\PYG{c}{\PYGZsh{} Have the user visit the verification uri to grant us access}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s}{Please visit the uri within 30 seconds and grant access}\PYG{l+s}{"}
+\PYG{k}{print} \PYG{n}{deviceInfo}\PYG{p}{[}\PYG{l+s}{'}\PYG{l+s}{verification\PYGZus{}with\PYGZus{}code\PYGZus{}uri}\PYG{l+s}{'}\PYG{p}{]}
+\PYG{n}{time}\PYG{o}{.}\PYG{n}{sleep}\PYG{p}{(}\PYG{l+m+mi}{30}\PYG{p}{)}
+\PYG{c}{\PYGZsh{}\PYGZsh{} PAUSE HERE}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+Output[]:
+
+Please visit the uri within 10 seconds and grant access
+https://cloud-endor.illumina.com/oauth/device?code=\textless{}my device code\textgreater{}
+\end{Verbatim}
+
+There are two options for obtaining the access-token and instantiating a \code{BaseSpaceAPI} object:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} Get the access-token directly and instantiate an api yourself}
+\PYG{c}{\PYGZsh{}token = BSauth.getAccessToken(deviceInfo['device\PYGZus{}code'])}
+\PYG{c}{\PYGZsh{}print "My token " + str(token)}
+
+\PYG{c}{\PYGZsh{} Alternatively we can generate an access-token and request a BaseSpaceApi instance}
+\PYG{c}{\PYGZsh{} with the newly generated token in one step}
+\PYG{n}{myAPI} \PYG{o}{=} \PYG{n}{BSauth}\PYG{o}{.}\PYG{n}{getBaseSpaceApi}\PYG{p}{(}\PYG{n}{deviceInfo}\PYG{p}{[}\PYG{l+s}{'}\PYG{l+s}{device\PYGZus{}code}\PYG{l+s}{'}\PYG{p}{]}\PYG{p}{)}
+\PYG{k}{print} \PYG{n}{myAPI}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{BaseSpaceAPI} \PYG{n}{instance} \PYG{o}{-} \PYG{n}{using} \PYG{n}{token}\PYG{o}{=}\PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{access} \PYG{n}{token}\PYG{o}{\textgreater{}}
+\end{Verbatim}
+
+At this point we can start using the \code{BaseSpaceAPI} instance to browse the available data for the current user, the details of this process is the subject of the next section. Here we will end with showing how the API object can be used to list all BaseSpace genome instances:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} We will get all available genomes with our new api!}
+\PYG{n}{allGenomes}  \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getAvailableGenomes}\PYG{p}{(}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{Genomes }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{allGenomes}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{Genomes}
+\PYG{p}{[}\PYG{n}{Arabidopsis} \PYG{n}{thaliana}\PYG{p}{,} \PYG{n}{Bos} \PYG{n}{Taurus}\PYG{p}{,} \PYG{n}{Escherichia} \PYG{n}{coli}\PYG{p}{,} \PYG{n}{Homo} \PYG{n}{sapiens}\PYG{p}{,} \PYG{n}{Mus} \PYG{n}{musculus}\PYG{p}{,} \PYG{n}{Phix}\PYG{p}{,}\PYGZbs{}
+ \PYG{n}{Rhodobacter} \PYG{n}{sphaeroides}\PYG{p}{,} \PYG{n}{Rattus} \PYG{n}{norvegicus}\PYG{p}{,} \PYG{n}{Saccharomyces} \PYG{n}{cerevisiae}\PYG{p}{,} \PYG{n}{Staphylococcus} \PYG{n}{aureus}\PYG{p}{,} \PYG{n}{Bacillus} \PYG{n}{Cereus}\PYG{p}{]}
+\end{Verbatim}
+
+
+\section{Browsing data with \texttt{global browse}-access}
+\label{Getting Started:browsing-data-with-global-browse-access}
+This section demonstrates basic browsing of BaseSpace objects once an access-token for global browsing has been obtained. We will see how
+objects can be retrieved using either the \code{BaseSpaceAPI} class or by use of method calls on related object instances (for example once
+a \code{user} instance we can use it to retrieve all project belonging to that user).
+
+First we will initialize a \code{BaseSpaceAPI} using our access-token for \code{global browse}:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{BaseSpacePy.api.BaseSpaceAPI} \PYG{k+kn}{import} \PYG{n}{BaseSpaceAPI}
+
+\PYG{c}{\PYGZsh{} REST server information and user access token}
+\PYG{n}{server}          \PYG{o}{=} \PYG{l+s}{'}\PYG{l+s}{https://api.cloud-endor.illumina.com/}\PYG{l+s}{'}
+\PYG{n}{version}         \PYG{o}{=} \PYG{l+s}{'}\PYG{l+s}{v1pre2}\PYG{l+s}{'}
+\PYG{n}{access\PYGZus{}token}    \PYG{o}{=} \PYG{o}{\textless{}}\PYG{n}{my} \PYG{n}{access} \PYG{n}{token}\PYG{o}{\textgreater{}}
+
+\PYG{c}{\PYGZsh{} First, create a client for making calls for this user session}
+\PYG{n}{myAPI}   \PYG{o}{=} \PYG{n}{BaseSpaceAPI}\PYG{p}{(}\PYG{n}{AccessToken}\PYG{o}{=}\PYG{n}{access\PYGZus{}token}\PYG{p}{,}\PYG{n}{apiServer}\PYG{o}{=} \PYG{n}{server} \PYG{o}{+} \PYG{n}{version}\PYG{p}{)}
+\end{Verbatim}
+
+First we will try to retrieve a genome object:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} Now grab the genome with id=4}
+\PYG{n}{myGenome}    \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getGenomeById}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{4}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The Genome is }\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{myGenome}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s}{We can get more information from the genome object}\PYG{l+s}{"}
+\PYG{k}{print} \PYG{l+s}{'}\PYG{l+s}{Id: }\PYG{l+s}{'} \PYG{o}{+} \PYG{n}{myGenome}\PYG{o}{.}\PYG{n}{Id}
+\PYG{k}{print} \PYG{l+s}{'}\PYG{l+s}{Href: }\PYG{l+s}{'} \PYG{o}{+} \PYG{n}{myGenome}\PYG{o}{.}\PYG{n}{Href}
+\PYG{k}{print} \PYG{l+s}{'}\PYG{l+s}{DisplayName: }\PYG{l+s}{'} \PYG{o}{+} \PYG{n}{myGenome}\PYG{o}{.}\PYG{n}{DisplayName}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+Output[]:
+
+The Genome is Homo sapiens
+We can get more information from the genome object
+Id: 4
+Href: v1pre2/genomes/4
+DisplayName: Homo Sapiens - UCSC (hg19)
+\end{Verbatim}
+
+Using a comparable method we can get a list of all available genomes:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} Get a list of all genomes}
+\PYG{n}{allGenomes}  \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getAvailableGenomes}\PYG{p}{(}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{Genomes }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{allGenomes}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{Genomes}
+\PYG{p}{[}\PYG{n}{Arabidopsis} \PYG{n}{thaliana}\PYG{p}{,} \PYG{n}{Bos} \PYG{n}{Taurus}\PYG{p}{,} \PYG{n}{Escherichia} \PYG{n}{coli}\PYG{p}{,} \PYG{n}{Homo} \PYG{n}{sapiens}\PYG{p}{,} \PYG{n}{Mus} \PYG{n}{musculus}\PYG{p}{,} \PYG{n}{Phix}\PYG{p}{,}\PYGZbs{}
+ \PYG{n}{Rhodobacter} \PYG{n}{sphaeroides}\PYG{p}{,} \PYG{n}{Rattus} \PYG{n}{norvegicus}\PYG{p}{,} \PYG{n}{Saccharomyces} \PYG{n}{cerevisiae}\PYG{p}{,} \PYG{n}{Staphylococcus} \PYG{n}{aureus}\PYG{p}{,} \PYG{n}{Bacillus} \PYG{n}{Cereus}\PYG{p}{]}
+\end{Verbatim}
+
+Now, let us retrieve the \code{User} objects for the current user, and list all projects for this user:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} Take a look at the current user}
+\PYG{n}{user}        \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getUserById}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{current}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The current user is }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{user}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} Now list the projects for this user}
+\PYG{n}{myProjects}   \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getProjectByUser}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{current}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The projects for this user are }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{myProjects}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{The} \PYG{n}{current} \PYG{n}{user} \PYG{o+ow}{is}
+\PYG{l+m+mi}{152152}\PYG{p}{:} \PYG{n}{Morten} \PYG{n}{Kallberg}
+
+\PYG{n}{The} \PYG{n}{projects} \PYG{k}{for} \PYG{n}{this} \PYG{n}{user} \PYG{n}{are}
+\PYG{p}{[}\PYG{n}{HiSeq} \PYG{l+m+mi}{2500}\PYG{p}{,} \PYG{n}{Bolt}\PYG{p}{,} \PYG{n}{YourProject}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{n}{X151} \PYG{n}{Rhodobacter} \PYG{n}{Resequencing}\PYG{p}{,} \PYG{n}{EColi} \PYG{n}{resequencing}\PYG{p}{]}
+\end{Verbatim}
+
+We can also achieve this by making a call using the \code{user} instance. Notice that these calls take an instance of \code{BaseSpaceAPI} with apporpriate
+priviliges to complete the transaction as parameter, this true for all retrieval method calls made on data objects:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{myProjects2} \PYG{o}{=} \PYG{n}{user}\PYG{o}{.}\PYG{n}{getProjects}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{Projects retrieved from the user instance }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{myProjects2}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} List the runs available for the current user}
+\PYG{n}{runs} \PYG{o}{=} \PYG{n}{user}\PYG{o}{.}\PYG{n}{getRuns}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The runs for this user are }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{runs}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+Output[]:
+
+Projects retrieved from the user instance
+[HiSeq 2500, Bolt, YourProject, 2X151 Rhodobacter Resequencing, EColi resequencing]
+
+The runs for this user are
+[2X151 Rhodobacter Resequencing, 2x26 Validation Human 4-Plex, EColi resequencing]
+\end{Verbatim}
+
+In the same manner we can get a list of accessible user runs:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{runs} \PYG{o}{=} \PYG{n}{user}\PYG{o}{.}\PYG{n}{getRuns}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{Runs retrieved from user instance }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{runs}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+Output[]:
+
+Runs retrieved from user instance
+[2X151 Rhodobacter Resequencing, 2x26 Validation Human 4-Plex, EColi resequencing]
+\end{Verbatim}
+
+
+\section{Accessing file-trees and querying BAM/VCF files}
+\label{Getting Started:accessing-file-trees-and-querying-bam-vcf-files}
+In this section we demonstrate how to access samples and analysis from a projects and how to work with the available file data for such instances.
+In addition, we take a look at some of the special queuring methods associated with BAM- and VCF-files.
+
+Again, start out by initializing a \code{BaseSpacePy} instance and retrieving all projects belonging to the current user:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} First, create a client for making calls for this user session}
+\PYG{n}{myAPI}   \PYG{o}{=} \PYG{n}{BaseSpaceAPI}\PYG{p}{(}\PYG{n}{AccessToken}\PYG{o}{=}\PYG{n}{access\PYGZus{}token}\PYG{p}{,}\PYG{n}{apiServer}\PYG{o}{=} \PYG{n}{server} \PYG{o}{+} \PYG{n}{version}\PYG{p}{)}
+\PYG{n}{user}        \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getUserById}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{current}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{n}{myProjects}   \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getProjectByUser}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{current}\PYG{l+s}{'}\PYG{p}{)}
+\end{Verbatim}
+
+Now we can list all the analyses and samples for these projects
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{for} \PYG{n}{singleProject} \PYG{o+ow}{in} \PYG{n}{myProjects}\PYG{p}{:}
+    \PYG{k}{print} \PYG{l+s}{"}\PYG{l+s}{\PYGZsh{} }\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{singleProject}\PYG{p}{)}
+    \PYG{n}{analyses} \PYG{o}{=} \PYG{n}{singleProject}\PYG{o}{.}\PYG{n}{getAnalyses}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+    \PYG{k}{print} \PYG{l+s}{"}\PYG{l+s}{    The analysis for project }\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{singleProject}\PYG{p}{)} \PYG{o}{+} \PYG{l+s}{"}\PYG{l+s}{ are }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{analyses}\PYG{p}{)}
+    \PYG{n}{samples} \PYG{o}{=} \PYG{n}{singleProject}\PYG{o}{.}\PYG{n}{getSamples}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+    \PYG{k}{print} \PYG{l+s}{"}\PYG{l+s}{    The samples for project }\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{singleProject}\PYG{p}{)} \PYG{o}{+} \PYG{l+s}{"}\PYG{l+s}{ are }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{samples}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{c}{\PYGZsh{} HiSeq 2500}
+    \PYG{n}{The} \PYG{n}{analysis} \PYG{k}{for} \PYG{n}{project} \PYG{n}{HiSeq} \PYG{l+m+mi}{2500} \PYG{n}{are}
+        \PYG{p}{[}\PYG{n}{Resequencing} \PYG{o}{-} \PYG{n}{Completed}\PYG{p}{]}
+    \PYG{n}{The} \PYG{n}{samples} \PYG{k}{for} \PYG{n}{project} \PYG{n}{HiSeq} \PYG{l+m+mi}{2500} \PYG{n}{are}
+        \PYG{p}{[}\PYG{n}{NA18507}\PYG{p}{]}
+\PYG{c}{\PYGZsh{} Bolt}
+    \PYG{n}{The} \PYG{n}{analysis} \PYG{k}{for} \PYG{n}{project} \PYG{n}{Bolt} \PYG{n}{are}
+        \PYG{p}{[}\PYG{n}{Amplicon} \PYG{o}{-} \PYG{n}{Completed}\PYG{p}{,} \PYG{n}{Amplicon} \PYG{o}{-} \PYG{n}{Completed}\PYG{p}{,} \PYG{n}{Amplicon} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+    \PYG{n}{The} \PYG{n}{samples} \PYG{k}{for} \PYG{n}{project} \PYG{n}{Bolt} \PYG{n}{are}
+        \PYG{p}{[}\PYG{n}{sample\PYGZus{}1}\PYG{p}{,} \PYG{n}{sample\PYGZus{}2}\PYG{p}{,} \PYG{n}{sample\PYGZus{}3}\PYG{p}{,} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+
+\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\end{Verbatim}
+
+We'll take a further look at the files belonging to the sample from the last project in the loop above:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{for} \PYG{n}{s} \PYG{o+ow}{in} \PYG{n}{samples}\PYG{p}{:}
+    \PYG{k}{print} \PYG{l+s}{"}\PYG{l+s}{Sample }\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{s}\PYG{p}{)}
+    \PYG{n}{ff} \PYG{o}{=} \PYG{n}{s}\PYG{o}{.}\PYG{n}{getFiles}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+    \PYG{k}{print} \PYG{n}{ff}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{Sample} \PYG{n}{Ecoli}
+\PYG{p}{[}\PYG{n}{s\PYGZus{}G1\PYGZus{}L001\PYGZus{}R1\PYGZus{}001}\PYG{o}{.}\PYG{n}{fastq}\PYG{o}{.}\PYG{l+m+mf}{1.}\PYG{n}{gz}\PYG{p}{,} \PYG{n}{s\PYGZus{}G1\PYGZus{}L001\PYGZus{}R1\PYGZus{}002}\PYG{o}{.}\PYG{n}{fastq}\PYG{o}{.}\PYG{l+m+mf}{1.}\PYG{n}{gz}\PYG{p}{,} \PYG{n}{s\PYGZus{}G1\PYGZus{}L001\PYGZus{}R2\PYGZus{}001}\PYG{o}{.}\PYG{n}{fastq}\PYG{o}{.}\PYG{l+m+mf}{1.}\PYG{n}{gz}\PYG{p}{,} \PYG{n}{s\PYGZus{}G1\PYGZus{}L001\PYGZus{}R2\PYGZus{}002}\PYG{o}{.}\PYG{n}{fastq}\PYG{o}{.}\PYG{l+m+mf}{1.}\PYG{n}{gz}\PYG{p}{]}
+\end{Verbatim}
+
+Now, have a look at some of the methods calls specific to \code{Bam} and \code{VCF} files. First, we will get a \code{Bam}-file and then retrieve the coverage information available for chromosome 2 between positions 1 and 20000:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} Now do some work with files}
+\PYG{c}{\PYGZsh{} we'll grab a BAM by id and get the coverage for an interval + accompanying meta-data}
+\PYG{n}{myBam} \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getFileById}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{2150156}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{n}{myBam}
+\PYG{n}{cov}     \PYG{o}{=} \PYG{n}{myBam}\PYG{o}{.}\PYG{n}{getIntervalCoverage}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{chr2}\PYG{l+s}{'}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{1}\PYG{l+s}{'}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{20000}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{n}{cov}
+\PYG{n}{covMeta} \PYG{o}{=} \PYG{n}{myBam}\PYG{o}{.}\PYG{n}{getCoverageMeta}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{chr2}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{n}{covMeta}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n+nb}{sorted}\PYG{o}{.}\PYG{n}{bam}
+\PYG{n}{Chrchr2}\PYG{p}{:} \PYG{l+m+mi}{1}\PYG{o}{-}\PYG{l+m+mi}{20096}\PYG{p}{:} \PYG{n}{BucketSize}\PYG{o}{=}\PYG{l+m+mi}{16}
+\PYG{n}{CoverageMeta}\PYG{p}{:} \PYG{n+nb}{max}\PYG{o}{=}\PYG{l+m+mi}{20483} \PYG{n}{gran}\PYG{o}{=}\PYG{l+m+mi}{128}
+\end{Verbatim}
+
+For \code{VCF}-files we can filter variant calls based on chromosome and location as well:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{} and a vcf file}
+\PYG{n}{myVCF} \PYG{o}{=} \PYG{n}{myAPI}\PYG{o}{.}\PYG{n}{getFileById}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{2150158}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{c}{\PYGZsh{} Get the variant meta info}
+\PYG{n}{varMeta} \PYG{o}{=} \PYG{n}{myVCF}\PYG{o}{.}\PYG{n}{getVariantMeta}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{n}{varMeta}
+\PYG{n}{var}     \PYG{o}{=} \PYG{n}{myVCF}\PYG{o}{.}\PYG{n}{filterVariant}\PYG{p}{(}\PYG{n}{myAPI}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{2}\PYG{l+s}{'}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{1}\PYG{l+s}{'}\PYG{p}{,} \PYG{l+s}{'}\PYG{l+s}{11000}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{n}{var}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{VariantHeader}\PYG{p}{:} \PYG{n}{SampleCount}\PYG{o}{=}\PYG{l+m+mi}{1}
+\PYG{p}{[}\PYG{n}{Variant} \PYG{o}{-} \PYG{n}{chr2}\PYG{p}{:} \PYG{l+m+mi}{10236} \PYG{n+nb}{id}\PYG{o}{=}\PYG{p}{[}\PYG{l+s}{'}\PYG{l+s}{.}\PYG{l+s}{'}\PYG{p}{]}\PYG{p}{,} \PYG{n}{Variant} \PYG{o}{-} \PYG{n}{chr2}\PYG{p}{:} \PYG{l+m+mi}{10249} \PYG{n+nb}{id}\PYG{o}{=}\PYG{p}{[}\PYG{l+s}{'}\PYG{l+s}{.}\PYG{l+s}{'}\PYG{p}{]}\PYG{p}{,} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\end{Verbatim}
+
+
+\section{Creating an analysis and uploading results}
+\label{Getting Started:creating-an-analysis-and-uploading-results}
+In this section we will see how to create a new analysis object, change its state
+and upload result files to it as well as retrieve files from it.
+
+First, create a client for making calls for this user session:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{myBaseSpaceAPI}   \PYG{o}{=} \PYG{n}{BaseSpaceAPI}\PYG{p}{(}\PYG{n}{AccessToken}\PYG{o}{=}\PYG{n}{access\PYGZus{}token}\PYG{p}{,}\PYG{n}{apiServer}\PYG{o}{=} \PYG{n}{server} \PYG{o}{+} \PYG{n}{version}\PYG{p}{)}
+\PYG{c}{\PYGZsh{}}
+\PYG{c}{\PYGZsh{}\PYGZsh{} Now we'll do some work of our own. First get a project to work on}
+\PYG{c}{\PYGZsh{}\PYGZsh{} we'll need write permission, for the project we are working on}
+\PYG{c}{\PYGZsh{}\PYGZsh{} meaning we will need get a new token and instantiate a new BaseSpaceAPI}
+\PYG{n}{p} \PYG{o}{=} \PYG{n}{myBaseSpaceAPI}\PYG{o}{.}\PYG{n}{getProjectById}\PYG{p}{(}\PYG{l+s}{'}\PYG{l+s}{89}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{c}{\PYGZsh{} A short-cut for getting a scope string if we already have a project-instance:}
+\PYG{k}{print} \PYG{n}{p}\PYG{o}{.}\PYG{n}{getAccessStr}\PYG{p}{(}\PYG{n}{scope}\PYG{o}{=}\PYG{l+s}{'}\PYG{l+s}{write}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{c}{\PYGZsh{} or simply}
+\PYG{n}{p}\PYG{o}{.}\PYG{n}{getAccessStr}\PYG{p}{(}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{write} \PYG{n}{project} \PYG{l+m+mi}{89}
+\end{Verbatim}
+
+Assuming we now have write access for the project, we will list the current analyses for the project:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{ana} \PYG{o}{=} \PYG{n}{p}\PYG{o}{.}\PYG{n}{getAnalyses}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The current analyses are }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{ana}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{The} \PYG{n}{current} \PYG{n}{analyses} \PYG{n}{are}
+\PYG{p}{[}\PYG{n}{Results} \PYG{k}{for} \PYG{n}{sample} \PYG{l+m+mi}{123} \PYG{o}{-} \PYG{n}{Working}\PYG{p}{,} \PYG{n}{Results} \PYG{k}{for} \PYG{n}{sample} \PYG{l+m+mi}{124} \PYG{o}{-} \PYG{n}{Working}\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\end{Verbatim}
+
+To create an analysis for a project, simply give the name and description to the \code{createAnalysis}-method:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{analysis} \PYG{o}{=} \PYG{n}{p}\PYG{o}{.}\PYG{n}{createAnalysis}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{,}\PYG{l+s}{"}\PYG{l+s}{My very first analysis!!}\PYG{l+s}{"}\PYG{p}{,}\PYG{l+s}{"}\PYG{l+s}{This is my analysis}\PYG{l+s}{"}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{Some info about our new analysis}\PYG{l+s}{"}
+\PYG{k}{print} \PYG{n}{analysis}
+\PYG{k}{print} \PYG{n}{analysis}\PYG{o}{.}\PYG{n}{Id}
+\PYG{k}{print} \PYG{n}{analysis}\PYG{o}{.}\PYG{n}{Status}
+\PYG{c}{\PYGZsh{} we can change the status of out analysis and add a status-summary as follows}
+\PYG{n}{analysis}\PYG{o}{.}\PYG{n}{setStatus}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{completed}\PYG{l+s}{'}\PYG{p}{,}\PYG{l+s}{"}\PYG{l+s}{We worked hard.}\PYG{l+s}{"}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{After a change of status we get}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{analysis}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{}\PYGZsh{}\PYGZsh{} List the analyses again and see if our new object shows up}
+\PYG{n}{ana} \PYG{o}{=} \PYG{n}{p}\PYG{o}{.}\PYG{n}{getAnalyses}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{The updated analyses are }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{ana}\PYG{p}{)}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+Output[]:
+
+Some info about our new analysis
+My very first analysis!! - Working
+94094
+Working
+
+After a change of status we get
+My very first analysis!! - Completed
+
+The updated analyses are
+[Results for sample 123 - Working, Results for sample 124 - Working, Results for sample 124 - Working, ...
+\end{Verbatim}
+
+Now we will make another analysis and try to upload some files to it:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{analysis2} \PYG{o}{=} \PYG{n}{p}\PYG{o}{.}\PYG{n}{createAnalysis}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{,}\PYG{l+s}{"}\PYG{l+s}{My second analysis}\PYG{l+s}{"}\PYG{p}{,}\PYG{l+s}{"}\PYG{l+s}{This one I will upload to}\PYG{l+s}{"}\PYG{p}{)}
+\PYG{n}{analysis2}\PYG{o}{.}\PYG{n}{uploadFile}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{,} \PYG{l+s}{'}\PYG{l+s}{/my/file/dir/testFile2.txt}\PYG{l+s}{'}\PYG{p}{,} \PYG{l+s}{'}\PYG{l+s}{BaseSpaceTestFile.txt}\PYG{l+s}{'}\PYG{p}{,} \PYG{l+s}{'}\PYG{l+s}{/mydir/}\PYG{l+s}{'}\PYG{p}{,} \PYG{l+s}{'}\PYG{l+s}{text/plain}\PYG{l+s}{'}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{My analysis number 2 }\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{"} \PYG{o}{+} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{analysis2}\PYG{p}{)}
+\PYG{c}{\PYGZsh{}}
+\PYG{c}{\PYGZsh{}\PYGZsh{} Check to see if our new file made it}
+\PYG{n}{analysisFiles} \PYG{o}{=} \PYG{n}{analysis2}\PYG{o}{.}\PYG{n}{getFiles}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{)}
+\PYG{k}{print} \PYG{l+s}{"}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{These are the files in the analysis}\PYG{l+s}{"}
+\PYG{k}{print} \PYG{n}{analysisFiles}
+\PYG{n}{f} \PYG{o}{=} \PYG{n}{analysisFiles}\PYG{p}{[}\PYG{o}{-}\PYG{l+m+mi}{1}\PYG{p}{]}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{Output}\PYG{p}{[}\PYG{p}{]}\PYG{p}{:}
+
+\PYG{n}{My} \PYG{n}{analysis} \PYG{n}{number} \PYG{l+m+mi}{2}
+\PYG{n}{My} \PYG{n}{second} \PYG{n}{analysis} \PYG{o}{-} \PYG{n}{Working}
+
+\PYG{n}{These} \PYG{n}{are} \PYG{n}{the} \PYG{n}{files} \PYG{o+ow}{in} \PYG{n}{the} \PYG{n}{analysis}
+\PYG{p}{[}\PYG{n}{BaseSpaceTestFile}\PYG{o}{.}\PYG{n}{txt}\PYG{p}{]}
+\end{Verbatim}
+
+We can even download our newly uploaded file in the following manner:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{f}\PYG{o}{.}\PYG{n}{downloadFile}\PYG{p}{(}\PYG{n}{myBaseSpaceAPI}\PYG{p}{,}\PYG{l+s}{'}\PYG{l+s}{/path/to/place/file/in/}\PYG{l+s}{'}\PYG{p}{)}
+\end{Verbatim}
+
+
 \chapter{Indices and tables}
 \label{index:indices-and-tables}\begin{itemize}
 \item {} 
 \emph{genindex}
-
-\item {} 
-\emph{modindex}
 
 \item {} 
 \emph{search}

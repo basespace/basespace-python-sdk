@@ -1,5 +1,12 @@
 \BOOKMARK [0][-]{chapter.1}{Available modules}{}
 \BOOKMARK [1][-]{section.1.1}{API}{chapter.1}
 \BOOKMARK [1][-]{section.1.2}{Models}{chapter.1}
-\BOOKMARK [0][-]{chapter.2}{Indices and tables}{}
-\BOOKMARK [0][-]{section*.64}{Index}{}
+\BOOKMARK [0][-]{chapter.2}{Getting Started}{}
+\BOOKMARK [1][-]{section.2.1}{Introduction}{chapter.2}
+\BOOKMARK [1][-]{section.2.2}{Application triggering}{chapter.2}
+\BOOKMARK [1][-]{section.2.3}{Requesting an access-token for data browsing}{chapter.2}
+\BOOKMARK [1][-]{section.2.4}{Browsing data with global browse-access}{chapter.2}
+\BOOKMARK [1][-]{section.2.5}{Accessing file-trees and querying BAM/VCF files}{chapter.2}
+\BOOKMARK [1][-]{section.2.6}{Creating an analysis and uploading results}{chapter.2}
+\BOOKMARK [0][-]{chapter.3}{Indices and tables}{}
+\BOOKMARK [0][-]{section*.81}{Index}{}

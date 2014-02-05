@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>BaseSpacePy.model.Sample &mdash; BaseSpacePy 0.1.2 documentation</title>
+    <title>BaseSpacePy.model.Sample &mdash; BaseSpacePy 0.1.3 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.2',
+        VERSION:     '0.1.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="BaseSpacePy 0.1.2 documentation" href="../../../index.html" />
+    <link rel="top" title="BaseSpacePy 0.1.3 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="../../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../../../index.html">BaseSpacePy 0.1.2 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">BaseSpacePy 0.1.3 documentation</a> &raquo;</li>
           <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -46,7 +46,21 @@
           <div class="body">
             
   <h1>Source code for BaseSpacePy.model.Sample</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2012 Illumina</span>
+
+<span class="sd">    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+<span class="sd">http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="sd"> </span>
+<span class="sd">    Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">BaseSpacePy.model.QueryParameters</span> <span class="kn">import</span> <span class="n">QueryParameters</span> <span class="k">as</span> <span class="n">qp</span>
 
 <div class="viewcode-block" id="Sample"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Sample.Sample">[docs]</a><span class="k">class</span> <span class="nc">Sample</span><span class="p">:</span>
@@ -65,10 +79,19 @@
             <span class="s">&#39;UserOwnedBy&#39;</span><span class="p">:</span> <span class="s">&#39;UserCompact&#39;</span><span class="p">,</span>
             <span class="s">&#39;ExperimentName&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;Run&#39;</span><span class="p">:</span> <span class="s">&#39;RunCompact&#39;</span><span class="p">,</span>
-            <span class="s">&#39;HrefGenome&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span>
+            <span class="s">&#39;HrefGenome&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;AppSession&#39;</span><span class="p">:</span> <span class="s">&#39;AppSession&#39;</span><span class="p">,</span>
+            <span class="s">&#39;AppSessionId&#39;</span><span class="p">:</span> <span class="s">&#39;int&#39;</span><span class="p">,</span>
+            <span class="s">&#39;IsPairedEnd&#39;</span><span class="p">:</span><span class="s">&#39;int&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Read1&#39;</span><span class="p">:</span><span class="s">&#39;int&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Read2&#39;</span><span class="p">:</span><span class="s">&#39;int&#39;</span><span class="p">,</span>
+            <span class="s">&#39;NumReadsRaw&#39;</span><span class="p">:</span><span class="s">&#39;int&#39;</span><span class="p">,</span>
+            <span class="s">&#39;NumReadsPF&#39;</span><span class="p">:</span><span class="s">&#39;int&#39;</span><span class="p">,</span>
+            <span class="s">&#39;References&#39;</span><span class="p">:</span><span class="s">&#39;dict&#39;</span>
         <span class="p">}</span>
+
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>  <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span><span class="p">)</span> 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 <div class="viewcode-block" id="Sample.isInit"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Sample.Sample.isInit">[docs]</a>    <span class="k">def</span> <span class="nf">isInit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -79,6 +102,9 @@
 <span class="sd">            ModelNotInitializedException - Indicated the Id variable is not set.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ModelNotInitializedException</span><span class="p">(</span><span class="s">&#39;The sample model has not been initialized yet&#39;</span><span class="p">)</span> <span class="c">#@UndefinedVariable</span>
+        
+<span class="c">#    def getGenome(self):</span>
+<span class="c">#        pass</span>
 </div>
 <div class="viewcode-block" id="Sample.getAccessStr"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Sample.Sample.getAccessStr">[docs]</a>    <span class="k">def</span> <span class="nf">getAccessStr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">scope</span><span class="o">=</span><span class="s">&#39;write&#39;</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
@@ -88,6 +114,20 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">scope</span> <span class="o">+</span> <span class="s">&#39; sample &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Sample.getReferencedAppResults"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Sample.Sample.getReferencedAppResults">[docs]</a>    <span class="k">def</span> <span class="nf">getReferencedAppResults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the AppResults referenced by this sample. Note the returned AppResult objects</span>
+<span class="sd">        do not have their &quot;References&quot; field set, to get a fully populate AppResult object</span>
+<span class="sd">        you must use getAppResultById in BaseSpaceAPI.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">References</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s">&#39;Type&#39;</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;AppResult&#39;</span><span class="p">:</span>
+                <span class="n">jsonAppResult</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s">&#39;Content&#39;</span><span class="p">]</span>
+                <span class="n">myAR</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">__serializeObject__</span><span class="p">(</span><span class="n">jsonAppResult</span><span class="p">,</span><span class="s">&quot;AppResult&quot;</span><span class="p">)</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">myAR</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
     </div>
 <div class="viewcode-block" id="Sample.getFiles"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.Sample.Sample.getFiles">[docs]</a>    <span class="k">def</span> <span class="nf">getFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span> <span class="n">myQp</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&#39;&#39;&#39;</span>
@@ -99,45 +139,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">isInit</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">getFilesBySample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span><span class="n">queryPars</span><span class="o">=</span><span class="n">qp</span><span class="p">(</span><span class="n">myQp</span><span class="p">))</span>
 
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HrefFiles</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">SampleNumber</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Id</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Href</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">UserOwnedBy</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># UserCompact</span>
-
-
-        <span class="c"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span>           <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefFiles</span>      <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SampleNumber</span>   <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Id</span>             <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Href</span>           <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UserOwnedBy</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># UserCompact</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ExperimentName</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Run</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># RunCompact</span>
-
-
-        <span class="c"># </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HrefGenome</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
-</pre></div></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Run</span>            <span class="o">=</span> <span class="bp">None</span> <span class="c"># RunCompact</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HrefGenome</span>     <span class="o">=</span> <span class="bp">None</span> <span class="c"># str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IsPairedEnd</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Read1</span>          <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Read2</span>          <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NumReadsRaw</span>    <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NumReadsPF</span>     <span class="o">=</span> <span class="bp">None</span> <span class="c"># int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">References</span>     <span class="o">=</span> <span class="bp">None</span> <span class="c"># dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AppSession</span>     <span class="o">=</span> <span class="bp">None</span>
+<span class="c">#        self.AppSessionId   = None</span></div></div>
+</pre></div>
 
           </div>
         </div>
@@ -167,12 +187,12 @@
         <li class="right" style="margin-right: 10px">
           <a href="../../../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../../../index.html">BaseSpacePy 0.1.2 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">BaseSpacePy 0.1.3 documentation</a> &raquo;</li>
           <li><a href="../../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2012, Morten Kallberg.
+        &copy; Copyright 2014, Illumina.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>
