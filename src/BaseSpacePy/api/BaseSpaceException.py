@@ -67,4 +67,9 @@ class UploadPartSizeException(Exception):
     def __str__(self):
         return repr(self.parameter)
 
+class CredentialsException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Error with BaseSpace credentials: ' + value
+    def __str__(self):
+        return repr(self.parameter)
     

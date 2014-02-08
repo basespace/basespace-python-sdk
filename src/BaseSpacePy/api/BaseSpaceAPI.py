@@ -25,6 +25,8 @@ import os
 import re
 from tempfile import mkdtemp
 import socket
+import ConfigParser
+import urlparse
 #import requests
 
 from BaseSpacePy.api.APIClient import APIClient
@@ -45,18 +47,136 @@ class BaseSpaceAPI(BaseAPI):
     '''
     The main API class used for all communication with the REST server
     '''
-    def __init__(self, clientKey, clientSecret, apiServer, version, appSessionId='', AccessToken='', timeout=10):
-        if not apiServer[-1]=='/': apiServer = apiServer + '/'
-        #if not version[-1]=='/': version = version + '/'
+    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', timeout=10, profile='DEFAULT'):
+        '''
+        The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):
+        clientK
         
-        self.appSessionId   = appSessionId
-        self.key            = clientKey
-        self.secret         = clientSecret
-        self.apiServer      = apiServer + version
-        self.version        = version
-        self.weburl         = apiServer.replace('api.','')        
-        super(BaseSpaceAPI, self).__init__(AccessToken, timeout)
+        :param clientKey: the client key of the user's app; required in constructor or config file
+        :param clientSecret: the client secret of the user's app; required in constructor or config file
+        :param apiServer: the URL of the BaseSpace api server; required in constructor or config file
+        :param version: the version of the BaseSpace API; required in constructor or config file
+        :param appSessionId: optional, though may be needed for AppSession-related methods
+        :param AccessToken: optional, though will be needed for most methods (except to obtain a new access token)
+        :param timeout: optional, timeout period in seconds for api calls, default 10 
+        :param profile: optional, name of profile in config file, default 'DEFAULT'
+        '''        
+        # TODO get rid of this
+        #if not apiServer[-1]=='/': apiServer = apiServer + '/'
+                
+        cred = self._set_credentials(clientKey, clientSecret, apiServer, version, appSessionId, AccessToken, profile)
+            
+        self.appSessionId   = cred['appSessionId']
+        self.key            = cred['clientKey']
+        self.secret         = cred['clientSecret']
+        self.apiServer      = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
+        self.version        = cred['apiVersion']        
+        if 'profile' in cred:
+            self.profile    = cred['profile']
+        # TODO this replacement won't work for all environments
+        self.weburl         = cred['apiServer'].replace('api.','')        
+        super(BaseSpaceAPI, self).__init__(cred['accessToken'], timeout)
 
+    def _set_credentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
+        '''
+        Returns dict with credentials from constructor, config file, or default (for optional args),
+        in this priority order for each credential.
+        If clientKey was provided only in config file, include 'name' (in return dict) with profile name
+        '''
+        lcl_cred = self._get_local_credentials(profile)
+        cred = {}
+        # required credentials
+        if clientKey is not None:
+            cred['clientKey'] = clientKey
+        else:
+            try:
+                cred['clientKey'] = lcl_cred['clientKey']
+            except KeyError:        
+                raise CredentialsException('Client Key not available - please provide in BaseSpaceAPI constructor or config file')
+            else:
+                # set profile name
+                if 'name' in lcl_cred:
+                    cred['profile'] = lcl_cred['name']
+                else:
+                    cred['profile'] = profile
+        if clientSecret is not None:
+            cred['clientSecret'] = clientSecret
+        else:
+            try:
+                cred['clientSecret'] = lcl_cred['clientSecret']
+            except KeyError:        
+                raise CredentialsException('Client Secret not available - please provide in BaseSpaceAPI constructor or config file')
+        if apiServer is not None:
+            cred['apiServer'] = apiServer
+        else:
+            try:
+                cred['apiServer'] = lcl_cred['apiServer']
+            except KeyError:        
+                raise CredentialsException('API Server URL not available - please provide in BaseSpaceAPI constructor or config file')
+        if apiVersion is not None:
+            cred['apiVersion'] = apiVersion
+        else:
+            try:
+                cred['apiVersion'] = lcl_cred['apiVersion']
+            except KeyError:        
+                raise CredentialsException('API version available - please provide in BaseSpaceAPI constructor or config file')        
+        # Optional credentials 
+        if appSessionId:
+            cred['appSessionId'] = appSessionId
+        elif 'apiVersion' in lcl_cred:            
+            cred['appSessionId'] = lcl_cred['appSessionId']
+        else:
+            cred['appSessionId'] = appSessionId
+        
+        if accessToken:
+            cred['accessToken'] = accessToken
+        elif 'accessToken' in lcl_cred:            
+            cred['accessToken'] = lcl_cred['accessToken']
+        else:
+            cred['accessToken'] = accessToken
+        
+        return cred            
+
+    def _get_local_credentials(self, profile):
+        '''
+        Returns a dict with credentials from local config file (~/.basespacepy.cfg)
+        If some or all credentials are missing, they aren't included the in the returned dict
+        '''
+        config_file = os.path.expanduser('~/.basespacepy.cfg')
+        cred = {}        
+        config = ConfigParser.SafeConfigParser()
+        if config.read(config_file):
+            if not config.has_section(profile) and profile.lower() != 'default':                
+                raise CredentialsException("Profile name '%s' not present in config file %s" % (profile, config_file))
+            try:
+                cred['name'] = config.get(profile, "name")
+            except ConfigParser.NoOptionError:
+                pass
+            try:
+                cred['clientKey'] = config.get(profile, "clientKey")
+            except ConfigParser.NoOptionError:
+                pass
+            try:
+                cred['clientSecret'] = config.get(profile, "clientSecret")
+            except ConfigParser.NoOptionError:
+                pass
+            try:
+                cred['apiServer'] = config.get(profile, "apiServer")
+            except ConfigParser.NoOptionError:
+                pass
+            try:
+                cred['apiVersion'] = config.get(profile, "apiVersion")
+            except ConfigParser.NoOptionError:
+                pass
+            try: 
+                cred['appSessionId'] = config.get(profile, "appSessionId")
+            except ConfigParser.NoOptionError:
+                pass
+            try:
+                cred['accessToken'] = config.get(profile, "accessToken")
+            except ConfigParser.NoOptionError:
+                pass            
+        return cred
 
     def __getTriggerObject__(self,obj):
         '''
