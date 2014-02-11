@@ -14,28 +14,43 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
-import os
-import helper 
+import os 
 
 """
 This script demonstrates basic browsing of BaseSpace objects once an access-token
 for global browsing has been obtained. 
 """
 
-# FILL IN WITH YOUR APP VALUES HERE!
-client_key                 = ""
-client_secret              = ""
-AppSessionId               = ""
-accessToken                = ""
-# test if client variables have been set
-helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
+"""
+NOTE: You will need to provide the credentials for your app (available in the developer portal)
+You can do this with a master config file (preferred), or by filling in values below.
 
-BaseSpaceUrl               = 'https://api.basespace.illumina.com/'
-version                    = 'v1pre3'
+To create a master config file, create a file named ~/.basespace.cfg with the following content,
+filling in the clientKey, clientSecret, and accessToken (optionally appSessionId):
+[DEFAULT]
+name = my new app
+clientKey =
+clientSecret = 
+accessToken = 
+appSessionId =
+apiServer = https://api.cloud-hoth.illumina.com/
+apiVersion = v1pre3
 
-# First, create a client for making calls for this user session 
-myAPI   = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId,AccessToken=accessToken)
+"""
+# Alternately, fill in you app's credentials here:
+clientKey                 = ""
+clientSecret              = ""
+appSessionId              = ""
+apiServer                 = 'https://api.basespace.illumina.com/' # or 'https://api.cloud-hoth.illumina.com/'
+apiVersion                = 'v1pre3'
 
+# First we will initialize a BaseSpace API object using our app information and the appSessionId
+if clientKey:
+    myAPI = BaseSpaceAPI(clientKey, clientSecret, apiServer, apiVersion, appSessionId)
+else:
+    myAPI = BaseSpaceAPI(profile='DEFAULT')
+    
+    
 # First, let's grab the genome with id=4
 myGenome    = myAPI.getGenomeById('4')
 print "\nThe Genome is " + str(myGenome)

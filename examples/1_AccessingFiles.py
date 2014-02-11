@@ -14,28 +14,40 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
-import helper
 import os
 """
 This script demonstrates how to access Samples and AppResults from a projects and how to work with the available 
 file data for such instances. 
 """
 
-# FILL IN WITH YOUR APP VALUES HERE!
-client_key                 = ""
-client_secret              = ""
-AppSessionId               = ""
-accessToken                = ""
-helper.checkClientVars({'client_key':client_key,'client_secret':client_secret,'AppSessionId':AppSessionId}) 
+"""
+NOTE: The coverage and variants API calls below require access to a public 
+dataset. Before running the example, first go to cloud-hoth.illumina.com,
+login, click on Public Data, select the dataset named 'MiSeq B. cereus demo 
+data', and click the Import button for the Project named 'BaseSpaceDemo'.
+"""
 
-BaseSpaceUrl               = 'https://api.basespace.illumina.com/'
-version                    = 'v1pre3'
+"""
+NOTE: You will need to provide the credentials for your app (available in the developer portal).
+You can do this with a master config file (preferred), or by filling in values below.
+"""
+# If you're not using a config file, fill in you app's credentials here:
+clientKey                 = ""
+clientSecret              = ""
+appSessionId              = ""
+apiServer                 = 'https://api.basespace.illumina.com/' # or 'https://api.cloud-hoth.illumina.com/'
+apiVersion                = 'v1pre3'
 
-# First, create a client for making calls for this user session 
-myAPI           = BaseSpaceAPI(client_key, client_secret, BaseSpaceUrl, version, AppSessionId,AccessToken=accessToken)
+# First we will initialize a BaseSpace API object using our app information and the appSessionId
+if clientKey:
+    myAPI = BaseSpaceAPI(clientKey, clientSecret, apiServer, apiVersion, appSessionId)
+else:
+    myAPI = BaseSpaceAPI(profile='DEFAULT')
+
+
+
 user            = myAPI.getUserById('current')
 myProjects      = myAPI.getProjectByUser('current')
-
 
 # Let's list all the AppResults and samples for these projects
 for singleProject in myProjects:
@@ -59,17 +71,20 @@ for s in samples:
 
 ## Now let's do some work with files 
 ## we'll grab a BAM by id and get the coverage for an interval + accompanying meta-data 
-myBam = myAPI.getFileById('2150156')
+myBam = myAPI.getFileById('9895890')
 print myBam
-cov     = myBam.getIntervalCoverage(myAPI,'chr2','1','20000')
+cov     = myBam.getIntervalCoverage(myAPI,'chr','1','100')
 print cov 
-covMeta = myBam.getCoverageMeta(myAPI,'chr2')
-print covMeta
+try:
+   covMeta = myBam.getCoverageMeta(myAPI,'chr')
+except Exception as e:
+    print "Coverage metadata may not be available for this BAM file: %s" % str(e)
+else:
+    print covMeta
 #
 ## and a vcf file
-myVCF = myAPI.getFileById('2150158')
-##Let's get the variant meta info 
+myVCF = myAPI.getFileById('9895892')
 varMeta = myVCF.getVariantMeta(myAPI)
 print varMeta
-var     = myVCF.filterVariant(myAPI,'2','1', '11000') 
+var     = myVCF.filterVariant(myAPI,'chr','1', '25000') 
 print var
