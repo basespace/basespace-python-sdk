@@ -3,16 +3,18 @@ import os
 import sys
 from tempfile import mkdtemp
 import shutil
+import urlparse
+from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 from BaseSpacePy.api.APIClient import APIClient
-from BaseSpacePy.api.BaseSpaceException import ByteRangeException, UploadPartSizeException
+from BaseSpacePy.api.BaseSpaceException import ByteRangeException, UploadPartSizeException, CredentialsException
 from BaseSpacePy.model.MultipartFileTransfer import Utils
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
-import app_data
 
-###
-# on cloud-hoth, your BaseSpace account must have access to the B. cereus Project and Run
-# which are in Public Data (Project name 'BaseSpaceDemo', Id 596596) and (Run name 'BacillusCereus', Id 555555)
-###
+# Dependencies:
+# 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com; there should also be a 'DEFALT' profile in the config file
+# 2. Import the following data from Public Data on cloud-hoth.illumina.com:
+#    From Public Dataset 'B. cereus': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
+
 tconst = { 
            # for download tests
            'file_id_small': '9896072', # 2.2 KB,  public data B. cereus Project, data/intentisties/basecalls/Alignment/DemultiplexSummaryF1L1.9.txt
@@ -32,8 +34,7 @@ tconst = {
            # for runs
            'run_id': '555555', # public data B. cereus Run
            'run_name': 'BacillusCereus',
-           'run_property_samples_0_name': 'BC_1',
-           'run_files_len': 100,
+           'run_property_samples_0_name': 'BC_1',        
            'run_file_0_name': 'RTAComplete.txt',
            'run_samples_len': 12,
            'run_sample_0_name': 'BC_1'
@@ -50,11 +51,7 @@ class TestAppResultUploadMethods(unittest.TestCase):
         Create a new 'unit test' project, or get it if exists, to upload to data to.
         Then create a new app result in this project, getting a new app session id
         '''
-        try:
-            unit_test_app = app_data.unit_test_app
-        except Exception as e:
-            raise Exception("You must first enter your app's credentials to run tests")                
-        cls.api = unit_test_app.bs_api()        
+        cls.api = BaseSpaceAPI(profile='unit_tests')
         cls.proj = cls.api.createProject(tconst['test_upload_project_name'])                        
         cls.ar = cls.proj.createAppResult(cls.api, "test appresult upload", "test appresult upload", appSessionId="")
 
@@ -80,12 +77,8 @@ class TestFileDownloadMethods(unittest.TestCase):
     '''
     Tests methods of File objects
     '''
-    def setUp(self):
-        try:
-            unit_test_app = app_data.unit_test_app
-        except Exception as e:
-            raise Exception("You must first enter your app's credentials to run tests")                
-        self.api = unit_test_app.bs_api()
+    def setUp(self):        
+        self.api = BaseSpaceAPI(profile='unit_tests')
         self.file = self.api.getFileById(tconst['file_id_small'])
         self.temp_dir = mkdtemp()    
             
@@ -141,12 +134,8 @@ class TestAPIUploadMethods(unittest.TestCase):
         For all upload unit tests (not per test):
         Create a new 'unit test' project, or get it if exists, to upload to data to.
         Then create a new app result in this project, getting a new app session id
-        '''
-        try:
-            unit_test_app = app_data.unit_test_app
-        except Exception as e:
-            raise Exception("You must first enter your app's credentials to run tests")                
-        cls.api = unit_test_app.bs_api()        
+        '''        
+        cls.api = BaseSpaceAPI(profile='unit_tests')        
         cls.proj = cls.api.createProject(tconst['test_upload_project_name'])                        
         cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
 
@@ -268,12 +257,8 @@ class TestAPIDownloadMethods(unittest.TestCase):
     '''
     Tests single and multi-part download methods
     '''
-    def setUp(self):
-        try:
-            unit_test_app = app_data.unit_test_app
-        except Exception as e:
-            raise Exception("You must first enter your app's credentials to run tests")                
-        self.api = unit_test_app.bs_api()
+    def setUp(self):        
+        self.api = BaseSpaceAPI(profile='unit_tests')
         self.temp_dir = mkdtemp()    
             
     def tearDown(self):
@@ -455,31 +440,27 @@ class TestRunMethods(unittest.TestCase):
     def setUp(self):        
         '''
         Get Run and API objects
-        '''        
-        try:
-            unit_test_app = app_data.unit_test_app
-        except Exception as e:
-            raise Exception("You must first enter your app's credentials to run tests")                
-        self.api = unit_test_app.bs_api()
+        '''                
+        self.api = BaseSpaceAPI(profile='unit_tests')
         self.run = self.api.getRunById(tconst['run_id'])                                        
 
     def test_run_files(self):
         rf = self.run.getFiles(self.api)
-        self.assertEqual(len(rf), tconst['run_files_len'])
+        self.assertEqual(len(rf), 10)
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
         
     def test_run_files_with_qp_limit(self):
-        rf = self.run.getFiles(self.api, {'Limit':10})
-        self.assertEqual(len(rf), 10)
+        rf = self.run.getFiles(self.api, {'Limit':200})
+        self.assertEqual(len(rf), 200)
 
     def test_run_samples(self):
         rs = self.run.getSamples(self.api)
-        self.assertEqual(len(rs), tconst['run_samples_len'])
+        self.assertEqual(len(rs), 10)
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         
     def test_run_samples_with_qp_limit(self):
-        rs = self.run.getSamples(self.api, {'Limit':10})
-        self.assertEqual(len(rs), 10)
+        rs = self.run.getSamples(self.api, {'Limit':200})
+        self.assertEqual(len(rs), tconst['run_samples_len'])
 
 class TestAPIRunMethods(unittest.TestCase):
     '''
@@ -488,12 +469,8 @@ class TestAPIRunMethods(unittest.TestCase):
     def setUp(self):        
         '''
         Get an API object
-        '''        
-        try:
-            unit_test_app = app_data.unit_test_app
-        except Exception as e:
-            raise Exception("You must first enter your app's credentials to run tests")                
-        self.api = unit_test_app.bs_api()
+        '''                
+        self.api = BaseSpaceAPI(profile='unit_tests')
 
     def test_run(self):                                                    
         rf = self.api.getRunById(tconst['run_id'])        
@@ -509,21 +486,117 @@ class TestAPIRunMethods(unittest.TestCase):
 
     def test_run_files(self):                                                    
         rf = self.api.getRunFilesById(tconst['run_id'])
-        self.assertEqual(len(rf), tconst['run_files_len'])
+        self.assertEqual(len(rf), 10)
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
         
     def test_run_files_with_qp_limit(self):
-        rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':10}))
-        self.assertEqual(len(rf), 10)
+        rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':200}))
+        self.assertEqual(len(rf), 200)
 
     def test_run_samples(self):
         rs = self.api.getRunSamplesById(tconst['run_id'])
-        self.assertEqual(len(rs), tconst['run_samples_len'])
+        self.assertEqual(len(rs), 10)
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         
     def test_run_samples_with_qp_limit(self):
-        rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':10}))
-        self.assertEqual(len(rs), 10)
+        rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':200}))
+        self.assertEqual(len(rs), tconst['run_samples_len'])
+
+class TestAPICredentialsMethods(unittest.TestCase):
+    '''
+    Tests API object credentials methods
+    '''        
+    def setUp(self):        
+        self.api = BaseSpaceAPI(profile='unit_tests')
+
+    def test__set_credentials_all_from_profile(self):                                                            
+        creds = self.api._set_credentials(clientKey=None, clientSecret=None,
+            apiServer=None, apiVersion=None, appSessionId='', accessToken='',
+            profile='DEFAULT')
+        self.assertEqual(creds['clientKey'], self.api.key)
+        self.assertEqual('profile' in creds, True)
+        self.assertEqual(creds['clientSecret'], self.api.secret)
+        self.assertEqual(urlparse.urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
+        self.assertEqual(creds['apiVersion'], self.api.version)
+        self.assertEqual(creds['appSessionId'], self.api.appSessionId)
+        self.assertEqual(creds['accessToken'], self.api.getAccessToken())
+
+    def test__set_credentials_all_from_constructor(self):                                                            
+        creds = self.api._set_credentials(clientKey='test_key', clientSecret='test_secret',
+            apiServer='https://www.test.server.com', apiVersion='test_version', appSessionId='test_ssn',
+            accessToken='test_token', profile='DEFAULT')
+        self.assertNotEqual(creds['clientKey'], self.api.key)
+        self.assertNotEqual('profile' in creds, True)
+        self.assertNotEqual(creds['clientSecret'], self.api.secret)
+        self.assertNotEqual(urlparse.urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
+        self.assertNotEqual(creds['apiVersion'], self.api.version)
+        self.assertNotEqual(creds['appSessionId'], self.api.appSessionId)
+        self.assertNotEqual(creds['accessToken'], self.api.getAccessToken())
+
+    def test__set_credentials_missing_config_creds_exception(self):
+        # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
+        # 1) mv current .basespacepy.cfg, 2) create new with new content,
+        # 3) run test, 4) erase new, 5) mv current back        
+        cfg = os.path.expanduser('~/.basespacepy.cfg')
+        tmp_cfg = cfg + '.unittesting.donotdelete'
+        shutil.move(cfg, tmp_cfg)                
+        new_cfg_content = ("[DEFAULT]\n"                                                                           
+                          "accessToken=test\n"
+                          "appSessionId=test\n")
+        with open(cfg, "w") as f:
+            f.write(new_cfg_content)
+        with self.assertRaises(CredentialsException):
+            creds = self.api._set_credentials(clientKey=None, clientSecret=None,
+                apiServer=None, apiVersion=None, appSessionId='', accessToken='',
+                profile='DEFAULT')
+        os.remove(cfg)
+        shutil.move(tmp_cfg, cfg)
+
+    def test__set_credentials_defaults_for_optional_args(self):
+        # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
+        # 1) mv current .basespacepy.cfg, 2) create new with new content,
+        # 3) run test, 4) erase new, 5) mv current back
+        cfg = os.path.expanduser('~/.basespacepy.cfg')
+        tmp_cfg = cfg + '.unittesting.donotdelete'
+        shutil.move(cfg, tmp_cfg)                
+        new_cfg_content = ("[DEFAULT]\n"                       
+                          "clientKey=test\n"
+                          "clientSecret=test\n"                                                    
+                          "apiServer=test\n"
+                          "apiVersion=test\n")                          
+        with open(cfg, "w") as f:
+            f.write(new_cfg_content)    
+        creds = self.api._set_credentials(clientKey=None, clientSecret=None,
+                apiServer=None, apiVersion=None, appSessionId='', accessToken='',
+                profile='DEFAULT')
+        self.assertEqual(creds['appSessionId'], '')
+        self.assertEqual(creds['accessToken'], '')
+        os.remove(cfg)
+        shutil.move(tmp_cfg, cfg)        
+
+    def test__get_local_credentials(self):                                                            
+        creds = self.api._get_local_credentials(profile='unit_tests')
+        self.assertEqual('name' in creds, True)
+        self.assertEqual('clientKey' in creds, True)
+        self.assertEqual('clientSecret' in creds, True)
+        self.assertEqual('apiServer' in creds, True)
+        self.assertEqual('apiVersion' in creds, True)
+        self.assertEqual('appSessionId' in creds, True)
+        self.assertEqual('accessToken' in creds, True)
+
+    def test__get_local_credentials_default_profile(self):
+        creds = self.api._get_local_credentials(profile='DEFAULT')
+        self.assertEqual('name' in creds, True)
+        self.assertEqual('clientKey' in creds, True)
+        self.assertEqual('clientSecret' in creds, True)
+        self.assertEqual('apiServer' in creds, True)
+        self.assertEqual('apiVersion' in creds, True)
+        self.assertEqual('appSessionId' in creds, True)
+        self.assertEqual('accessToken' in creds, True)
+
+    def test__get_local_credentials_missing_profile(self):                                                        
+        with self.assertRaises(CredentialsException):
+            creds = self.api._get_local_credentials(profile="SuperCallaFragaListic AppTastic")                
 
 #if __name__ == '__main__':   
 #    unittest.main()
@@ -534,6 +607,7 @@ suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
 # non-file-transfer tests
 suite5 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
 suite6 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
-#alltests = unittest.TestSuite([suite6])
-alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6])
+suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
+#alltests = unittest.TestSuite([suite7])
+alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7])
 unittest.TextTestRunner(verbosity=2).run(alltests)

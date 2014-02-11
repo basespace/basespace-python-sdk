@@ -49,8 +49,7 @@ class BaseSpaceAPI(BaseAPI):
     '''
     def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', timeout=10, profile='DEFAULT'):
         '''
-        The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):
-        clientK
+        The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):        
         
         :param clientKey: the client key of the user's app; required in constructor or config file
         :param clientSecret: the client secret of the user's app; required in constructor or config file
@@ -123,15 +122,21 @@ class BaseSpaceAPI(BaseAPI):
         # Optional credentials 
         if appSessionId:
             cred['appSessionId'] = appSessionId
-        elif 'apiVersion' in lcl_cred:            
-            cred['appSessionId'] = lcl_cred['appSessionId']
+        elif 'apiVersion' in lcl_cred:
+            try:
+                cred['appSessionId'] = lcl_cred['appSessionId']
+            except KeyError:
+                cred['appSessionId'] = appSessionId
         else:
             cred['appSessionId'] = appSessionId
         
         if accessToken:
             cred['accessToken'] = accessToken
         elif 'accessToken' in lcl_cred:            
-            cred['accessToken'] = lcl_cred['accessToken']
+            try:
+                cred['accessToken'] = lcl_cred['accessToken']
+            except KeyError:
+                cred['accessToken'] = accessToken
         else:
             cred['accessToken'] = accessToken
         
