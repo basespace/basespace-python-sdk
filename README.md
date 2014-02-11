@@ -57,6 +57,28 @@ To test that everything is working as expected, launch a Python prompt and try i
 	>>> import BaseSpacePy
 
 
+GETTING STARTED
+=========================================
+For most API calls, you will need credentials from an app. To create an app, go to the [BaseSpace developer portal](https://developer.basespace.illumina.com/) and create one. Naviagate to the Credentials tab of your app in the developer portal.
+
+You can 1) store your credentials in a config file or 2) provide them as arguments to methods. To use a config file, create a file named '~/.basespace.cfg' with the following content, and add your app's credentials (appSessionId is not required for many methods):
+
+	[DEFAULT]
+	name = my new app
+	clientKey =
+	clientSecret =
+	accessToken =
+	appSessionId =
+	apiServer = https://api.basespace.illumina.com/
+	apiVersion = v1pre3
+
+Now you can get started quickly with code such as:
+
+	from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
+	myAPI = BaseSpaceAPI()
+	user = myAPI.getUserById('current')
+
+
 CHANGELOG
 =========================================
 
@@ -64,6 +86,7 @@ v 0.1.3
 -----------------------------------------
 - Added support for large-file (multipart) upload and download.
 - Added methods to get a Run's Files or Samples
+- Added support for a config file to store credentials
 
 v 0.1.2
 -----------------------------------------
