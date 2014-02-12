@@ -17,6 +17,7 @@ import webbrowser
 import time
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 from BaseSpacePy.api.BillingAPI import BillingAPI
+from BaseSpacePy.model.QueryParametersPurchasedProduct import QueryParametersPurchasedProduct as qpp
 """
 This example demonstrates the billing methods of BaseSpace.
 
@@ -74,8 +75,7 @@ print "\nRefunding the Purchase"
 refunded_purchase = billAPI.refundPurchase(purchaseId, refundSecret, comment='the product did not function well as a frisbee')
 
 print "\nGetting all purchases for the current user with the tags we used for the purchase above"
-#purch_prods = billAPI.getUserProducts()
-purch_prods = billAPI.getUserProducts( Id='current', qps={'Tags':'test,test_tag'})
+purch_prods = billAPI.getUserProducts(Id='current', queryPars=qpp( {'Tags':'test,test_tag'} ))
 if not len(purch_prods):
     print "\nHmmm, didn't find any purchases with these tags. Did everything go OK above?\n"
 else:

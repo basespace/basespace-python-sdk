@@ -263,6 +263,8 @@ class BaseSpaceAPI(BaseAPI):
         '''                
         if queryPars is None:
             queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         resourcePath = '/appsessions/{Id}/properties'
         resourcePath = resourcePath.replace('{Id}',Id)
         method = 'GET'
@@ -282,7 +284,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
         '''                
         if queryPars is None:
-            queryPars = qp()        
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")        
         resourcePath = '/appsessions/{Id}/properties/{Name}/items'
         resourcePath = resourcePath.replace('{Id}', Id)
         resourcePath = resourcePath.replace('{Name}', name)        
@@ -301,7 +305,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
         '''
         if queryPars is None:
-            queryPars = qp()        
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         props = self.getAppSessionPropertiesById(Id, queryPars)
         inputs = {}
         for prop in props.Items:
@@ -420,7 +426,9 @@ class BaseSpaceAPI(BaseAPI):
         '''
         # Parse inputs
         if queryPars is None:
-            queryPars = qp()        
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         resourcePath = '/appresults/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -439,7 +447,9 @@ class BaseSpaceAPI(BaseAPI):
         '''
         # Parse inputs
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")            
         resourcePath = '/appresults/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -458,7 +468,9 @@ class BaseSpaceAPI(BaseAPI):
         '''
         # Parse inputs
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -476,7 +488,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/projects/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -494,7 +508,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")       
         resourcePath = '/projects/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -512,7 +528,9 @@ class BaseSpaceAPI(BaseAPI):
         :param qp: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")               
         resourcePath = '/users/{Id}/projects'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -530,7 +548,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")               
         resourcePath = '/users/{Id}/runs'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -548,7 +568,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/runs/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -566,7 +588,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/runs/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -584,7 +608,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/runs/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -602,7 +628,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/runs/{Id}/samples'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -621,7 +649,9 @@ class BaseSpaceAPI(BaseAPI):
         :param statuses: An (optional) list of AppResult statuses to filter by
         '''
         if queryPars is None:
-            queryPars = qp() 
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object") 
         if statuses is None:
             statuses = []               
         resourcePath = '/projects/{Id}/appresults'
@@ -642,7 +672,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/projects/{Id}/samples'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -660,7 +692,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()        
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")        
         resourcePath = '/samples/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -678,7 +712,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                        
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                        
         resourcePath = '/samples/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -696,7 +732,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/samples/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -714,7 +752,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/files/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -733,7 +773,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/files/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -766,7 +808,9 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
-            queryPars = qp()                
+            queryPars = qp()
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
         resourcePath = '/genomes'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -808,6 +852,8 @@ class BaseSpaceAPI(BaseAPI):
         '''
         if queryPars is None:
             queryPars=qp(pars={'SortBy':'Position'})
+        elif not isinstance(queryPars, qp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         resourcePath = '/variantset/{Id}/variants/{Chrom}'
         method = 'GET'
         queryPars.validate()

@@ -85,15 +85,17 @@ class Sample(object):
                 res.append(myAR)
         return res
     
-    def getFiles(self,api, myQp={}):
+    def getFiles(self,api, queryPars=None):
         '''
         Returns a list of File objects
         
         :param api: A BaseSpaceAPI instance
-        :param myQp: Query parameters to sort and filter the file list by.
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         self.isInit()
-        return api.getFilesBySample(self.Id,queryPars=qp(myQp))
+        if queryPars is None:
+            queryPars = qp()
+        return api.getFilesBySample(self.Id, queryPars=queryPars)
 
         self.Name           = None # str
         self.HrefFiles      = None # str

@@ -83,15 +83,17 @@ class AppResult(object):
             res.append(sample)                            
         return res
     
-    def getFiles(self,api,myQp={}):
+    def getFiles(self, api, queryPars=None):
         '''
         Returns a list of file objects
         
         :param api: An instance of BaseSpaceAPI
-        :param myQp: (Optional) QueryParameters for sorting and filtering the file list 
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
         self.isInit()
-        return api.getAppResultFiles(self.Id,queryPars=qp(myQp))
+        if queryPars is None:
+            queryPars = qp()
+        return api.getAppResultFiles(self.Id, queryPars=queryPars)
        
     def uploadFile(self, api, localPath, fileName, directory, contentType):
         '''

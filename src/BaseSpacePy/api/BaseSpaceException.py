@@ -21,7 +21,7 @@ class UndefinedParameterException(Exception):
 
 class UnknownParameterException(Exception):
     def __init__(self, value):
-        self.parameter = str(value) + ' is not regcognized as a parameter for this call'
+        self.parameter = str(value) + ' is not recognized as a parameter for this call'
     def __str__(self):
         return repr(self.parameter)
 
@@ -72,4 +72,9 @@ class CredentialsException(Exception):
         self.parameter = 'Error with BaseSpace credentials: ' + value
     def __str__(self):
         return repr(self.parameter)
-    
+
+class QueryParameterException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Error with query parameter: ' + value
+    def __str__(self):
+        return repr(self.parameter)

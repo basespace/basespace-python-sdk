@@ -87,6 +87,7 @@ v 0.1.3
 - Added support for large-file (multipart) upload and download.
 - Added methods to get a Run's Files or Samples
 - Added support for a config file to store credentials
+- Made consistent all queryParameter arguments to accept objects (not dicts)
 
 v 0.1.2
 -----------------------------------------

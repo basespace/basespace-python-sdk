@@ -450,7 +450,7 @@ class TestRunMethods(unittest.TestCase):
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
         
     def test_run_files_with_qp_limit(self):
-        rf = self.run.getFiles(self.api, {'Limit':200})
+        rf = self.run.getFiles(self.api, qp({'Limit':200}))
         self.assertEqual(len(rf), 200)
 
     def test_run_samples(self):
@@ -459,7 +459,7 @@ class TestRunMethods(unittest.TestCase):
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         
     def test_run_samples_with_qp_limit(self):
-        rs = self.run.getSamples(self.api, {'Limit':200})
+        rs = self.run.getSamples(self.api, qp({'Limit':200}))
         self.assertEqual(len(rs), tconst['run_samples_len'])
 
 class TestAPIRunMethods(unittest.TestCase):
@@ -507,12 +507,13 @@ class TestAPICredentialsMethods(unittest.TestCase):
     Tests API object credentials methods
     '''        
     def setUp(self):        
-        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.profile = 'unit_tests'
+        self.api = BaseSpaceAPI(profile=self.profile)
 
     def test__set_credentials_all_from_profile(self):                                                            
         creds = self.api._set_credentials(clientKey=None, clientSecret=None,
             apiServer=None, apiVersion=None, appSessionId='', accessToken='',
-            profile='DEFAULT')
+            profile=self.profile)
         self.assertEqual(creds['clientKey'], self.api.key)
         self.assertEqual('profile' in creds, True)
         self.assertEqual(creds['clientSecret'], self.api.secret)
@@ -524,7 +525,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
     def test__set_credentials_all_from_constructor(self):                                                            
         creds = self.api._set_credentials(clientKey='test_key', clientSecret='test_secret',
             apiServer='https://www.test.server.com', apiVersion='test_version', appSessionId='test_ssn',
-            accessToken='test_token', profile='DEFAULT')
+            accessToken='test_token', profile=self.profile)
         self.assertNotEqual(creds['clientKey'], self.api.key)
         self.assertNotEqual('profile' in creds, True)
         self.assertNotEqual(creds['clientSecret'], self.api.secret)
@@ -540,7 +541,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         cfg = os.path.expanduser('~/.basespacepy.cfg')
         tmp_cfg = cfg + '.unittesting.donotdelete'
         shutil.move(cfg, tmp_cfg)                
-        new_cfg_content = ("[DEFAULT]\n"                                                                           
+        new_cfg_content = ("[" + self.profile + "]\n"
                           "accessToken=test\n"
                           "appSessionId=test\n")
         with open(cfg, "w") as f:
@@ -548,7 +549,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         with self.assertRaises(CredentialsException):
             creds = self.api._set_credentials(clientKey=None, clientSecret=None,
                 apiServer=None, apiVersion=None, appSessionId='', accessToken='',
-                profile='DEFAULT')
+                profile=self.profile)
         os.remove(cfg)
         shutil.move(tmp_cfg, cfg)
 
@@ -559,7 +560,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         cfg = os.path.expanduser('~/.basespacepy.cfg')
         tmp_cfg = cfg + '.unittesting.donotdelete'
         shutil.move(cfg, tmp_cfg)                
-        new_cfg_content = ("[DEFAULT]\n"                       
+        new_cfg_content = ("[" + self.profile + "]\n"                       
                           "clientKey=test\n"
                           "clientSecret=test\n"                                                    
                           "apiServer=test\n"
@@ -568,7 +569,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
             f.write(new_cfg_content)    
         creds = self.api._set_credentials(clientKey=None, clientSecret=None,
                 apiServer=None, apiVersion=None, appSessionId='', accessToken='',
-                profile='DEFAULT')
+                profile=self.profile)
         self.assertEqual(creds['appSessionId'], '')
         self.assertEqual(creds['accessToken'], '')
         os.remove(cfg)
@@ -585,7 +586,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         self.assertEqual('accessToken' in creds, True)
 
     def test__get_local_credentials_default_profile(self):
-        creds = self.api._get_local_credentials(profile='DEFAULT')
+        creds = self.api._get_local_credentials(profile=self.profile)
         self.assertEqual('name' in creds, True)
         self.assertEqual('clientKey' in creds, True)
         self.assertEqual('clientSecret' in creds, True)

@@ -56,22 +56,26 @@ class Run(object):
         except:
             raise ModelNotInitializedException('The Run model has not been initialized yet')
     
-    def getFiles(self, api, myQp={}):
+    def getFiles(self, api, queryPars=None):
         '''
         Returns a list of File objects associated with the Run
         
         :param api: An instance of BaseSpaceAPI
-        :param myQp: (Optional) dictionary of query parameters for sorting and filtering the file list 
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
         self.isInit()
-        return api.getRunFilesById(self.Id, queryPars=qp(myQp))
+        if queryPars is None:
+            queryPars = qp()
+        return api.getRunFilesById(self.Id, queryPars=queryPars)
        
-    def getSamples(self, api, myQp={}):
+    def getSamples(self, api, queryPars=None):
         '''
         Returns a list of Sample objects associated with the Run
         
         :param api: An instance of BaseSpaceAPI
-        :param myQp: (Optional) dictionary of query parameters for sorting and filtering the samples list 
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
         self.isInit()
-        return api.getRunSamplesById(self.Id, queryPars=qp(myQp))
+        if queryPars is None:
+            queryPars = qp()
+        return api.getRunSamplesById(self.Id, queryPars=queryPars)

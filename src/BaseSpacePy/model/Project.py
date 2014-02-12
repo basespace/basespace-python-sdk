@@ -57,15 +57,18 @@ class Project(object):
         self.isInit()
         return scope + ' project ' + str(self.Id)
     
-    def getAppResults(self,api,myQp={},statuses=[]):
+    def getAppResults(self, api, queryPars=None, statuses=[]):
         '''
         Returns a list of AppResult objects.
         
         :param api: An instance of BaseSpaceAPI
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :param statuses: An optional list of statuses
         '''
         self.isInit()
-        return api.getAppResultsByProject(self.Id, queryPars=qp(myQp),statuses=statuses)
+        if queryPars is None:
+            queryPars = qp()
+        return api.getAppResultsByProject(self.Id, queryPars=queryPars, statuses=statuses)
         
     def getSamples(self,api):
         '''

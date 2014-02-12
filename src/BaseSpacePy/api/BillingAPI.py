@@ -15,7 +15,7 @@ limitations under the License.
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model import * #@UnusedWildImport
-from BaseSpacePy.model.QueryParametersPurchasedProduct import QueryParametersPurchasedProduct #@UnresolvedImport
+from BaseSpacePy.model.QueryParametersPurchasedProduct import QueryParametersPurchasedProduct as qpp
 
 class BillingAPI(BaseAPI):
     '''
@@ -62,18 +62,22 @@ class BillingAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PurchaseResponse.PurchaseResponse, resourcePath, method, queryParams, headerParams)
 
-    def getUserProducts(self, Id='current', qps={}):
+    def getUserProducts(self, Id='current', queryPars=None):
         '''
         Returns the Products for the current user
 
         :param Id: The id of the user, optional
-        :param qps: Query parameters, a dictionary for filtering by 'Tags' and/or 'ProductIds', optional
+        :param queryPars: An (optional) object of type QueryParametersPurchasedProduct for custom sorting and filtering by 'Tags' and/or 'ProductIds'
         '''
+        if queryPars is None:
+            queryPars = qpp()
+        elif not isinstance(queryPars, qpp):
+            raise QueryParameterException("Query parameter argument must be a QueryParameterPurchasedProduct object")
         method = 'GET'
         resourcePath = '/users/{Id}/products'
         resourcePath = resourcePath.replace('{Id}', str(Id))
-        queryPars = QueryParametersPurchasedProduct(qps)
-        queryParams = queryPars.getParameterDict()
+        queryPars.validate()
+        queryParams = queryPars.getParameterDict()    
         headerParams = {}
         return self.__listRequest__(PurchasedProduct.PurchasedProduct, resourcePath, method, queryParams, headerParams)
 
