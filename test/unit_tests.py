@@ -40,8 +40,12 @@ tconst = {
            'run_property_samples_0_name': 'BC_1',        
            'run_file_0_name': 'RTAComplete.txt',
            'run_sample_0_name': 'BC_1',
-           # for genomes
-           'genome_id': '1',
+           # for genomes, projects, samples
+           'genome_id': '1',           
+           'project_id': '596596',
+           'sample_id': '855855',
+           'sample_property_0_id': '555555',
+           'sample_file_0_id': '9895905',
           }
 
 class TestAppResultUploadMethods(unittest.TestCase):
@@ -436,7 +440,6 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-
 class TestRunMethods(unittest.TestCase):
     '''
     Tests Run object methods
@@ -444,6 +447,14 @@ class TestRunMethods(unittest.TestCase):
     def setUp(self):                            
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.run = self.api.getRunById(tconst['run_id'])                                        
+
+    def testIsInit(self):        
+        self.assertEqual(self.run.isInit(), True)
+            
+    def testIsInitException(self):
+        run = Run.Run()
+        with self.assertRaises(ModelNotInitializedException):
+            run.isInit()                                      
 
     def testRunGetFiles(self):
         rf = self.run.getFiles(self.api)        
@@ -533,6 +544,84 @@ class TestAPIRunMethods(unittest.TestCase):
     def testRunSamplesByIdWithQpException(self):
         with self.assertRaises(QueryParameterException):
             self.api.getRunSamplesById(tconst['run_id'], {'Limit':1})
+
+class TestSampleMethods(unittest.TestCase):
+    '''
+    Tests Sample object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.sample = self.api.getSampleById(tconst['sample_id'])
+        
+    def testIsInit(self):        
+        self.assertEqual(self.sample.isInit(), True)
+            
+    def testIsInitException(self):
+        sample = Sample.Sample()
+        with self.assertRaises(ModelNotInitializedException):
+            sample.isInit()                                      
+
+    def testGetAccessString(self):
+        self.assertEqual(self.sample.getAccessStr(), 'write sample ' + self.sample.Id)
+        
+    def testGetAccessStringWithArg(self):
+        self.assertEqual(self.sample.getAccessStr('read'), 'read sample ' + self.sample.Id)
+        
+    # not testing getReferencedAppResults() since References are deprecated
+    
+    def testGetFiles(self):
+        files = self.sample.getFiles(self.api)        
+        self.assertEqual(files[0].Id, tconst['sample_file_0_id'])
+
+    def testGetFilesWithQp(self):
+        files = self.sample.getFiles(self.api, qp({'Limit':1}))        
+        self.assertEqual(files[0].Id, tconst['sample_file_0_id'])
+        self.assertEqual(len(files), 1)
+
+class TestAPISampleMethods(unittest.TestCase):
+    '''
+    Tests API Sample object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+              
+    def testGetSamplesByProject(self):
+        samples = self.api.getSamplesByProject(tconst['project_id'])
+        self.assertIsInstance(int(samples[0].Id), int)
+
+    def testGetSamplesByProjectWithQp(self):
+        samples = self.api.getSamplesByProject(tconst['project_id'], qp({'Limit':1}))
+        self.assertIsInstance(int(samples[0].Id), int)
+        self.assertEqual(len(samples), 1)        
+
+    def testGetSamplesByProjectWithQpException(self):
+        with self.assertRaises(QueryParameterException):
+            self.api.getSamplesByProject(tconst['project_id'], {'Limit':1})
+                                                      
+    def testGetSampleById(self):        
+        sample = self.api.getSampleById(tconst['sample_id'])
+        self.assertEqual(sample.Id, tconst['sample_id'])
+
+    def testGetSampleByIdWithQp(self):        
+        sample = self.api.getSampleById(tconst['sample_id'], qp({'Limit':1})) # Limit doesn't make much sense here
+        self.assertEqual(sample.Id, tconst['sample_id'])        
+    
+    def testGetSampleByIdWithQpException(self):
+        with self.assertRaises(QueryParameterException):        
+            self.api.getSampleById(tconst['sample_id'], {'Limit':1})
+        
+    def testGetSamplePropertiesById(self):
+        props = self.api.getSamplePropertiesById(tconst['sample_id'])
+        self.assertEqual(props.Items[0].Items[0].Id, tconst['sample_property_0_id'])
+
+    def testGetSamplePropertiesByIdWithQp(self):
+        props = self.api.getSamplePropertiesById(tconst['sample_id'], qp({'Limit':1}))
+        self.assertEqual(props.Items[0].Items[0].Id, tconst['sample_property_0_id'])
+        self.assertEqual(len(props.Items), 1)
+    
+    def testGetSamplePropertiesByIdWithQpException(self):
+        with self.assertRaises(QueryParameterException): 
+            self.api.getSamplePropertiesById(tconst['sample_id'], {'Limit':1})
 
 class TestAPICredentialsMethods(unittest.TestCase):
     '''
@@ -668,6 +757,8 @@ suite5 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
 suite6 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
 suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
 suite8 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
-#alltests = unittest.TestSuite([suite5])
-alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8])
+suite9 = unittest.TestLoader().loadTestsFromTestCase(TestSampleMethods)
+suite10 = unittest.TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
+#alltests = unittest.TestSuite([suite5, suite6, suite9, suite10])
+alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10])
 unittest.TextTestRunner(verbosity=2).run(alltests)

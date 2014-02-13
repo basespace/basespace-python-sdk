@@ -61,7 +61,7 @@ class AppResult(object):
         except: raise ModelNotInitializedException('The AppResult model has not been initialized yet')
 
     def getReferencedSamplesIds(self):
-        '''
+        '''        
         Return a list of sample ids for the samples referenced.
         '''
         res= []
@@ -73,7 +73,7 @@ class AppResult(object):
         
     
     def getReferencedSamples(self,api):
-        '''
+        '''        
         Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample
         '''
         res = []
