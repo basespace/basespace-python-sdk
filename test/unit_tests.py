@@ -6,14 +6,17 @@ import shutil
 import urlparse
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 from BaseSpacePy.api.APIClient import APIClient
-from BaseSpacePy.api.BaseSpaceException import ByteRangeException, UploadPartSizeException, CredentialsException
+from BaseSpacePy.api.BaseSpaceException import *
+from BaseSpacePy.model import *
 from BaseSpacePy.model.MultipartFileTransfer import Utils
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
+
+
 
 # Dependencies:
 # 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com; there should also be a 'DEFALT' profile in the config file
 # 2. Import the following data from Public Data on cloud-hoth.illumina.com:
-#    From Public Dataset 'B. cereus': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
+#    from Public Dataset 'B. cereus': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
 
 tconst = { 
            # for download tests
@@ -36,8 +39,9 @@ tconst = {
            'run_name': 'BacillusCereus',
            'run_property_samples_0_name': 'BC_1',        
            'run_file_0_name': 'RTAComplete.txt',
-           'run_samples_len': 12,
-           'run_sample_0_name': 'BC_1'
+           'run_sample_0_name': 'BC_1',
+           # for genomes
+           'genome_id': '1',
           }
 
 class TestAppResultUploadMethods(unittest.TestCase):
@@ -437,70 +441,98 @@ class TestRunMethods(unittest.TestCase):
     '''
     Tests Run object methods
     '''        
-    def setUp(self):        
-        '''
-        Get Run and API objects
-        '''                
+    def setUp(self):                            
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.run = self.api.getRunById(tconst['run_id'])                                        
 
-    def test_run_files(self):
-        rf = self.run.getFiles(self.api)
-        self.assertEqual(len(rf), 10)
+    def testRunGetFiles(self):
+        rf = self.run.getFiles(self.api)        
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
         
-    def test_run_files_with_qp_limit(self):
+    def testRunGetFilesWithQp(self):
         rf = self.run.getFiles(self.api, qp({'Limit':200}))
+        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
         self.assertEqual(len(rf), 200)
 
-    def test_run_samples(self):
-        rs = self.run.getSamples(self.api)
-        self.assertEqual(len(rs), 10)
+    def testRunSamples(self):
+        rs = self.run.getSamples(self.api)        
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         
-    def test_run_samples_with_qp_limit(self):
-        rs = self.run.getSamples(self.api, qp({'Limit':200}))
-        self.assertEqual(len(rs), tconst['run_samples_len'])
+    def testRunSamplesWithQp(self):
+        rs = self.run.getSamples(self.api, qp({'Limit':1}))
+        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        self.assertEqual(len(rs), 1)
 
 class TestAPIRunMethods(unittest.TestCase):
     '''
     Tests API object Run methods
     '''        
-    def setUp(self):        
-        '''
-        Get an API object
-        '''                
+    def setUp(self):                            
         self.api = BaseSpaceAPI(profile='unit_tests')
 
-    def test_run(self):                                                    
+    def testGetAccessibleRunsByUser(self):
+        runs = self.api.getAccessibleRunsByUser()
+        self.assertIsInstance(int(runs[0].Id), int)
+
+    def testGetAccessibleRunsByUserWithQp(self):
+        runs = self.api.getAccessibleRunsByUser(qp({'Limit':500}))
+        run = next(r for r in runs if r.Id == tconst['run_id'])
+        self.assertTrue(run.Id, tconst['run_id'])
+        
+    def testGetAccessibleRunsByUserWithQpException(self):
+        with self.assertRaises(QueryParameterException):
+            self.api.getAccessibleRunsByUser({'Limit':500})
+
+    def testGetRunById(self):                                                    
         rf = self.api.getRunById(tconst['run_id'])        
         self.assertEqual(rf.Name, tconst['run_name'])
         
-    # not testing query parameter argument for getRunById()
+    def testGetRunByIdWithQp(self):                                                    
+        rf = self.api.getRunById(tconst['run_id'], qp({'Limit':1})) # limit doesn't make much sense here            
+        self.assertEqual(rf.Name, tconst['run_name'])
+        
+    def testGetRunByIdWithQpException(self):
+        with self.assertRaises(QueryParameterException):                                        
+            rf = self.api.getRunById(tconst['run_id'], {'Limit':1})    
 
-    def test_run_properties(self):                                                    
+    def testGetRunPropertiesById(self):                                                    
         rp = self.api.getRunPropertiesById(tconst['run_id'])        
         self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
         
-    # not testing query parameter argument for getRunPropertiesById()
+    def testGetRunPropertiesByIdWithQp(self):                                                    
+        rp = self.api.getRunPropertiesById(tconst['run_id'], qp({'Limit':1}))
+        self.assertEqual(len(rp.Items), 1)        
+        self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
+    
+    def testGetRunPropertiesByIdWithQpException(self):
+        with self.assertRaises(QueryParameterException):
+            rp = self.api.getRunPropertiesById(tconst['run_id'], {'Limit':1})
 
-    def test_run_files(self):                                                    
-        rf = self.api.getRunFilesById(tconst['run_id'])
-        self.assertEqual(len(rf), 10)
+    def testGetRunFilesById(self):                                                    
+        rf = self.api.getRunFilesById(tconst['run_id'])        
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
         
-    def test_run_files_with_qp_limit(self):
-        rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':200}))
-        self.assertEqual(len(rf), 200)
+    def testGetRunFilesByIdWithQp(self):
+        rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':1}))
+        self.assertEqual(len(rf), 1)
+        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
 
-    def test_run_samples(self):
-        rs = self.api.getRunSamplesById(tconst['run_id'])
-        self.assertEqual(len(rs), 10)
+    def testGetRunFilesByIdWithQpException(self):
+        with self.assertRaises(QueryParameterException):
+            self.api.getRunFilesById(tconst['run_id'], {'Limit':200})
+
+    def testRunSamplesById(self):
+        rs = self.api.getRunSamplesById(tconst['run_id'])        
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         
-    def test_run_samples_with_qp_limit(self):
-        rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':200}))
-        self.assertEqual(len(rs), tconst['run_samples_len'])
+    def testRunSamplesByIdWithQp(self):
+        rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':1}))
+        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        self.assertEqual(len(rs), 1)
+
+    def testRunSamplesByIdWithQpException(self):
+        with self.assertRaises(QueryParameterException):
+            self.api.getRunSamplesById(tconst['run_id'], {'Limit':1})
 
 class TestAPICredentialsMethods(unittest.TestCase):
     '''
@@ -599,6 +631,32 @@ class TestAPICredentialsMethods(unittest.TestCase):
         with self.assertRaises(CredentialsException):
             creds = self.api._get_local_credentials(profile="SuperCallaFragaListic AppTastic")                
 
+class TestAPIGenomeMethods(unittest.TestCase):
+    '''
+    Tests API object Genome methods
+    '''        
+    def setUp(self):                
+        self.api = BaseSpaceAPI(profile='unit_tests')
+
+    def testGetAvailableGenomes(self):
+        genomes = self.api.getAvailableGenomes()        
+        #self.assertIsInstance(g[0], GenomeV1.GenomeV1)
+        self.assertIsInstance(int(genomes[0].Id), int)
+        
+    def testGetAvailableGenomesWithQp(self):
+        genomes = self.api.getAvailableGenomes(qp({'Limit':200}))
+        genome = next(gen for gen in genomes if gen.Id == tconst['genome_id'])
+        self.assertTrue(genome.Id, tconst['genome_id'])        
+        
+    def testGetAvailableGenomesWithQpException(self):        
+        with self.assertRaises(QueryParameterException):
+            self.api.getAvailableGenomes({'Limit':1})
+           
+    def testGetGenomeById(self):
+        g = self.api.getGenomeById(tconst['genome_id'])
+        self.assertEqual(g.Id, tconst['genome_id'])
+
+
 #if __name__ == '__main__':   
 #    unittest.main()
 suite1 = unittest.TestLoader().loadTestsFromTestCase(TestAppResultUploadMethods)
@@ -609,6 +667,7 @@ suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
 suite5 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
 suite6 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
 suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
-#alltests = unittest.TestSuite([suite7])
-alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7])
+suite8 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
+#alltests = unittest.TestSuite([suite5])
+alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8])
 unittest.TextTestRunner(verbosity=2).run(alltests)

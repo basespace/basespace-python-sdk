@@ -520,44 +520,40 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
            
-    def getProjectByUser(self, Id, queryPars=None):
+    def getProjectByUser(self, queryPars=None):
         '''
-        Returns a list available projects for a User with the specified Id
-        
-        :param Id: The id of the user
-        :param qp: An (optional) object of type QueryParameters for custom sorting and filtering
+        Returns a list available projects for the current User.
+                
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
         if queryPars is None:
             queryPars = qp()
         elif not isinstance(queryPars, qp):
             raise QueryParameterException("Query parameter argument must be a QueryParameter object")               
-        resourcePath = '/users/{Id}/projects'
+        resourcePath = '/users/current/projects'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
         headerParams = {}
-        if Id != None: resourcePath = resourcePath.replace('{Id}', Id)
         return self.__listRequest__(Project.Project,resourcePath, method, queryParams, headerParams)
        
-    def getAccessibleRunsByUser(self, Id, queryPars=None):
+    def getAccessibleRunsByUser(self, queryPars=None):
         '''
-        Returns a list of accessible runs for the User with id=Id
-        
-        :param Id: An user id
+        Returns a list of accessible runs for the current User
+                
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
         if queryPars is None:
             queryPars = qp()
         elif not isinstance(queryPars, qp):
             raise QueryParameterException("Query parameter argument must be a QueryParameter object")               
-        resourcePath = '/users/{Id}/runs'
+        resourcePath = '/users/current/runs'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
         queryPars.validate()
         queryParams = queryPars.getParameterDict()
-        headerParams = {}
-        resourcePath = resourcePath.replace('{Id}',Id)
+        headerParams = {}        
         return self.__listRequest__(RunCompact.RunCompact,resourcePath, method, queryParams, headerParams)
     
     def getRunById(self, Id, queryPars=None):
