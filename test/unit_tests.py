@@ -40,47 +40,16 @@ tconst = {
            'run_property_samples_0_name': 'BC_1',        
            'run_file_0_name': 'RTAComplete.txt',
            'run_sample_0_name': 'BC_1',
-           # for genomes, projects, samples
+           # for genomes, projects, samples, appresults
            'genome_id': '1',           
            'project_id': '596596',
            'sample_id': '855855',
            'sample_property_0_id': '555555',
            'sample_file_0_id': '9895905',
+           'appresult_id': '1213212',
+           'appresult_file_0_id': '9895886',
           }
 
-class TestAppResultUploadMethods(unittest.TestCase):
-    '''
-    Tests upload method of AppResult objects
-    '''
-    @classmethod
-    def setUpClass(cls):    
-        '''
-        For all upload unit tests (not per test):
-        Create a new 'unit test' project, or get it if exists, to upload to data to.
-        Then create a new app result in this project, getting a new app session id
-        '''
-        cls.api = BaseSpaceAPI(profile='unit_tests')
-        cls.proj = cls.api.createProject(tconst['test_upload_project_name'])                        
-        cls.ar = cls.proj.createAppResult(cls.api, "test appresult upload", "test appresult upload", appSessionId="")
-
-    def test_small_upload(self):
-        testDir = "testSmallUploadAppResultDirectory"
-        fileName = os.path.basename(tconst['file_small_upload'])
-        myFile = self.ar.uploadFile(
-            api=self.api, 
-            localPath=tconst['file_small_upload'], 
-            fileName=fileName, 
-            directory=testDir, 
-            contentType=tconst['file_small_upload_content_type'])
-        self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
-        self.assertEqual(myFile.Size, tconst['file_small_upload_size'])
-        self.assertEqual(myFile.UploadStatus, 'complete')
-        # test fresh File object
-        newFile = self.api.getFileById(myFile.Id)
-        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
-        self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
-        self.assertEqual(newFile.UploadStatus, 'complete')
-        
 class TestFileDownloadMethods(unittest.TestCase):
     '''
     Tests methods of File objects
@@ -440,6 +409,64 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
+class TestAppResultMethods(unittest.TestCase):
+    '''
+    Tests AppResult object methods
+    '''
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.appResult = self.api.getAppResultById(tconst['appresult_id'])
+                
+    def testIsInit(self):        
+        self.assertEqual(self.appResult.isInit(), True)
+            
+    def testIsInitException(self):
+        appResult = AppResult.AppResult()        
+        with self.assertRaises(ModelNotInitializedException):
+            appResult.isInit()                                      
+
+    def testGetAccessString(self):
+        self.assertEqual(self.appResult.getAccessStr(), 'write appresult ' + self.appResult.Id)
+        
+    def testGetAccessStringWithArg(self):
+        self.assertEqual(self.appResult.getAccessStr('read'), 'read appresult ' + self.appResult.Id)
+        
+    # not testing getReferencedSamplesIds() or getReferencedSamples since References are deprecated
+    
+    def testGetFiles(self):
+        files = self.appResult.getFiles(self.api)        
+        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+
+    def testGetFilesWithQp(self):
+        files = self.appResult.getFiles(self.api, qp({'Limit':1}))        
+        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertEqual(len(files), 1)
+    
+    def testUploadFile(self):
+        '''
+        Create a new 'unit test' project, or get it if exists, to upload to data to.
+        Then create a new appresult in this project, getting a new appsession id
+        Then...upload a file to the new appresult
+        '''
+        proj = self.api.createProject(tconst['test_upload_project_name'])                        
+        ar = proj.createAppResult(self.api, "test appresult upload", "test appresult upload", appSessionId="")
+        testDir = "testSmallUploadAppResultDirectory"
+        fileName = os.path.basename(tconst['file_small_upload'])
+        myFile = ar.uploadFile(
+            api=self.api, 
+            localPath=tconst['file_small_upload'], 
+            fileName=fileName, 
+            directory=testDir, 
+            contentType=tconst['file_small_upload_content_type'])
+        self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
+        self.assertEqual(myFile.Size, tconst['file_small_upload_size'])
+        self.assertEqual(myFile.UploadStatus, 'complete')
+        # test fresh File object
+        newFile = self.api.getFileById(myFile.Id)
+        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
+        self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
+        self.assertEqual(newFile.UploadStatus, 'complete')                
+
 class TestRunMethods(unittest.TestCase):
     '''
     Tests Run object methods
@@ -748,10 +775,11 @@ class TestAPIGenomeMethods(unittest.TestCase):
 
 #if __name__ == '__main__':   
 #    unittest.main()
-suite1 = unittest.TestLoader().loadTestsFromTestCase(TestAppResultUploadMethods)
-suite2 = unittest.TestLoader().loadTestsFromTestCase(TestFileDownloadMethods)
-suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
-suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
+
+suite1 = unittest.TestLoader().loadTestsFromTestCase(TestFileDownloadMethods)
+suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
+suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
+suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAppResultMethods)
 # non-file-transfer tests
 suite5 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
 suite6 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
@@ -759,6 +787,6 @@ suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
 suite8 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
 suite9 = unittest.TestLoader().loadTestsFromTestCase(TestSampleMethods)
 suite10 = unittest.TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
-#alltests = unittest.TestSuite([suite5, suite6, suite9, suite10])
-alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10])
+alltests = unittest.TestSuite([suite4])
+#alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10])
 unittest.TextTestRunner(verbosity=2).run(alltests)

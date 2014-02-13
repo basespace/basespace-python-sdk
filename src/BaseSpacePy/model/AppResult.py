@@ -1,17 +1,3 @@
-"""
-Copyright 2012 Illumina
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.apache.org/licenses/LICENSE-2.0
- 
-    Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
 
 from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
@@ -21,7 +7,7 @@ class AppResult(object):
     def __init__(self):
         self.swaggerTypes = {
             'Name': 'str',
-            'Status': 'str',        # will be deprecated
+            'Status': 'str',
             'Description': 'str',
             'StatusSummary': 'str',
             'HrefFiles': 'str',
@@ -37,9 +23,25 @@ class AppResult(object):
             'Properties': 'PropertyList',
         }
     def __str__(self):
-        return "AppResult: " + self.Name #+ " - " + str(self.Status)
+        return self.Name
+    
     def __repr__(self):
         return str(self)
+
+    def isInit(self):
+        '''        
+        Tests if the AppResult instance has been initialized.
+        
+        :raises ModelNotInitializedException: if the Id variable is not set
+        :return True on success
+        '''
+        err = 'The Sample object has not been initialized yet'
+        try:
+            if not self.Id:
+                raise ModelNotInitializedException(err)
+        except AttributeError:
+            raise ModelNotInitializedException(err)
+        return True        
     
     def getAccessStr(self,scope='write'):
         '''
@@ -50,32 +52,24 @@ class AppResult(object):
         self.isInit()
         return scope + ' appresult ' + str(self.Id) 
         
-    def isInit(self):
-        '''
-        Is called to test if the Project instance has been initialized
-        
-        Throws:
-            ModelNotInitializedException  - if the instance has not been populated.
-        '''
-        try: self.Id
-        except: raise ModelNotInitializedException('The AppResult model has not been initialized yet')
-
     def getReferencedSamplesIds(self):
         '''        
         Return a list of sample ids for the samples referenced.
         '''
+        self.isInit()
         res= []
         for s in self.References:
             if s['Type']=='Sample':
                 id = s['HrefContent'].split('/')[-1]
                 res.append(id)
-        return res
-        
+        return res        
     
-    def getReferencedSamples(self,api):
+    def getReferencedSamples(self, api):
         '''        
-        Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample
+        Returns a list of sample objects references by the AppResult. 
+        NOTE this method makes one request to REST server per sample
         '''
+        self.isInit()
         res = []
         ids = self.getReferencedSamplesIds()
         for id in ids:            
@@ -107,15 +101,3 @@ class AppResult(object):
         '''
         self.isInit()
         return api.appResultFileUpload(self.Id,localPath, fileName, directory, contentType)
-
-        self.Name               = None
-        self.Description        = None
-        self.StatusSummary      = None
-        self.HrefFiles          = None
-        self.DateCreated        = None
-        self.Id                 = None
-        self.Href               = None
-        self.UserOwnedBy        = None # UserCompact
-        self.StatusDetail       = None
-        self.HrefGenome         = None
-        self.References         = None
