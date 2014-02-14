@@ -367,25 +367,24 @@ class BaseSpaceAPI(BaseAPI):
         token = self.obtainAccessToken(code,grantType=grantType,redirect_uri=redirect_uri)
         self.setAccessToken(token)
             
-    def createProject(self,Name):
+    def createProject(self, Name):
         '''
         Creates a project with the specified name and returns a project object. 
         If a project with this name already exists, the existing project is returned.
         
-        :param Name: Name of the project
+        :param Name: Name of the project        
         '''        
-        #: v1pre3/projects, it requires 1 input parameter which is Name
         resourcePath            = '/projects/'
         resourcePath            = resourcePath.replace('{format}', 'json')
         method                  = 'POST'
         queryParams             = {}
         headerParams            = {}
         postData                = {}
-        postData['Name']        = Name
-        
-        return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
-            
-    
+        postData['Name']        = Name        
+        return self.__singleRequest__(ProjectResponse.ProjectResponse, 
+            resourcePath, method, queryParams, headerParams, postData=postData,
+            verbose=0)
+                
     def getUserById(self, Id, ):
         '''
         Returns the User object corresponding to Id
@@ -459,7 +458,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
-        return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(ProjectResponse.ProjectResponse, resourcePath, method, queryParams, headerParams)
 
     def getProjectPropertiesById(self, Id, queryPars=None):
         '''

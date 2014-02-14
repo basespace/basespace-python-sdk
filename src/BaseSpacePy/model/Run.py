@@ -50,6 +50,15 @@ class Run(object):
             raise ModelNotInitializedException(err)
         return True        
 
+    def getAccessStr(self,scope='write'):
+        '''
+        Returns the scope-string to used for requesting BaseSpace access to the Run.
+        
+        :param scope: The scope type that is request (eg. write, read).
+        '''
+        self.isInit()
+        return scope + ' run ' + str(self.Id)
+
     def getFiles(self, api, queryPars=None):
         '''
         Returns a list of File objects associated with the Run

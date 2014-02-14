@@ -35,7 +35,7 @@ class AppResult(object):
         :raises ModelNotInitializedException: if the Id variable is not set
         :return True on success
         '''
-        err = 'The Sample object has not been initialized yet'
+        err = 'The AppResult object has not been initialized yet'
         try:
             if not self.Id:
                 raise ModelNotInitializedException(err)
