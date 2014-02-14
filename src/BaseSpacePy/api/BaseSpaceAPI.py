@@ -253,7 +253,6 @@ class BaseSpaceAPI(BaseAPI):
         # TODO add exception if response isn't OK, e.g. incorrect server gives path not recognized
         return self.__getTriggerObject__(obj) 
 
-
     def getAppSessionPropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of an AppSession
@@ -261,18 +260,12 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The AppSessionId
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering            
         '''                
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
+        queryParams = self._validateQueryParameters(queryPars)            
         resourcePath = '/appsessions/{Id}/properties'
         resourcePath = resourcePath.replace('{Id}',Id)
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        method = 'GET'        
         headerParams = {}                
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
-
 
     def getAppSessionPropertyByName(self, Id, name, queryPars=None):
         '''
@@ -282,17 +275,12 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The AppSessionId
         :param name: Name of the multi-value property to retrieve
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
-        '''                
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/appsessions/{Id}/properties/{Name}/items'
         resourcePath = resourcePath.replace('{Id}', Id)
         resourcePath = resourcePath.replace('{Name}', name)        
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        method = 'GET'        
         headerParams = {}
         return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
                     
@@ -303,11 +291,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The AppSessionId
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
-        '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
+        '''            
         props = self.getAppSessionPropertiesById(Id, queryPars)
         inputs = {}
         for prop in props.Items:
@@ -423,39 +407,27 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        '''
-        # Parse inputs
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
+        '''        
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appresults/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams)
 
     def getAppResultPropertiesById(self, Id, queryPars=None):
         '''
-        Returns the Properties of an AppResult object corresponding to Id
+        Returns the Properties of an AppResult object corresponding to AppResult Id
         
         :param Id: The Id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        '''
-        # Parse inputs
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")            
+        '''                    
+        queryParams = self._validateQueryParameters(queryPars)        
         resourcePath = '/appresults/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)                
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams)
 
@@ -466,16 +438,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The id of the appresult.
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
         '''
-        # Parse inputs
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
+        queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        method = 'GET'        
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)
@@ -487,16 +453,11 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The Id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
+        queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/projects/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
         return self.__singleRequest__(ProjectResponse.ProjectResponse,resourcePath, method, queryParams, headerParams)
 
@@ -507,16 +468,11 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The Id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")       
+        queryParams = self._validateQueryParameters(queryPars)       
         resourcePath = '/projects/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
            
@@ -526,15 +482,10 @@ class BaseSpaceAPI(BaseAPI):
                 
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")               
+        queryParams = self._validateQueryParameters(queryPars)               
         resourcePath = '/users/current/projects'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        method = 'GET'        
         headerParams = {}
         return self.__listRequest__(Project.Project,resourcePath, method, queryParams, headerParams)
        
@@ -544,17 +495,12 @@ class BaseSpaceAPI(BaseAPI):
                 
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")               
+        queryParams = self._validateQueryParameters(queryPars)               
         resourcePath = '/users/current/runs'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
-        headerParams = {}        
-        return self.__listRequest__(RunCompact.RunCompact,resourcePath, method, queryParams, headerParams)
+        method = 'GET'        
+        headerParams = {}
+        return self.__listRequest__(RunCompact.RunCompact, resourcePath, method, queryParams, headerParams)
     
     def getRunById(self, Id, queryPars=None):
         '''        
@@ -563,16 +509,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/runs/{Id}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/runs/{Id}'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()        
+        resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}
         return self.__singleRequest__(RunResponse.RunResponse,resourcePath, method, queryParams, headerParams)
     
@@ -583,16 +523,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/runs/{Id}/properties'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/runs/{Id}/properties'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
 
@@ -603,16 +537,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/runs/{Id}/files'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/runs/{Id}/files'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()        
+        resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}         
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams, verbose=0)
 
@@ -623,16 +551,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/runs/{Id}/samples'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/runs/{Id}/samples'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()        
+        resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}         
         return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams, verbose=0)
   
@@ -642,20 +564,15 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The project id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :param statuses: An (optional) list of AppResult statuses to filter by
+        :param statuses: An (optional) list of AppResult statuses to filter by, eg., 'complete'
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object") 
+        queryParams = self._validateQueryParameters(queryPars) 
         if statuses is None:
             statuses = []               
-        resourcePath = '/projects/{Id}/appresults'
-        resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
-        if len(statuses): queryParams['Statuses'] = ",".join(statuses)
+        resourcePath = '/projects/{Id}/appresults'        
+        method = 'GET'        
+        if len(statuses): 
+            queryParams['Statuses'] = ",".join(statuses)
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(AppResult.AppResult,resourcePath, method, queryParams, headerParams,verbose=0)
@@ -667,15 +584,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
+        queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/projects/{Id}/samples'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        method = 'GET'        
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams,verbose=0)
@@ -687,16 +599,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The id of the sample
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")        
-        resourcePath = '/samples/{Id}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)        
+        resourcePath = '/samples/{Id}'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
         return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=0)
     
@@ -707,16 +613,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The id of the sample
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                        
-        resourcePath = '/samples/{Id}/properties'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                        
+        resourcePath = '/samples/{Id}/properties'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)    
 
@@ -727,15 +627,9 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: A Sample id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/samples/{Id}/files'
-        resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/samples/{Id}/files'        
+        method = 'GET'        
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)
@@ -747,16 +641,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The id of the file
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/files/{Id}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/files/{Id}'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()        
+        resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}
         return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
@@ -768,16 +656,10 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The id of the file
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/files/{Id}/properties'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/files/{Id}/properties'        
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()        
+        resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
@@ -803,15 +685,9 @@ class BaseSpaceAPI(BaseAPI):
         
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''        
-        if queryPars is None:
-            queryPars = qp()
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")                
-        resourcePath = '/genomes'
-        resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        queryParams = self._validateQueryParameters(queryPars)                
+        resourcePath = '/genomes'        
+        method = 'GET'        
         headerParams = {}
         return self.__listRequest__(GenomeV1.GenomeV1,resourcePath, method, queryParams, headerParams,verbose=0)
     
@@ -846,14 +722,9 @@ class BaseSpaceAPI(BaseAPI):
         :param Format: Set to 'vcf' to get the results as lines in VCF format (default is 'json')
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        if queryPars is None:
-            queryPars=qp(pars={'SortBy':'Position'})
-        elif not isinstance(queryPars, qp):
-            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/variantset/{Id}/variants/{Chrom}'
-        method = 'GET'
-        queryPars.validate()
-        queryParams = queryPars.getParameterDict()
+        method = 'GET'        
         headerParams = {}
         queryParams['StartPos'] = StartPos
         queryParams['EndPos']   = EndPos
@@ -911,8 +782,8 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The id of the project in which the AppResult is to be added
         :param name: The name of the AppResult
-        :param desc: A describtion of the AppResult
-        :param samples: (Optional) The samples 
+        :param desc: A description of the AppResult
+        :param samples: (Optional) A list of one or more Samples Ids that the AppResult is related to 
         :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
         '''
         if (not self.appSessionId) and (appSessionId==None):
@@ -1278,3 +1149,17 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
 
+    def _validateQueryParameters(self, queryPars):
+        '''
+        Initializes and validates Query Parameter arguments
+        
+        :param queryPars: a QueryParameter object        
+        :return: dictionary of query parameters
+        '''
+        if queryPars is None:
+            queryPars = qp()
+        try:
+            queryPars.validate()
+        except AttributeError:                        
+            raise QueryParameterException("Query parameter argument must be a QueryParameter object")
+        return queryPars.getParameterDict()        

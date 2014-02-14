@@ -33,21 +33,22 @@ tconst = {
            'file_large_upload_content_type' : 'application/octet-stream',
            'file_small_upload_md5' : 'ff88b8bdbb86f219d19a22a3a0795429',
            'file_large_upload_md5' : '9267236a2d870da1d4cb73868bb51b35',
-           'test_upload_project_name': 'Python SDK Unit Test Data',
-           # for runs
+           'create_project_name': 'Python SDK Unit Test Data',
+           # for runs, genomes, projects, samples, appresults 
            'run_id': '555555', # public data B. cereus Run
            'run_name': 'BacillusCereus',
            'run_property_samples_0_name': 'BC_1',        
            'run_file_0_name': 'RTAComplete.txt',
-           'run_sample_0_name': 'BC_1',
-           # for genomes, projects, samples, appresults
+           'run_sample_0_name': 'BC_1',           
            'genome_id': '1',           
            'project_id': '596596',
+           'project_appresult_0_id': '1213212',
            'sample_id': '855855',
            'sample_property_0_id': '555555',
            'sample_file_0_id': '9895905',
            'appresult_id': '1213212',
            'appresult_file_0_id': '9895886',
+           'appresult_property_0_id': '855855',
           }
 
 class TestFileDownloadMethods(unittest.TestCase):
@@ -113,7 +114,7 @@ class TestAPIUploadMethods(unittest.TestCase):
         Then create a new app result in this project, getting a new app session id
         '''        
         cls.api = BaseSpaceAPI(profile='unit_tests')        
-        cls.proj = cls.api.createProject(tconst['test_upload_project_name'])                        
+        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
         cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
 
     def test_small_upload(self):
@@ -448,7 +449,7 @@ class TestAppResultMethods(unittest.TestCase):
         Then create a new appresult in this project, getting a new appsession id
         Then...upload a file to the new appresult
         '''
-        proj = self.api.createProject(tconst['test_upload_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])                        
         ar = proj.createAppResult(self.api, "test appresult upload", "test appresult upload", appSessionId="")
         testDir = "testSmallUploadAppResultDirectory"
         fileName = os.path.basename(tconst['file_small_upload'])
@@ -467,6 +468,96 @@ class TestAppResultMethods(unittest.TestCase):
         self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
         self.assertEqual(newFile.UploadStatus, 'complete')                
 
+class TestAPIAppResultMethods(unittest.TestCase):
+    '''
+    Tests API object AppResult methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+
+    def testGetAppResultById(self):
+        appresult = self.api.getAppResultById(tconst['appresult_id'])
+        self.assertTrue(appresult.Id, 'appresult_id')
+        
+    def testGetAppResultByIdWithQp(self):
+        appresult = self.api.getAppResultById(tconst['appresult_id'], qp({'Limit':1})) # Limit doesn't make sense here
+        self.assertTrue(appresult.Id, 'appresult_id')        
+            
+    def testGetAppResultPropertiesById(self):
+        props = self.api.getAppResultPropertiesById(tconst['appresult_id'])
+        self.assertEqual(props.Items[0].Items[0].Id, tconst['appresult_property_0_id'])
+        
+    def testGetAppResultPropertiesByIdWithQp(self):
+        props = self.api.getAppResultPropertiesById(tconst['appresult_id'], qp({'Limit':1}))
+        self.assertEqual(props.Items[0].Items[0].Id, tconst['appresult_property_0_id']) 
+        self.assertEqual(len(props.Items), 1)
+            
+    def testGetAppResultFiles(self):
+        files = self.api.getAppResultFiles(tconst['appresult_id'])        
+        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        
+    def testGetAppResultFilesWithQp(self):
+        files = self.api.getAppResultFiles(tconst['appresult_id'], qp({'Limit':1}))        
+        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertEqual(len(files), 1)    
+
+    def testGetAppResultsByProject(self):
+        appresults = self.api.getAppResultsByProject(tconst['project_id'])
+        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        
+    def testGetAppResultsByProjectWithQp(self):
+        appresults = self.api.getAppResultsByProject(tconst['project_id'], qp({'Limit':1}))
+        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        self.assertEqual(len(appresults), 1)
+        
+    def testGetAppResultsByProjectWithStatusesArg(self):
+        appresults = self.api.getAppResultsByProject(tconst['project_id'], statuses=['complete'])
+        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        
+    def testCreateAppResultNewAppSsn(self):
+        '''
+        Create a new 'unit test' project, or get it if exists.
+        Create a new app result that creates a new app ssn.        
+        '''
+        proj = self.api.createProject(tconst['create_project_name'])   
+        ar = self.api.createAppResult(proj.Id, name="test create appresult new ssn", 
+            desc="test create appresult new ssn", appSessionId="")
+        self.assertTrue(hasattr(ar, 'Id'))        
+
+    def testCreateAppResultCredentialsAppSsn(self):
+        '''
+        Create a new 'unit test' project, or get it if exists.
+        Create a new app result that creates a new app ssn,
+        then create a new api obj with the new ssn,
+        then create an appresult in the new ssn
+        '''
+        proj = self.api.createProject(tconst['create_project_name'])   
+        ar = self.api.createAppResult(proj.Id, name="test create appresult creds ssn", 
+            desc="test create appresult creds ssn", appSessionId="")
+        url = urlparse.urlparse(self.api.apiServer)
+        newApiServer = url.scheme + "://" + url.netloc
+        new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
+            self.api.version, ar.AppSession.Id, self.api.getAccessToken())
+        ar2 = new_api.createAppResult(proj.Id, name="test create appresult creds ssn 2", 
+            desc="test create appresult creds ssn 2")
+        self.assertTrue(hasattr(ar2, 'Id'))
+        
+    def testCreateAppResultProvidedAppSsn(self):
+        '''
+        Create a new app result that creates a new app ssn,
+        then create a new api obj with the new ssn,
+        then create an appresult in the new ssn
+        '''
+        proj = self.api.createProject(tconst['create_project_name'])   
+        ar = self.api.createAppResult(proj.Id, name="test create appresult provided ssn", 
+            desc="test create appresult provided ssn", appSessionId="")
+        ar2 = self.api.createAppResult(proj.Id, name="test create appresult provided ssn 2", 
+            desc="test create appresult provided ssn 2", appSessionId=ar.AppSession.Id)
+        self.assertTrue(hasattr(ar2, 'Id'))
+        
+    # Note that appResultFileUpload() is tested with other file upload methods 
+    # (in a separate suite: TestAPIUploadMethods)
+    
 class TestRunMethods(unittest.TestCase):
     '''
     Tests Run object methods
@@ -517,10 +608,6 @@ class TestAPIRunMethods(unittest.TestCase):
         run = next(r for r in runs if r.Id == tconst['run_id'])
         self.assertTrue(run.Id, tconst['run_id'])
         
-    def testGetAccessibleRunsByUserWithQpException(self):
-        with self.assertRaises(QueryParameterException):
-            self.api.getAccessibleRunsByUser({'Limit':500})
-
     def testGetRunById(self):                                                    
         rf = self.api.getRunById(tconst['run_id'])        
         self.assertEqual(rf.Name, tconst['run_name'])
@@ -529,10 +616,6 @@ class TestAPIRunMethods(unittest.TestCase):
         rf = self.api.getRunById(tconst['run_id'], qp({'Limit':1})) # limit doesn't make much sense here            
         self.assertEqual(rf.Name, tconst['run_name'])
         
-    def testGetRunByIdWithQpException(self):
-        with self.assertRaises(QueryParameterException):                                        
-            rf = self.api.getRunById(tconst['run_id'], {'Limit':1})    
-
     def testGetRunPropertiesById(self):                                                    
         rp = self.api.getRunPropertiesById(tconst['run_id'])        
         self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
@@ -542,10 +625,6 @@ class TestAPIRunMethods(unittest.TestCase):
         self.assertEqual(len(rp.Items), 1)        
         self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
     
-    def testGetRunPropertiesByIdWithQpException(self):
-        with self.assertRaises(QueryParameterException):
-            rp = self.api.getRunPropertiesById(tconst['run_id'], {'Limit':1})
-
     def testGetRunFilesById(self):                                                    
         rf = self.api.getRunFilesById(tconst['run_id'])        
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
@@ -555,10 +634,6 @@ class TestAPIRunMethods(unittest.TestCase):
         self.assertEqual(len(rf), 1)
         self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
 
-    def testGetRunFilesByIdWithQpException(self):
-        with self.assertRaises(QueryParameterException):
-            self.api.getRunFilesById(tconst['run_id'], {'Limit':200})
-
     def testRunSamplesById(self):
         rs = self.api.getRunSamplesById(tconst['run_id'])        
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
@@ -567,10 +642,6 @@ class TestAPIRunMethods(unittest.TestCase):
         rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':1}))
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         self.assertEqual(len(rs), 1)
-
-    def testRunSamplesByIdWithQpException(self):
-        with self.assertRaises(QueryParameterException):
-            self.api.getRunSamplesById(tconst['run_id'], {'Limit':1})
 
 class TestSampleMethods(unittest.TestCase):
     '''
@@ -621,10 +692,6 @@ class TestAPISampleMethods(unittest.TestCase):
         self.assertIsInstance(int(samples[0].Id), int)
         self.assertEqual(len(samples), 1)        
 
-    def testGetSamplesByProjectWithQpException(self):
-        with self.assertRaises(QueryParameterException):
-            self.api.getSamplesByProject(tconst['project_id'], {'Limit':1})
-                                                      
     def testGetSampleById(self):        
         sample = self.api.getSampleById(tconst['sample_id'])
         self.assertEqual(sample.Id, tconst['sample_id'])
@@ -633,10 +700,6 @@ class TestAPISampleMethods(unittest.TestCase):
         sample = self.api.getSampleById(tconst['sample_id'], qp({'Limit':1})) # Limit doesn't make much sense here
         self.assertEqual(sample.Id, tconst['sample_id'])        
     
-    def testGetSampleByIdWithQpException(self):
-        with self.assertRaises(QueryParameterException):        
-            self.api.getSampleById(tconst['sample_id'], {'Limit':1})
-        
     def testGetSamplePropertiesById(self):
         props = self.api.getSamplePropertiesById(tconst['sample_id'])
         self.assertEqual(props.Items[0].Items[0].Id, tconst['sample_property_0_id'])
@@ -646,10 +709,6 @@ class TestAPISampleMethods(unittest.TestCase):
         self.assertEqual(props.Items[0].Items[0].Id, tconst['sample_property_0_id'])
         self.assertEqual(len(props.Items), 1)
     
-    def testGetSamplePropertiesByIdWithQpException(self):
-        with self.assertRaises(QueryParameterException): 
-            self.api.getSamplePropertiesById(tconst['sample_id'], {'Limit':1})
-
 class TestAPICredentialsMethods(unittest.TestCase):
     '''
     Tests API object credentials methods
@@ -764,14 +823,27 @@ class TestAPIGenomeMethods(unittest.TestCase):
         genome = next(gen for gen in genomes if gen.Id == tconst['genome_id'])
         self.assertTrue(genome.Id, tconst['genome_id'])        
         
-    def testGetAvailableGenomesWithQpException(self):        
-        with self.assertRaises(QueryParameterException):
-            self.api.getAvailableGenomes({'Limit':1})
-           
     def testGetGenomeById(self):
         g = self.api.getGenomeById(tconst['genome_id'])
         self.assertEqual(g.Id, tconst['genome_id'])
 
+class TestAPIUtilityMethods(unittest.TestCase):
+    '''
+    Tests utility methods of the API object
+    '''
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        
+    def test_validateQueryParametersDefault(self):
+        self.assertEqual(self.api._validateQueryParameters(None), {})
+        
+    def test_validateQueryParameters(self):
+        queryPars = {'Limit':10}
+        self.assertEqual(self.api._validateQueryParameters( qp(queryPars) ), queryPars)
+    
+    def test_validateQueryParametersException(self):
+        with self.assertRaises(QueryParameterException):
+            self.api._validateQueryParameters({'Limit':10})
 
 #if __name__ == '__main__':   
 #    unittest.main()
@@ -781,12 +853,14 @@ suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
 suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
 suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAppResultMethods)
 # non-file-transfer tests
-suite5 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
-suite6 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
-suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
-suite8 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
-suite9 = unittest.TestLoader().loadTestsFromTestCase(TestSampleMethods)
-suite10 = unittest.TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
-alltests = unittest.TestSuite([suite4])
-#alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10])
+suite5 = unittest.TestLoader().loadTestsFromTestCase(TestAPIAppResultMethods)
+suite6 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
+suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
+suite8 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
+suite9 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
+suite10 = unittest.TestLoader().loadTestsFromTestCase(TestSampleMethods)
+suite11 = unittest.TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
+suite12 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
+#alltests = unittest.TestSuite([suite5])
+alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10, suite11, suite12])
 unittest.TextTestRunner(verbosity=2).run(alltests)

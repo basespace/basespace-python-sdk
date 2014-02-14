@@ -1,36 +1,32 @@
-"""
-Copyright 2012 Illumina
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.apache.org/licenses/LICENSE-2.0
- 
-    Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-
-from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException,UnknownParameterException,IllegalParameterException
+from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException, UnknownParameterException, IllegalParameterException, QueryParameterException
 
 # not very strict parameters testing
-legal    = {'Statuses':[],'SortBy':['Id', 'Name', 'DateCreated','Path','Position'],'Format':['txt', 'json', 'vcf'], 'Extensions':[],'Offset':[],'Limit':[],'SortDir':['Asc', 'Desc'], 'Name':[], 'StartPos':[], 'EndPos':[], 'Format':[] }
+legal = {'Statuses':[],'SortBy':['Id', 'Name', 'DateCreated','Path','Position'],'Format':['txt', 'json', 'vcf'], 'Extensions':[],'Offset':[],'Limit':[],'SortDir':['Asc', 'Desc'], 'Name':[], 'StartPos':[], 'EndPos':[], 'Format':[] }
 
 class QueryParameters(object):
     '''
-    The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, AppResult, or variants)
+    The QueryParameters class can be passed as an optional arguments
+    for a specific sorting of list-responses (such as lists of sample, AppResult, or variants)    
     '''
     def __init__(self, pars = None, required = None):
+        '''
+        :param pars: (optional) a dictionary of query parameters, default None
+        :param required: (optional) a list of required query parameter names, default None
+        
+        :raises QueryParameterException: when non-dictionary argument for 'pars' is passed
+        '''
         if pars is None:
             pars = {}
         if required is None:
             required = [] # ['SortBy','Offset','Limit','SortDir']
         #self.passed = {'SortBy':'Id','Offset':'0','Limit':'100','SortDir':'Asc'}
         self.passed = {}
-        for k in pars.keys():
-            self.passed[k] = pars[k]
+        try:
+            for k in pars.keys():
+                self.passed[k] = pars[k]
+        except AttributeError:
+            raise QueryParameterException("The 'pars' argument to QueryParameters should be a dictionary")
         self.required = required
         
     def __str__(self):
