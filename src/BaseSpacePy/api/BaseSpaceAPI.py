@@ -385,20 +385,18 @@ class BaseSpaceAPI(BaseAPI):
             resourcePath, method, queryParams, headerParams, postData=postData,
             verbose=0)
                 
-    def getUserById(self, Id, ):
+    def getUserById(self, Id):
         '''
-        Returns the User object corresponding to Id
+        Returns the User object corresponding to User Id
         
         :param Id: The Id of the user
-        '''
-        # Parse inputs
-        resourcePath = '/users/{Id}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        '''        
+        resourcePath = '/users/{Id}'        
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(UserResponse.UserResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
            
     def getAppResultById(self, Id, queryPars=None):
         '''

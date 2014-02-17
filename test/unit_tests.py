@@ -820,6 +820,51 @@ class TestAPIProjectMethods(unittest.TestCase):
         projects = self.api.getProjectByUser(qp({'Limit':1}))        
         self.assertTrue(hasattr(projects[0], 'Id'))        
 
+class TestUserMethods(unittest.TestCase):
+    '''
+    Tests User object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.user = self.api.getUserById('current')
+        
+    def testIsInit(self):        
+        self.assertEqual(self.user.isInit(), True)
+            
+    def testIsInitException(self):
+        user = User.User()
+        with self.assertRaises(ModelNotInitializedException):
+            user.isInit()
+            
+    def testGetProjects(self):
+        projects = self.user.getProjects(self.api)        
+        self.assertTrue(hasattr(projects[0], 'Id'))
+        
+    def testGetProjectsWithQp(self):
+        projects = self.user.getProjects(self.api, queryPars=qp({'Limit':1}))        
+        self.assertTrue(hasattr(projects[0], 'Id'))
+        self.assertTrue(len(projects), 1)
+    
+    def testGetRuns(self):
+        runs = self.user.getRuns(self.api)        
+        self.assertTrue(hasattr(runs[0], 'Id'))
+        
+    def testGetRunsWithQp(self):
+        runs = self.user.getRuns(self.api, queryPars=qp({'Limit':1}))        
+        self.assertTrue(hasattr(runs[0], 'Id'))
+        self.assertTrue(len(runs), 1)
+
+class TestAPIUserMethods(unittest.TestCase):
+    '''
+    Tests API User object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+                          
+    def testGetUserById(self):
+        user = self.api.getUserById('current')
+        self.assertTrue(hasattr(user, 'Id'), 'User object should contain Id attribute')
+
 class TestAPICredentialsMethods(unittest.TestCase):
     '''
     Tests API object credentials methods
@@ -971,11 +1016,13 @@ suite8 = unittest.TestLoader().loadTestsFromTestCase(TestSampleMethods)
 suite9 = unittest.TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
 suite10 = unittest.TestLoader().loadTestsFromTestCase(TestProjectMethods)
 suite11 = unittest.TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
+suite12 = unittest.TestLoader().loadTestsFromTestCase(TestUserMethods)
+suite13 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUserMethods)
 
-suite12 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
-suite13 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
-suite14 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
+suite14 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
+suite15 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
+suite16 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
 
-#alltests = unittest.TestSuite([suite10, suite11])
-alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10, suite11, suite12])
+alltests = unittest.TestSuite([suite7, suite12, suite13])
+#alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10, suite11, suite12, suite13, suite14, suite15, suite16])
 unittest.TextTestRunner(verbosity=2).run(alltests)
