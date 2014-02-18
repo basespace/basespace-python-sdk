@@ -1,9 +1,11 @@
-import unittest
+from unittest import TestCase, TestSuite, TestLoader, TextTestRunner, skip
 import os
 import sys
 from tempfile import mkdtemp
 import shutil
-import urlparse
+from urlparse import urlparse, urljoin
+import multiprocessing
+import hashlib
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import *
@@ -36,23 +38,19 @@ tconst = {
            'create_project_name': 'Python SDK Unit Test Data',
            # for runs, genomes, projects, samples, appresults 
            'run_id': '555555', # public data B. cereus Run
-           'run_name': 'BacillusCereus',
-           'run_property_samples_0_name': 'BC_1',        
+           'run_name': 'BacillusCereus',                
            'run_file_0_name': 'RTAComplete.txt',
            'run_sample_0_name': 'BC_1',           
            'genome_id': '1',           
            'project_id': '596596',
-           'project_appresult_0_id': '1213212',
-           'project_property_count': 0, 
-           'sample_id': '855855',
-           'sample_property_0_id': '555555',
+           'project_appresult_0_id': '1213212',        
+           'sample_id': '855855',           
            'sample_file_0_id': '9895905',
            'appresult_id': '1213212',
-           'appresult_file_0_id': '9895886',
-           'appresult_property_0_id': '855855',
+           'appresult_file_0_id': '9895886',           
           }
 
-class TestFileDownloadMethods(unittest.TestCase):
+class TestFileDownloadMethods(TestCase):
     '''
     Tests methods of File objects
     '''
@@ -64,7 +62,7 @@ class TestFileDownloadMethods(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir) 
         
-    def test_file_basic_download(self):
+    def testDownloadFile(self):
         new_file = self.file.downloadFile(
             self.api,
             localDir = self.temp_dir,            
@@ -77,7 +75,7 @@ class TestFileDownloadMethods(unittest.TestCase):
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
         
-    def test_file_small_download_with_directory(self):
+    def testDownloadFileWithBsDirectoryArg(self):
         new_file = self.file.downloadFile(
             self.api,
             localDir = self.temp_dir,
@@ -91,7 +89,7 @@ class TestFileDownloadMethods(unittest.TestCase):
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
         
-    def test_file_byte_range_download(self):
+    def testDownloadFileWithByteRangeArg(self):
         new_file = self.file.downloadFile(
             self.api,
             localDir = self.temp_dir,
@@ -103,7 +101,7 @@ class TestFileDownloadMethods(unittest.TestCase):
         self.assertEqual(1001, os.stat(file_path).st_size)
         os.remove(file_path)        
 
-class TestAPIUploadMethods(unittest.TestCase):
+class TestAPIFileUploadMethods_SmallFiles(TestCase):
     '''
     Tests single and multi-part upload methods
     '''
@@ -117,8 +115,26 @@ class TestAPIUploadMethods(unittest.TestCase):
         cls.api = BaseSpaceAPI(profile='unit_tests')        
         cls.proj = cls.api.createProject(tconst['create_project_name'])                        
         cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
+    
+    def test__singlepartFileUpload__(self):                    
+        testDir = "testSinglePartSmallFileUploadDirectory"
+        fileName = os.path.basename(tconst['file_small_upload'])
+        myFile = self.api.__singlepartFileUpload__(
+            Id=self.ar.Id, 
+            localPath=tconst['file_small_upload'], 
+            fileName=fileName, 
+            directory=testDir, 
+            contentType=tconst['file_small_upload_content_type'])                
+        self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
+        self.assertEqual(myFile.Size, tconst['file_small_upload_size'])
+        self.assertEqual(myFile.UploadStatus, 'complete')
+        # test fresh File object
+        newFile = self.api.getFileById(myFile.Id)
+        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))        
+        self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
+        self.assertEqual(newFile.UploadStatus, 'complete')                        
 
-    def test_small_upload(self):
+    def testAppResultFileUpload_SmallUpload(self):
         testDir = "testSmallUploadDirectory"
         fileName = os.path.basename(tconst['file_small_upload'])
         myFile = self.api.appResultFileUpload(
@@ -136,8 +152,107 @@ class TestAPIUploadMethods(unittest.TestCase):
         self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
         self.assertEqual(newFile.UploadStatus, 'complete')
 
-#    @unittest.skip('large upload')
-    def test_large_upload(self):
+    def test__initiateMultipartFileUpload__(self):
+        testDir = "test__initiateMultipartFileUpload__"
+        file = self.api.__initiateMultipartFileUpload__(
+            Id = self.ar.Id,
+            fileName = os.path.basename(tconst['file_small_upload']),            
+            directory = testDir,
+            contentType=tconst['file_small_upload_content_type'])
+        self.assertEqual(file.Name, os.path.basename(tconst['file_small_upload']))                    
+        
+    def test__uploadMultipartUnit__(self):
+        testDir = "test__uploadMultipartUnit__"
+        file = self.api.__initiateMultipartFileUpload__(
+            Id = self.ar.Id,
+            fileName = os.path.basename(tconst['file_small_upload']),            
+            directory = testDir,
+            contentType=tconst['file_small_upload_content_type'])
+        with open(tconst['file_small_upload']) as fp:
+            out = fp.read()
+            md5 = hashlib.md5(out).digest().encode('base64')  
+        response = self.api.__uploadMultipartUnit__(
+            Id = file.Id,
+            partNumber = 1,
+            md5 = md5,
+            data = tconst['file_small_upload'])
+        self.assertNotEqual(response, None, 'Upload part failure will return None')
+        self.assertTrue('ETag' in response['Response'], 'Upload part success will contain a Response dict with an ETag element')
+            
+    def test__finalizeMultipartFileUpload__(self):
+        testDir = "test__finalizeMultipartFileUpload__"
+        file = self.api.__initiateMultipartFileUpload__(
+            Id = self.ar.Id,
+            fileName = os.path.basename(tconst['file_small_upload']),            
+            directory = testDir,
+            contentType=tconst['file_small_upload_content_type'])
+        with open(tconst['file_small_upload']) as fp:
+            out = fp.read()
+            md5 = hashlib.md5(out).digest().encode('base64')  
+        response = self.api.__uploadMultipartUnit__(
+            Id = file.Id,
+            partNumber = 1,
+            md5 = md5,
+            data = tconst['file_small_upload'])
+        final_file = self.api.__finalizeMultipartFileUpload__(file.Id)
+        self.assertEqual(final_file.UploadStatus, 'complete')
+
+    def testMultiPartFileUpload_SmallPartSizeException(self):
+        with self.assertRaises(UploadPartSizeException):
+            myFile = self.api.multipartFileUpload(
+                Id=self.ar.Id,
+                localPath=tconst['file_large_upload'], 
+                fileName=os.path.basename(tconst['file_large_upload']), 
+                directory="",                          
+                contentType=tconst['file_large_upload_content_type'],            
+                partSize=5, # MB, chunk size                        
+                )
+
+    def testMultiPartFileUpload_LargePartSizeException(self):
+        with self.assertRaises(UploadPartSizeException):
+            myFile = self.api.multipartFileUpload(
+                Id=self.ar.Id,
+                localPath=tconst['file_large_upload'], 
+                fileName=os.path.basename(tconst['file_large_upload']), 
+                directory="",                          
+                contentType=tconst['file_large_upload_content_type'],            
+                partSize=26, # MB, chunk size                        
+                )
+
+    def testIntegration_SmallFileUploadThenDownload(self):            
+        upFile = self.api.appResultFileUpload(
+            Id=self.ar.Id, 
+            localPath=tconst['file_small_upload'], 
+            fileName=os.path.basename(tconst['file_small_upload']), 
+            directory="test_upload_download_dir", 
+            contentType=tconst['file_small_upload_content_type'])        
+        tempDir = mkdtemp()        
+        downFile = self.api.fileDownload(upFile.Id, tempDir, createBsDir=True)
+        downPath = os.path.join(tempDir, upFile.Path)
+        self.assertTrue(os.path.isfile(downPath), "Failed to find path %s" % downPath)
+        # confirm file size and md5 are correct
+        self.assertEqual(os.path.getsize(tconst['file_small_upload']), os.path.getsize(downPath))
+        with open(downPath, "r+b") as fp:
+            self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_upload_md5'])
+        os.remove(downPath)                        
+
+class TestAPIFileUploadMethods_LargeFiles(TestCase):
+    '''
+    Tests multi-part upload methods on large(-ish) files -- may be time consuming
+    '''
+    @classmethod
+    def setUpClass(cls):    
+        '''
+        For all upload unit tests (not per test):
+        Create a new 'unit test' project, or get it if exists, to upload to data to.
+        Then create a new app result in this project, getting a new app session id
+        '''        
+        cls.api = BaseSpaceAPI(profile='unit_tests')        
+        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
+ 
+#    @skip('large upload')
+    def testAppResultFileUpload_LargeUpload(self):
         testDir = "testLargeUploadDirectory"
         fileName = os.path.basename(tconst['file_large_upload'])            
         myFile = self.api.appResultFileUpload(
@@ -154,9 +269,9 @@ class TestAPIUploadMethods(unittest.TestCase):
         self.assertEqual(newFile.Path, os.path.join(testDir, fileName))        
         self.assertEqual(newFile.Size, tconst['file_large_upload_size'])
         self.assertEqual(newFile.UploadStatus, 'complete')
-
-#    @unittest.skip('large upload')
-    def test_multipart_upload(self):
+        
+#    @skip('large upload')
+    def testMultiPartFileUpload(self):
         testDir = "testMultipartUploadDir"
         fileName = os.path.basename(tconst['file_large_upload']) 
         myFile = self.api.multipartFileUpload(
@@ -175,47 +290,8 @@ class TestAPIUploadMethods(unittest.TestCase):
         self.assertEqual(myFile.Path, os.path.join(testDir, fileName))    
         self.assertEqual(myFile.UploadStatus, 'complete')    
 
-    def test_small_part_size_multipart_upload_exception(self):
-        with self.assertRaises(UploadPartSizeException):
-            myFile = self.api.multipartFileUpload(
-                Id=self.ar.Id,
-                localPath=tconst['file_large_upload'], 
-                fileName=os.path.basename(tconst['file_large_upload']), 
-                directory="",                          
-                contentType=tconst['file_large_upload_content_type'],            
-                partSize=5, # MB, chunk size                        
-                )
-
-    def test_large_part_size_multipart_upload_exception(self):
-        with self.assertRaises(UploadPartSizeException):
-            myFile = self.api.multipartFileUpload(
-                Id=self.ar.Id,
-                localPath=tconst['file_large_upload'], 
-                fileName=os.path.basename(tconst['file_large_upload']), 
-                directory="",                          
-                contentType=tconst['file_large_upload_content_type'],            
-                partSize=26, # MB, chunk size                        
-                )
-
-    def test_small_upload_download(self):            
-        upFile = self.api.appResultFileUpload(
-            Id=self.ar.Id, 
-            localPath=tconst['file_small_upload'], 
-            fileName=os.path.basename(tconst['file_small_upload']), 
-            directory="test_upload_download_dir", 
-            contentType=tconst['file_small_upload_content_type'])        
-        tempDir = mkdtemp()        
-        downFile = self.api.fileDownload(upFile.Id, tempDir, createBsDir=True)
-        downPath = os.path.join(tempDir, upFile.Path)
-        self.assertTrue(os.path.isfile(downPath), "Failed to find path %s" % downPath)
-        # confirm file size and md5 are correct
-        self.assertEqual(os.path.getsize(tconst['file_small_upload']), os.path.getsize(downPath))
-        with open(downPath, "r+b") as fp:
-            self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_upload_md5'])
-        os.remove(downPath)                        
-
-#    @unittest.skip('large upload and download')
-    def test_large_upload_download(self):            
+#    @skip('large upload and download')
+    def testIntegration_LargeFileUploadThenDownload(self):            
         upFile = self.api.appResultFileUpload(
             Id=self.ar.Id, 
             localPath=tconst['file_large_upload'], 
@@ -232,7 +308,7 @@ class TestAPIUploadMethods(unittest.TestCase):
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_upload_md5'])
         os.remove(downPath)                        
  
-class TestAPIDownloadMethods(unittest.TestCase):
+class TestAPIFileDownloadMethods_SmallFiles(TestCase):
     '''
     Tests single and multi-part download methods
     '''
@@ -242,8 +318,69 @@ class TestAPIDownloadMethods(unittest.TestCase):
             
     def tearDown(self):
         shutil.rmtree(self.temp_dir) 
+
+    def test__downloadFile__(self):
+        file_name = 'testfile.abc'
+        bs_file = self.api.getFileById(tconst['file_id_small'])
+        self.api.__downloadFile__(
+            tconst['file_id_small'],                    
+            localDir = self.temp_dir,
+            name = file_name,            
+            )
+        file_path = os.path.join(self.temp_dir, file_name)
+        self.assertTrue(os.path.isfile(file_path))
+        # confirm file size and md5 are correct
+        self.assertEqual(bs_file.Size, os.stat(file_path).st_size)
+        with open(file_path, "r+b") as fp:
+            self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
+        os.remove(file_path)
         
-    def test_small_download(self):
+    def test__downloadFile__WithByteRangeArg(self):
+        file_name = 'testfile.abc'        
+        self.api.__downloadFile__(
+            tconst['file_id_large'],                    
+            localDir = self.temp_dir,
+            name = file_name,
+            byteRange = [2000,3000]            
+            )
+        file_path = os.path.join(self.temp_dir, file_name)
+        self.assertTrue(os.path.isfile(file_path))        
+        self.assertEqual(3001, os.stat(file_path).st_size) # seek() into file, so size is larger
+        os.remove(file_path)
+
+    def test__downloadFile__WithByteRangeStoredInStandaloneFile(self):
+        file_name = 'testfile.abc'
+        self.api.__downloadFile__(
+            tconst['file_id_large'],                    
+            localDir = self.temp_dir,
+            name = file_name,
+            byteRange = [2000,3000],
+            standaloneRangeFile = True,         
+            )
+        file_path = os.path.join(self.temp_dir, file_name)
+        self.assertTrue(os.path.isfile(file_path))        
+        self.assertEqual(1001, os.stat(file_path).st_size) # no seek() into standalone file, so size is only range data
+        os.remove(file_path)
+        
+    def test__downloadFile__WithLockArg(self):
+        lock = multiprocessing.Lock() # just testing that passing in a lock won't crash anything
+        file_name = 'testfile.abc'
+        bs_file = self.api.getFileById(tconst['file_id_small'])
+        self.api.__downloadFile__(
+            tconst['file_id_small'],                    
+            localDir = self.temp_dir,
+            name = file_name,
+            lock = lock,            
+            )
+        file_path = os.path.join(self.temp_dir, file_name)
+        self.assertTrue(os.path.isfile(file_path))
+        # confirm file size and md5 are correct
+        self.assertEqual(bs_file.Size, os.stat(file_path).st_size)
+        with open(file_path, "r+b") as fp:
+            self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
+        os.remove(file_path)        
+        
+    def testFileDownload_SmallFile(self):
         new_file = self.api.fileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,            
@@ -256,7 +393,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-    def test_small_download_with_directory(self):
+    def testFileDownload_SmallFileWithBsDirectoryArg(self):
         new_file = self.api.fileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,
@@ -270,36 +407,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-#    @unittest.skip('large download')
-    def test_large_download(self):
-        new_file = self.api.fileDownload(
-            tconst['file_id_large'],                    
-            localDir = self.temp_dir,            
-            )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
-        self.assertTrue(os.path.isfile(file_path))
-        # confirm file size is correct
-        self.assertEqual(new_file.Size, os.stat(file_path).st_size)
-        fp = open(file_path, "r+b")
-        self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
-        os.remove(file_path)
-
-#    @unittest.skip('large download')
-    def test_large_download_with_directory(self):
-        new_file = self.api.fileDownload(
-            tconst['file_id_large'],                    
-            localDir = self.temp_dir,
-            createBsDir = True,         
-            )
-        file_path = os.path.join(self.temp_dir, new_file.Path)
-        self.assertTrue(os.path.isfile(file_path))
-        # confirm file size is correct
-        self.assertEqual(new_file.Size, os.stat(file_path).st_size)
-        fp = open(file_path, "r+b")
-        self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
-        os.remove(file_path)
-
-    def test_byte_range_download(self):
+    def testFileDownload_WithByteRangeArg(self):
         new_file = self.api.fileDownload(
             tconst['file_id_large'],                    
             localDir = self.temp_dir,
@@ -311,7 +419,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(1001, os.stat(file_path).st_size)
         os.remove(file_path)        
 
-    def test_large_byte_range_download_exception(self):
+    def testFileDownload_LargeByteRangeException(self):
         with self.assertRaises(ByteRangeException):
             self.api.fileDownload(
                 tconst['file_id_large'],                    
@@ -319,7 +427,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
                 byteRange = [1,10000001]            
                 )        
 
-    def test_misordered_byte_range_download_exception(self):
+    def testFileDownload_MisorderedByteRangeException(self):
         with self.assertRaises(ByteRangeException):
             self.api.fileDownload(
                 tconst['file_id_large'],                    
@@ -327,7 +435,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
                 byteRange = [1000, 1]            
                 )
 
-    def test_partial_byte_range_download_exception(self):
+    def testFileDownload_PartialByteRangeException(self):
         with self.assertRaises(ByteRangeException):
             self.api.fileDownload(
                 tconst['file_id_large'],                    
@@ -335,7 +443,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
                 byteRange = [1000]            
                 )
 
-    def test_small_multipartDownload(self):
+    def testMultipartFileDownload_SmallFile(self):
         new_file = self.api.multipartFileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,
@@ -350,23 +458,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-#    @unittest.skip('large download')
-    def test_large_multipartDownload(self):
-        new_file = self.api.multipartFileDownload(
-            tconst['file_id_large'],                    
-            localDir = self.temp_dir,
-            processCount = 10,
-            partSize = 12
-            )
-        file_path = os.path.join(self.temp_dir, new_file.Name)
-        self.assertTrue(os.path.isfile(file_path), "Failed to find file, expected here: %s" % file_path)
-        # confirm file size and md5 are correct
-        self.assertEqual(new_file.Size, os.stat(file_path).st_size)
-        fp = open(file_path, "r+b")
-        self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
-        os.remove(file_path)
-
-    def test_multipartDownload_with_directory(self):
+    def testMultipartFileDownload_WithBsDirectoryArg(self):
         new_file = self.api.multipartFileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,
@@ -382,7 +474,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-    def test_multipartDownload_via_temp_file(self):
+    def testMultipartFileDownload_WithTempFileArg(self):
         new_file = self.api.multipartFileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,            
@@ -396,7 +488,7 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-    def test_multipartDownload_via_temp_file_with_directory(self):
+    def testMultipartFileDownload_WithTempFileAndBsDirArgs(self):
         new_file = self.api.multipartFileDownload(
             tconst['file_id_small'],                    
             localDir = self.temp_dir,            
@@ -411,7 +503,63 @@ class TestAPIDownloadMethods(unittest.TestCase):
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
 
-class TestAppResultMethods(unittest.TestCase):
+class TestAPIFileDownloadMethods_LargeFiles(TestCase):
+    '''
+    Tests multi-part download methods on large(-ish) files -- may be time consuming
+    '''
+    def setUp(self):        
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.temp_dir = mkdtemp()    
+            
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir) 
+
+#    @skip('large download')
+    def testFileDownload_LargeFile(self):
+        new_file = self.api.fileDownload(
+            tconst['file_id_large'],                    
+            localDir = self.temp_dir,            
+            )
+        file_path = os.path.join(self.temp_dir, new_file.Name)
+        self.assertTrue(os.path.isfile(file_path))
+        # confirm file size is correct
+        self.assertEqual(new_file.Size, os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
+        os.remove(file_path)
+
+#    @skip('large download')
+    def testFileDownload_LargeFileWithBsDirectoryArg(self):
+        new_file = self.api.fileDownload(
+            tconst['file_id_large'],                    
+            localDir = self.temp_dir,
+            createBsDir = True,         
+            )
+        file_path = os.path.join(self.temp_dir, new_file.Path)
+        self.assertTrue(os.path.isfile(file_path))
+        # confirm file size is correct
+        self.assertEqual(new_file.Size, os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
+        os.remove(file_path)
+
+#    @skip('large download')
+    def testMultipartFileDownload_LargeFile(self):
+        new_file = self.api.multipartFileDownload(
+            tconst['file_id_large'],                    
+            localDir = self.temp_dir,
+            processCount = 10,
+            partSize = 12
+            )
+        file_path = os.path.join(self.temp_dir, new_file.Name)
+        self.assertTrue(os.path.isfile(file_path), "Failed to find file, expected here: %s" % file_path)
+        # confirm file size and md5 are correct
+        self.assertEqual(new_file.Size, os.stat(file_path).st_size)
+        fp = open(file_path, "r+b")
+        self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_md5'])
+        os.remove(file_path)
+
+class TestAppResultMethods(TestCase):
     '''
     Tests AppResult object methods
     '''
@@ -469,7 +617,7 @@ class TestAppResultMethods(unittest.TestCase):
         self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
         self.assertEqual(newFile.UploadStatus, 'complete')                
 
-class TestAPIAppResultMethods(unittest.TestCase):
+class TestAPIAppResultMethods(TestCase):
     '''
     Tests API object AppResult methods
     '''        
@@ -485,13 +633,22 @@ class TestAPIAppResultMethods(unittest.TestCase):
         self.assertTrue(appresult.Id, 'appresult_id')        
             
     def testGetAppResultPropertiesById(self):
-        props = self.api.getAppResultPropertiesById(tconst['appresult_id'])
-        self.assertEqual(props.Items[0].Items[0].Id, tconst['appresult_property_0_id'])
+        props = self.api.getAppResultPropertiesById(tconst['appresult_id'])        
+        self.assertTrue(hasattr(props, 'TotalCount'))
         
     def testGetAppResultPropertiesByIdWithQp(self):
         props = self.api.getAppResultPropertiesById(tconst['appresult_id'], qp({'Limit':1}))
-        self.assertEqual(props.Items[0].Items[0].Id, tconst['appresult_property_0_id']) 
+        self.assertTrue(hasattr(props, 'TotalCount')) 
         self.assertEqual(len(props.Items), 1)
+
+    def testGetAppResultFilesById(self):
+        files = self.api.getAppResultFilesById(tconst['appresult_id'])        
+        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        
+    def testGetAppResultFilesByIdWithQp(self):
+        files = self.api.getAppResultFilesById(tconst['appresult_id'], qp({'Limit':1}))        
+        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertEqual(len(files), 1)    
             
     def testGetAppResultFiles(self):
         files = self.api.getAppResultFiles(tconst['appresult_id'])        
@@ -535,7 +692,7 @@ class TestAPIAppResultMethods(unittest.TestCase):
         proj = self.api.createProject(tconst['create_project_name'])   
         ar = self.api.createAppResult(proj.Id, name="test create appresult creds ssn", 
             desc="test create appresult creds ssn", appSessionId="")
-        url = urlparse.urlparse(self.api.apiServer)
+        url = urlparse(self.api.apiServer)
         newApiServer = url.scheme + "://" + url.netloc
         new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
@@ -559,7 +716,7 @@ class TestAPIAppResultMethods(unittest.TestCase):
     # Note that appResultFileUpload() is tested with other file upload methods 
     # (in a separate suite: TestAPIUploadMethods)
     
-class TestRunMethods(unittest.TestCase):
+class TestRunMethods(TestCase):
     '''
     Tests Run object methods
     '''        
@@ -599,7 +756,7 @@ class TestRunMethods(unittest.TestCase):
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         self.assertEqual(len(rs), 1)
 
-class TestAPIRunMethods(unittest.TestCase):
+class TestAPIRunMethods(TestCase):
     '''
     Tests API object Run methods
     '''        
@@ -624,13 +781,13 @@ class TestAPIRunMethods(unittest.TestCase):
         self.assertEqual(rf.Name, tconst['run_name'])
         
     def testGetRunPropertiesById(self):                                                    
-        rp = self.api.getRunPropertiesById(tconst['run_id'])        
-        self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
+        props = self.api.getRunPropertiesById(tconst['run_id'])        
+        self.assertTrue(hasattr(props, 'TotalCount'))        
         
     def testGetRunPropertiesByIdWithQp(self):                                                    
-        rp = self.api.getRunPropertiesById(tconst['run_id'], qp({'Limit':1}))
-        self.assertEqual(len(rp.Items), 1)        
-        self.assertEqual(rp.Items[0].Items[0].Name, tconst['run_property_samples_0_name'])
+        props = self.api.getRunPropertiesById(tconst['run_id'], qp({'Limit':1}))                
+        self.assertTrue(hasattr(props, 'TotalCount'))
+        self.assertEqual(len(props.Items), 1)
     
     def testGetRunFilesById(self):                                                    
         rf = self.api.getRunFilesById(tconst['run_id'])        
@@ -650,7 +807,7 @@ class TestAPIRunMethods(unittest.TestCase):
         self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
         self.assertEqual(len(rs), 1)
 
-class TestSampleMethods(unittest.TestCase):
+class TestSampleMethods(TestCase):
     '''
     Tests Sample object methods
     '''        
@@ -683,7 +840,7 @@ class TestSampleMethods(unittest.TestCase):
         self.assertEqual(files[0].Id, tconst['sample_file_0_id'])
         self.assertEqual(len(files), 1)
 
-class TestAPISampleMethods(unittest.TestCase):
+class TestAPISampleMethods(TestCase):
     '''
     Tests API Sample object methods
     '''        
@@ -709,14 +866,23 @@ class TestAPISampleMethods(unittest.TestCase):
     
     def testGetSamplePropertiesById(self):
         props = self.api.getSamplePropertiesById(tconst['sample_id'])
-        self.assertEqual(props.Items[0].Items[0].Id, tconst['sample_property_0_id'])
+        self.assertTrue(hasattr(props, 'TotalCount'))        
 
     def testGetSamplePropertiesByIdWithQp(self):
         props = self.api.getSamplePropertiesById(tconst['sample_id'], qp({'Limit':1}))
-        self.assertEqual(props.Items[0].Items[0].Id, tconst['sample_property_0_id'])
+        self.assertTrue(hasattr(props, 'TotalCount'))        
         self.assertEqual(len(props.Items), 1)
+        
+    def testGetSampleFilesById(self):
+        files = self.api.getSampleFilesById(tconst['sample_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
+        
+    def testGetSampleFilesByIdWithQp(self):
+        files = self.api.getSampleFilesById(tconst['sample_id'], qp({'Limit':1}))
+        self.assertTrue(hasattr(files[0], 'Id'))
+        self.assertEqual(len(files), 1)
 
-class TestProjectMethods(unittest.TestCase):
+class TestProjectMethods(TestCase):
     '''
     Tests Project object methods
     '''        
@@ -766,7 +932,7 @@ class TestProjectMethods(unittest.TestCase):
         proj = self.api.createProject(tconst['create_project_name'])   
         ar = proj.createAppResult(self.api, name="test create appresult creds ssn, project obj", 
             desc="test create appresult creds ssn, project obj", appSessionId="")
-        url = urlparse.urlparse(self.api.apiServer)
+        url = urlparse(self.api.apiServer)
         newApiServer = url.scheme + "://" + url.netloc
         new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
@@ -784,7 +950,7 @@ class TestProjectMethods(unittest.TestCase):
             desc="test create appresult new ssn, project obj", samples=[], appSessionId="")
         self.assertTrue(hasattr(ar, 'Id'))        
         
-class TestAPIProjectMethods(unittest.TestCase):
+class TestAPIProjectMethods(TestCase):
     '''
     Tests API Project object methods
     '''        
@@ -804,12 +970,12 @@ class TestAPIProjectMethods(unittest.TestCase):
         self.assertEqual(proj.Id, tconst['project_id'])                        
 
     def testGetProjectPropertiesById(self):
-        props = self.api.getProjectPropertiesById(tconst['project_id'])         
-        self.assertEqual(props.TotalCount, tconst['project_property_count'])               
+        props = self.api.getProjectPropertiesById(tconst['project_id'])
+        self.assertTrue(hasattr(props, 'TotalCount'))                         
 
     def testGetProjectPropertiesByIdWithQp(self):
         props = self.api.getProjectPropertiesById(tconst['project_id'], qp({'Limit':1}))         
-        self.assertEqual(props.TotalCount, tconst['project_property_count'])      
+        self.assertTrue(hasattr(props, 'TotalCount'))      
         # test project has no properties, so can't test Limit
 
     def testGetProjectByUser(self):
@@ -820,7 +986,7 @@ class TestAPIProjectMethods(unittest.TestCase):
         projects = self.api.getProjectByUser(qp({'Limit':1}))        
         self.assertTrue(hasattr(projects[0], 'Id'))        
 
-class TestUserMethods(unittest.TestCase):
+class TestUserMethods(TestCase):
     '''
     Tests User object methods
     '''        
@@ -854,7 +1020,7 @@ class TestUserMethods(unittest.TestCase):
         self.assertTrue(hasattr(runs[0], 'Id'))
         self.assertTrue(len(runs), 1)
 
-class TestAPIUserMethods(unittest.TestCase):
+class TestAPIUserMethods(TestCase):
     '''
     Tests API User object methods
     '''        
@@ -865,7 +1031,100 @@ class TestAPIUserMethods(unittest.TestCase):
         user = self.api.getUserById('current')
         self.assertTrue(hasattr(user, 'Id'), 'User object should contain Id attribute')
 
-class TestAPICredentialsMethods(unittest.TestCase):
+class TestFileMethods(TestCase):
+    '''
+    Tests File object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.file = self.api.getFileById(tconst['file_id_small'])
+        
+    def testIsInit(self):        
+        self.assertEqual(self.file.isInit(), True)
+            
+    def testIsInitException(self):
+        file = File.File()
+        with self.assertRaises(ModelNotInitializedException):
+            file.isInit()
+    
+    def testIsValidFileOption(self):
+        pass # TODO
+
+    # downloadFile() is tested in a separate suite
+    
+    def testGetFileUrl(self):
+        pass # TODO            
+
+    def testGetFileS3metadata(self):
+        pass # TODO            
+
+    def testGetIntervalCoverage(self):
+        pass # TODO
+    
+    def testFilterVariant(self):
+        pass # TODO
+    
+    def testGetCoverageMeta(self):
+        pass # TODO
+    
+    def testGetVariantMeta(self):
+        pass # TODO
+
+class TestAPIFileMethods(TestCase):
+    '''
+    Tests API File object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+                          
+    def testGetFileById(self):
+        file = self.api.getFileById(tconst['file_id_small'])
+        self.assertTrue(file.Id, tconst['file_id_small'])
+
+    def testGetFileByIdWithQp(self):
+        file = self.api.getFileById(tconst['file_id_small'], qp({'Limit':1})) # Limit doesn't make much sense here
+        self.assertEqual(file.Id, tconst['file_id_small'])        
+
+    def testGetFilesBySample(self):
+        files = self.api.getFilesBySample(tconst['sample_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
+        
+    def testGetFilesBySampleWithQp(self):
+        files = self.api.getFilesBySample(tconst['sample_id'], qp({'Limit':1}))
+        self.assertTrue(hasattr(files[0], 'Id'))
+        self.assertEqual(len(files), 1)
+
+    def testGetFilePropertiesById(self):
+        props = self.api.getFilePropertiesById(tconst['file_id_small'])
+        self.assertTrue(hasattr(props, 'TotalCount'))
+        
+    def testGetFilePropertiesByIdWithQp(self):
+        props = self.api.getFilePropertiesById(tconst['file_id_small'], qp({'Limit':1}))
+        self.assertTrue(hasattr(props, 'TotalCount'))
+        # can't test limit since test file has no properties
+
+    def testFileUrl(self):
+        url = self.api.fileUrl(tconst['file_id_small'])
+        url_parts = urlparse(url)
+        self.assertEqual(url_parts.scheme, 'https')
+    
+    def testFileS3metadata(self):
+        meta = self.api.fileS3metadata(tconst['file_id_small'])        
+        self.assertTrue('url' in meta)
+        self.assertTrue('etag' in meta)
+
+# api file upload/download methods are tested in a separate suite:                
+    # __initiateMultipartFileUpload__()    
+    # __uploadMultipartUnit__()        
+    # __finalizeMultipartFileUpload__()        
+    # __singlepartFileUpload__()                        
+    # multipartFileUpload()            
+                    
+    # __downloadFile__()
+    # fileDownload()
+    # multipartFileDownload()        
+    
+class TestAPICredentialsMethods(TestCase):
     '''
     Tests API object credentials methods
     '''        
@@ -880,7 +1139,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         self.assertEqual(creds['clientKey'], self.api.key)
         self.assertEqual('profile' in creds, True)
         self.assertEqual(creds['clientSecret'], self.api.secret)
-        self.assertEqual(urlparse.urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
+        self.assertEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
         self.assertEqual(creds['apiVersion'], self.api.version)
         self.assertEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertEqual(creds['accessToken'], self.api.getAccessToken())
@@ -892,7 +1151,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         self.assertNotEqual(creds['clientKey'], self.api.key)
         self.assertNotEqual('profile' in creds, True)
         self.assertNotEqual(creds['clientSecret'], self.api.secret)
-        self.assertNotEqual(urlparse.urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
+        self.assertNotEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
         self.assertNotEqual(creds['apiVersion'], self.api.version)
         self.assertNotEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertNotEqual(creds['accessToken'], self.api.getAccessToken())
@@ -962,7 +1221,7 @@ class TestAPICredentialsMethods(unittest.TestCase):
         with self.assertRaises(CredentialsException):
             creds = self.api._get_local_credentials(profile="SuperCallaFragaListic AppTastic")                
 
-class TestAPIGenomeMethods(unittest.TestCase):
+class TestAPIGenomeMethods(TestCase):
     '''
     Tests API object Genome methods
     '''        
@@ -983,7 +1242,7 @@ class TestAPIGenomeMethods(unittest.TestCase):
         g = self.api.getGenomeById(tconst['genome_id'])
         self.assertEqual(g.Id, tconst['genome_id'])
 
-class TestAPIUtilityMethods(unittest.TestCase):
+class TestAPIUtilityMethods(TestCase):
     '''
     Tests utility methods of the API object
     '''
@@ -1002,27 +1261,40 @@ class TestAPIUtilityMethods(unittest.TestCase):
             self.api._validateQueryParameters({'Limit':10})
 
 #if __name__ == '__main__':   
-#    unittest.main()
+#    main()         # unittest.main()
+large1 = TestLoader().loadTestsFromTestCase( TestAPIFileUploadMethods_LargeFiles )
+large2 = TestLoader().loadTestsFromTestCase( TestAPIFileDownloadMethods_LargeFiles )
+large_file_transfers = TestSuite( [large1, large2] )
 
-suite1 = unittest.TestLoader().loadTestsFromTestCase(TestFileDownloadMethods)
-suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUploadMethods)
-suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAPIDownloadMethods)
-# non-file-transfer tests
-suite4 = unittest.TestLoader().loadTestsFromTestCase(TestAppResultMethods)
-suite5 = unittest.TestLoader().loadTestsFromTestCase(TestAPIAppResultMethods)
-suite6 = unittest.TestLoader().loadTestsFromTestCase(TestRunMethods)
-suite7 = unittest.TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
-suite8 = unittest.TestLoader().loadTestsFromTestCase(TestSampleMethods)
-suite9 = unittest.TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
-suite10 = unittest.TestLoader().loadTestsFromTestCase(TestProjectMethods)
-suite11 = unittest.TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
-suite12 = unittest.TestLoader().loadTestsFromTestCase(TestUserMethods)
-suite13 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUserMethods)
+small1 = TestLoader().loadTestsFromTestCase(TestFileDownloadMethods)
+small2 = TestLoader().loadTestsFromTestCase(TestAPIFileUploadMethods_SmallFiles)
+small3 = TestLoader().loadTestsFromTestCase(TestAPIFileDownloadMethods_SmallFiles)
+small_file_transfers = TestSuite( [small1, small2, small3])
 
-suite14 = unittest.TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
-suite15 = unittest.TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
-suite16 = unittest.TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
+run = TestLoader().loadTestsFromTestCase(TestRunMethods)
+run_api = TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
+user = TestLoader().loadTestsFromTestCase(TestUserMethods)
+user_api = TestLoader().loadTestsFromTestCase(TestAPIUserMethods)
+file = TestLoader().loadTestsFromTestCase(TestFileMethods)
+file_api = TestLoader().loadTestsFromTestCase(TestAPIFileMethods)
+runs_users_files = TestSuite( [run, run_api, user, user_api, file, file_api])
 
-alltests = unittest.TestSuite([suite7, suite12, suite13])
-#alltests = unittest.TestSuite([suite1, suite2, suite3, suite4, suite5, suite6, suite7, suite8, suite9, suite10, suite11, suite12, suite13, suite14, suite15, suite16])
-unittest.TextTestRunner(verbosity=2).run(alltests)
+sample = TestLoader().loadTestsFromTestCase(TestSampleMethods)
+sample_api = TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
+ar = TestLoader().loadTestsFromTestCase(TestAppResultMethods)
+ar_api = TestLoader().loadTestsFromTestCase(TestAPIAppResultMethods)
+project = TestLoader().loadTestsFromTestCase(TestProjectMethods)
+project_api = TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
+samples_appresults_projects = TestSuite( [sample, sample_api, ar, ar_api, project, project_api])
+
+cred = TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
+genome = TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
+util = TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
+cred_genome_util = TestSuite( [cred, genome, util])
+
+alltests = TestSuite()
+alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_projects, cred_genome_util] )
+alltests.addTest(large_file_transfers)
+
+#alltests.addTests( [runs_users_files, samples_appresults_projects] )
+TextTestRunner(verbosity=2).run(alltests)

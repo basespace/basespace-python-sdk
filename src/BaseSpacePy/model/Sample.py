@@ -86,4 +86,4 @@ class Sample(object):
         self.isInit()
         if queryPars is None:
             queryPars = qp()
-        return api.getFilesBySample(self.Id, queryPars=queryPars)
+        return api.getSampleFilesById(self.Id, queryPars=queryPars)

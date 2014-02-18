@@ -1,25 +1,10 @@
-"""
-Copyright 2012 Illumina
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.apache.org/licenses/LICENSE-2.0
- 
-    Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-
-from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException,WrongFiletypeException
+from BaseSpacePy.api.BaseSpaceException import ModelNotInitializedException, WrongFiletypeException
 
 class File(object):
     '''
-    Represents a BaseSpace file object.
+    Represents a BaseSpace file object
     '''
-
     def __init__(self):
         self.swaggerTypes = {
             'Name': 'str',
@@ -38,24 +23,25 @@ class File(object):
         }
 
     def __str__(self):
-        s =  self.Name 
-        try:
-            s += " - status: " + self.UploadStatus
-        except:
-            e=1
-        return s 
+        return self.Name 
+             
     def __repr__(self):
         return str(self)
     
     def isInit(self):
-        '''
-        Is called to test if the File instance has been initialized.
+        '''        
+        Tests if the File instance has been initialized.
         
-        Throws:
-            ModelNotInitializedException if the instance has not been populated yet.
+        :raises ModelNotInitializedException: if the Id variable is not set
+        :return True on success
         '''
-        try:self.Id
-        except: raise ModelNotInitializedException('The File model has not been initialized yet')
+        err = 'The File object has not been initialized yet'
+        try:
+            if not self.Id:
+                raise ModelNotInitializedException(err)
+        except AttributeError:
+            raise ModelNotInitializedException(err)
+        return True        
         
     def isValidFileOption(self,filetype):
         '''
@@ -63,6 +49,7 @@ class File(object):
               
         :param filetype: The filetype for coverage or variant requests
         '''
+        self.isInit()
         if filetype=='bam':
             try: 
                 self.HrefCoverage
@@ -84,19 +71,30 @@ class File(object):
         :param localDir: The local directory to place the file in.
         :param byteRange: (optional) Specify the start and stop byte of the file chunk that needs retrieved (as a 2-element list).
         :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default: False)                
-        '''        
+        '''
+        self.isInit()
         return api.fileDownload(self.Id, localDir, byteRange=byteRange, createBsDir=createBsDir)        
 
-    def getFileUrl(self,api):
+    def getFileUrl(self, api):
         '''
+        ** Deprecated in favor of getFileS3metadata() **
+        
         Return the S3 url of the file.
         
         :param api: A BaseSpaceAPI with read access on the scope including the file object.
         '''
+        self.isInit()
         return api.fileUrl(self.Id)
-
-    def deleteFile(self,api):
-        raise Exception('Not yet implemented')
+    
+    def getFileS3metadata(self, api):
+        '''
+        Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file
+                
+        :param api: A BaseSpaceAPI with read access on the scope including the file object.
+        :returns: Dict with s3 url ('url' key) and etag ('etag' key)
+        '''
+        self.isInit()
+        return api.fileS3metadata(self.Id)
 
     def getIntervalCoverage(self,api,Chrom, StartPos, EndPos):
         '''
@@ -150,49 +148,3 @@ class File(object):
         self.isValidFileOption('vcf')
         Id = self.HrefVariants.split('/')[-1]
         return api.getVariantMetadata(Id,'txt')
-    
-#    def markAsComplete(self,api):
-#        '''
-#        Mark a file object created as part of a multipart upload as complete
-#        :param api: An instance of BaseSpaceAPI
-#        '''
-#        api.markFileState(self.Id)
-#        self.UploadStatus ='Complete'
-        
-        
-    
-        self.Name = None # str
-
-        # If set, provides the relative Uri to fetch the mean coverage statistics for data stored in the file
-        self.HrefCoverage = None # str
-
-        # If set, provides the relative Uri to fetch a list of completed file parts for multi-part file uploads in progress
-        self.HrefParts = None # str
-
-        # 
-        self.DateCreated = None # str
-
-        # 
-        self.UploadStatus = None # str
-
-        # 
-        self.Id = None # str
-
-        # 
-        self.Href = None # str
-
-        # 
-        self.HrefContent = None # str
-
-        # If set, provides the relative Uri to fetch the variants stored in the file
-        self.HrefVariants = None # str
-
-        # 
-        self.ContentType = None # str
-
-        # 
-        self.Path = None # str
-
-        # 
-        self.Size = None # int
-
