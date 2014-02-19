@@ -35,20 +35,14 @@ tconst = {
            'file_small_upload_md5' : 'ff88b8bdbb86f219d19a22a3a0795429',
            'file_large_upload_md5' : '9267236a2d870da1d4cb73868bb51b35',
            'create_project_name': 'Python SDK Unit Test Data',
-           # for runs, genomes, projects, samples, appresults 
-           'run_id': '555555', # public data B. cereus Run
-           'run_name': 'BacillusCereus',                
-           'run_file_0_name': 'RTAComplete.txt',
-           'run_sample_0_name': 'BC_1',           
-           'genome_id': '1',           
+           # for runs, genomes, projects, samples, appresults
+           'run_id': '555555',           
+           'genome_id': '1',
            'project_id': '596596',
-           'project_appresult_0_id': '1213212',        
            'sample_id': '855855',           
-           'sample_file_0_id': '9895905',
-           'appresult_id': '1213212',
-           'appresult_file_0_id': '9895886',
-           'bam_file_id': '9895890',
+           'appresult_id': '1213212',           
            # for coverage and variant apis
+           'bam_file_id': '9895890',
            'bam_cov_chr_name': 'chr',
            'bam_cov_start_coord': '1',
            'bam_cov_end_coord': '100',
@@ -593,11 +587,11 @@ class TestAppResultMethods(TestCase):
     
     def testGetFiles(self):
         files = self.appResult.getFiles(self.api)        
-        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
 
     def testGetFilesWithQp(self):
         files = self.appResult.getFiles(self.api, qp({'Limit':1}))        
-        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
         self.assertEqual(len(files), 1)
     
     def testUploadFile(self):
@@ -651,34 +645,34 @@ class TestAPIAppResultMethods(TestCase):
 
     def testGetAppResultFilesById(self):
         files = self.api.getAppResultFilesById(tconst['appresult_id'])        
-        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
         
     def testGetAppResultFilesByIdWithQp(self):
         files = self.api.getAppResultFilesById(tconst['appresult_id'], qp({'Limit':1}))        
-        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
         self.assertEqual(len(files), 1)    
             
     def testGetAppResultFiles(self):
         files = self.api.getAppResultFiles(tconst['appresult_id'])        
-        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
         
     def testGetAppResultFilesWithQp(self):
         files = self.api.getAppResultFiles(tconst['appresult_id'], qp({'Limit':1}))        
-        self.assertEqual(files[0].Id, tconst['appresult_file_0_id'])
+        self.assertTrue(hasattr(files[0], 'Id'))
         self.assertEqual(len(files), 1)    
 
     def testGetAppResultsByProject(self):
         appresults = self.api.getAppResultsByProject(tconst['project_id'])
-        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        self.assertTrue(hasattr(appresults[0], 'Id'))
         
     def testGetAppResultsByProjectWithQp(self):
         appresults = self.api.getAppResultsByProject(tconst['project_id'], qp({'Limit':1}))
-        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        self.assertTrue(hasattr(appresults[0], 'Id'))
         self.assertEqual(len(appresults), 1)
         
     def testGetAppResultsByProjectWithStatusesArg(self):
         appresults = self.api.getAppResultsByProject(tconst['project_id'], statuses=['complete'])
-        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        self.assertTrue(hasattr(appresults[0], 'Id'))
         
     def testCreateAppResultNewAppSsn(self):
         '''
@@ -747,21 +741,21 @@ class TestRunMethods(TestCase):
         self.assertEqual(self.run.getAccessStr('read'), 'read run ' + self.run.Id)
 
     def testRunGetFiles(self):
-        rf = self.run.getFiles(self.api)        
-        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
+        rf = self.run.getFiles(self.api)                
+        self.assertTrue(hasattr(rf[0], 'Id'))
         
     def testRunGetFilesWithQp(self):
-        rf = self.run.getFiles(self.api, qp({'Limit':200}))
-        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
+        rf = self.run.getFiles(self.api, qp({'Limit':200}))        
+        self.assertTrue(hasattr(rf[0], 'Id'))
         self.assertEqual(len(rf), 200)
 
     def testRunSamples(self):
         rs = self.run.getSamples(self.api)        
-        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        self.assertTrue(hasattr(rs[0], 'Id'))
         
     def testRunSamplesWithQp(self):
         rs = self.run.getSamples(self.api, qp({'Limit':1}))
-        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        self.assertTrue(hasattr(rs[0], 'Id'))
         self.assertEqual(len(rs), 1)
 
 class TestAPIRunMethods(TestCase):
@@ -782,11 +776,11 @@ class TestAPIRunMethods(TestCase):
         
     def testGetRunById(self):                                                    
         rf = self.api.getRunById(tconst['run_id'])        
-        self.assertEqual(rf.Name, tconst['run_name'])
+        self.assertEqual(rf.Id, tconst['run_id'])
         
     def testGetRunByIdWithQp(self):                                                    
         rf = self.api.getRunById(tconst['run_id'], qp({'Limit':1})) # limit doesn't make much sense here            
-        self.assertEqual(rf.Name, tconst['run_name'])
+        self.assertEqual(rf.Id, tconst['run_id'])
         
     def testGetRunPropertiesById(self):                                                    
         props = self.api.getRunPropertiesById(tconst['run_id'])        
@@ -798,21 +792,21 @@ class TestAPIRunMethods(TestCase):
         self.assertEqual(len(props.Items), 1)
     
     def testGetRunFilesById(self):                                                    
-        rf = self.api.getRunFilesById(tconst['run_id'])        
-        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
+        rf = self.api.getRunFilesById(tconst['run_id'])                
+        self.assertTrue(hasattr(rf[0], 'Id'))
         
     def testGetRunFilesByIdWithQp(self):
         rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':1}))
-        self.assertEqual(len(rf), 1)
-        self.assertEqual(rf[0].Name, tconst['run_file_0_name'])
+        self.assertTrue(hasattr(rf[0], 'Id'))
+        self.assertEqual(len(rf), 1)        
 
     def testRunSamplesById(self):
         rs = self.api.getRunSamplesById(tconst['run_id'])        
-        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        self.assertTrue(hasattr(rs[0], 'Id'))
         
     def testRunSamplesByIdWithQp(self):
         rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':1}))
-        self.assertEqual(rs[0].Name, tconst['run_sample_0_name'])
+        self.assertTrue(hasattr(rs[0], 'Id'))
         self.assertEqual(len(rs), 1)
 
 class TestSampleMethods(TestCase):
@@ -841,11 +835,11 @@ class TestSampleMethods(TestCase):
     
     def testGetFiles(self):
         files = self.sample.getFiles(self.api)        
-        self.assertEqual(files[0].Id, tconst['sample_file_0_id'])
+        self.assertTrue(hasattr(files[0], "Id"))
 
     def testGetFilesWithQp(self):
         files = self.sample.getFiles(self.api, qp({'Limit':1}))        
-        self.assertEqual(files[0].Id, tconst['sample_file_0_id'])
+        self.assertTrue(hasattr(files[0], "Id"))
         self.assertEqual(len(files), 1)
 
 class TestAPISampleMethods(TestCase):
@@ -914,11 +908,11 @@ class TestProjectMethods(TestCase):
     
     def testGetAppResults(self):
         appresults = self.project.getAppResults(self.api)
-        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        self.assertTrue(hasattr(appresults[0], 'Id'))
             
     def testGetAppResultsWithOptionalArgs(self):
         appresults = self.project.getAppResults(self.api, qp({'Limit':1}), statuses=['complete'])
-        self.assertEqual(appresults[0].Id, tconst['project_appresult_0_id'])
+        self.assertTrue(hasattr(appresults[0], 'Id'))
         self.assertEqual(len(appresults), 1)
 
     def testGetSamples(self):
@@ -1351,10 +1345,13 @@ util = TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
 cred_genome_util = TestSuite( [cred, genome, util])
 
 alltests = TestSuite()
+
+# to test all test cases:
 alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_projects, cred_genome_util] )
 alltests.addTest(large_file_transfers)
 
-#temptest = TestLoader().loadTestsFromTestCase(TestFileMethods)
+# to test individual test cases: 
+#temptest = TestLoader().loadTestsFromTestCase(TestAppResultMethods)
 #alltests.addTests( [temptest] )
 
 TextTestRunner(verbosity=2).run(alltests)
