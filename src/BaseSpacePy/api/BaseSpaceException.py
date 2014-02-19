@@ -1,7 +1,7 @@
 
 class UndefinedParameterException(Exception):
     def __init__(self, value):
-        self.parameter = 'The following parameter must be defined: ' + str(value)
+        self.parameter = 'The following required parameter must be defined: ' + str(value)
     def __str__(self):
         return repr(self.parameter)
 

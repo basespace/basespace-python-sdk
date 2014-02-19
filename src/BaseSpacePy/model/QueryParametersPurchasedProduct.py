@@ -7,7 +7,9 @@ class QueryParametersPurchasedProduct(object):
     '''
     This class can be passed as an optional argument for a filtering getUserProducts list response
     '''
-    def __init__(self,pars={}):
+    def __init__(self, pars=None):
+        if pars is None:
+            pars = {}
         self.passed = {}
         for k in pars.keys():
             self.passed[k] = pars[k]
@@ -24,4 +26,5 @@ class QueryParametersPurchasedProduct(object):
     
     def validate(self):
         for p in self.passed.keys():
-            if not legal.has_key(p): raise UnknownParameterException(p)
+            if not legal.has_key(p): 
+                raise UnknownParameterException(p)

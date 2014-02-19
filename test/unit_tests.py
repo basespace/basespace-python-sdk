@@ -1380,6 +1380,35 @@ class TestAPIUtilityMethods(TestCase):
         with self.assertRaises(QueryParameterException):
             self.api._validateQueryParameters({'Limit':10})
 
+class TestQueryParametersMethods(TestCase):
+    '''
+    Tests QueryParameters methods
+    '''
+    def testGetParameterDictAndValidate(self):        
+        queryp = qp({'Limit':1}, ['Limit'])
+        passed = queryp.getParameterDict()        
+        self.assertEqual(passed, {'Limit':1})
+        self.assertEqual(queryp.validate(), None)
+        
+    def testNoDictException(self):
+        with self.assertRaises(QueryParameterException):
+            queryp = qp('test')
+
+    def testValidateMissingRequiredParameterException(self):
+        queryp = qp({'Limit':1}, ['I am required'])
+        with self.assertRaises(UndefinedParameterException):
+            queryp.validate()
+        
+    def testValidateUnknownParameterException(self):
+        queryp = qp({'Crazy New Parameter':66})
+        with self.assertRaises(UnknownParameterException):
+            queryp.validate()
+    
+    def testValidateIllegalValueForKnownQpKeyException(self):
+        queryp = qp({'Extensions': 'abc'})        
+        with self.assertRaises(IllegalParameterException):
+            queryp.validate()
+
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
 large1 = TestLoader().loadTestsFromTestCase( TestAPIFileUploadMethods_LargeFiles )
@@ -1414,7 +1443,8 @@ cov_variant = TestSuite([cov_api, variant_api])
 cred = TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
 genome = TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
 util = TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
-cred_genome_util = TestSuite([cred, genome, util])
+queryp = TestLoader().loadTestsFromTestCase(TestQueryParametersMethods)
+cred_genome_util = TestSuite([cred, genome, util, queryp])
 
 
 
@@ -1425,7 +1455,7 @@ alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_p
 #alltests.addTest(large_file_transfers)
 
 # to test individual test cases: 
-#one_test = TestLoader().loadTestsFromTestCase(TestAPIVariantMethods)
+#one_test = TestLoader().loadTestsFromTestCase(TestQueryParametersMethods)
 #alltests.addTests( [one_test] )
 
 TextTestRunner(verbosity=2).run(alltests)
