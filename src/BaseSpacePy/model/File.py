@@ -43,11 +43,16 @@ class File(object):
             raise ModelNotInitializedException(err)
         return True        
         
-    def isValidFileOption(self,filetype):
+    def isValidFileOption(self, filetype):
         '''
-        Is called to test if the File instance is matches the filtype parameter 
+        ** Deprecated - HrefCoverage should be present for all BAM files in BaseSpace.
+                        However, the attribute may be missing when there has been an error
+                        when BaseSpace internally generates coverage data from the BAM file. 
+                        This is the same situation for HrefVariants on all VCF files. **
+                                
+        Is called to test if the File instance matches the filetype parameter         
               
-        :param filetype: The filetype for coverage or variant requests
+        :param filetype: The filetype for coverage or variant requests (eg., 'bam', 'vcf')                
         '''
         self.isInit()
         if filetype=='bam':
@@ -96,55 +101,54 @@ class File(object):
         self.isInit()
         return api.fileS3metadata(self.Id)
 
-    def getIntervalCoverage(self,api,Chrom, StartPos, EndPos):
+    def getIntervalCoverage(self, api, Chrom, StartPos, EndPos):
         '''
-        Return a coverage object for the specified region and chromosome.
+        Returns mean coverage levels over a sequence interval.
+        Note that HrefCoverage must be available for the provided BAM file.
         
         :param api: An instance of BaseSpaceAPI
-        :param Chrom: Chromosome as a string - for example 'chr2'
+        :param Chrom: Chromosome name as a string - for example 'chr2'
         :param StartPos: The start position of region of interest as a string
         :param EndPos: The end position of region of interest as a string
+        :returns: A Coverage object
         '''
         self.isInit()
-        self.isValidFileOption('bam')
-        Id = self.HrefCoverage.split('/')[-1]
-        return api.getIntervalCoverage(Id,Chrom, StartPos, EndPos)
-    
-    # TODO allow to pass a queryParameters object for custom filtering
-    def filterVariant(self,api,Chrom,StartPos, EndPos,q=None):
-        '''
-        Returns a list of Variant objects available in the specified region
-        
-        :param api: An instance of BaseSpaceAPI
-        :param Chrom: Chromosome as a string - for example 'chr2'
-        :param StartPos: The start position of region of interest as a string
-        :param EndPos: The end position of region of interest as a string
-        :param q: An instance of 
-        '''
-        self.isInit()
-        self.isValidFileOption('vcf')
-        Id = self.HrefVariants.split('/')[-1]
-        return api.filterVariantSet(Id, Chrom, StartPos, EndPos, 'txt')
+        return api.getIntervalCoverage(self.Id, Chrom, StartPos, EndPos)
 
-    def getCoverageMeta(self,api,Chrom):
+    def getCoverageMeta(self, api, Chrom):
         '''
-        Return an object of CoverageMetadata for the selected region
+        Returns metadata about an alignment, including max coverage and cov granularity.        
+        Note that HrefCoverage must be available for the provided BAM file.
         
         :param api: An instance of BaseSpaceAPI.
-        :param Chrom: The chromosome of interest.
+        :param Chrom: Chromosome name
+        :returns: a CoverageMetaData object
         '''
-        self.isInit()
-        self.isValidFileOption('bam')
-        Id = self.HrefCoverage.split('/')[-1]
-        return api.getCoverageMetaInfo(Id,Chrom)
-
-    def getVariantMeta(self, api):
+        self.isInit()        
+        return api.getCoverageMetaInfo(self.Id, Chrom)
+        
+    def filterVariant(self, api, Chrom, StartPos, EndPos, Format='json', queryPars=None):
         '''
-        Return the the meta info for a VCF file as a VariantInfo object
+        List the variants in a set of variants. Note the maximum returned records is 1000.
         
         :param api: An instance of BaseSpaceAPI
+        :param Chrom: Chromosome name
+        :param StartPos: The start position of region of interest as a string
+        :param EndPos: The end position of region of interest as a string
+        :param Format: (optional) Format for results, possible values: 'vcf' (not implemented yet), 'json'(default, which actually returns an object)
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Variant objects, when Format is json; a string, when Format is vcf
         '''
         self.isInit()
-        self.isValidFileOption('vcf')
-        Id = self.HrefVariants.split('/')[-1]
-        return api.getVariantMetadata(Id,'txt')
+        return api.filterVariantSet(self.Id, Chrom, StartPos, EndPos, Format, queryPars)
+
+    def getVariantMeta(self, api, Format='json'):
+        '''        
+        Returns the header information of a VCF file.
+        
+        :param api: An instance of BaseSpaceAPI
+        :param Format: (optional) The return-value format, set to 'vcf' to VCF format (string) or 'json' (default, which acutally returns on object)
+        :returns: A VariantHeader object
+        '''
+        self.isInit()
+        return api.getVariantMetadata(self.Id, Format)

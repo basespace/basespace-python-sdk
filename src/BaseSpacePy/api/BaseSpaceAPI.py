@@ -715,37 +715,60 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'        
         headerParams = {}
         return self.__listRequest__(GenomeV1.GenomeV1,resourcePath, method, queryParams, headerParams,verbose=0)
-    
-    # TODO, needs more work in parsing meta data, currently only map keys are returned 
-    
-    def getVariantMetadata(self, Id, Format,):
-        '''
-        Returns a VariantMetadata object for the variant file
         
-        :param Id: The Id of the VCF file
-        :param Format: Set to 'vcf' to get the results as lines in VCF format
+        
+    def getIntervalCoverage(self, Id, Chrom, StartPos=None, EndPos=None):
         '''
-        # Parse inputs
-        resourcePath = '/variantset/{Id}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        Returns metadata about an alignment, including max coverage and cov granularity.
+        Note that HrefCoverage must be available for the provided BAM file.       
+        
+        :param Id: the Id of a BAM file
+        :param Chrom: chromosome name
+        :param StartPos: (optional) get coverage starting at this position, default is 1
+        :param EndPos: (optinoal) get coverage up to and including this position, default is StartPos + 1280        
+        :returns: a Coverage object
+        '''
+        # TODO check that hrefCoverage is available for this file? give meaningful err msg
+        resourcePath = '/coverage/{Id}/{Chrom}'        
         method = 'GET'
         queryParams = {}
         headerParams = {}
-        queryParams['Format'] = self.apiClient.toPathValue(Format)
+        queryParams['StartPos'] = self.apiClient.toPathValue(StartPos)
+        queryParams['EndPos'] = self.apiClient.toPathValue(EndPos)
+        resourcePath = resourcePath.replace('{Chrom}', Chrom)
         resourcePath = resourcePath.replace('{Id}', Id)
-        return self.__singleRequest__(VariantsHeaderResponse.VariantsHeaderResponse,resourcePath, method,\
+        return self.__singleRequest__(CoverageResponse.CoverageResponse, resourcePath, method,\
                                       queryParams, headerParams,verbose=0)
-    
-    def filterVariantSet(self,Id, Chrom, StartPos, EndPos, Format, queryPars=None):
+
+    def getCoverageMetaInfo(self, Id, Chrom):
         '''
-        List the variants in a set of variants. Maximum returned records is 1000
+        Returns metadata about coverage of a chromosome.
+        Note that HrefCoverage must be available for the provided BAM file
+        
+        :param Id: the Id of a Bam file
+        :param Chrom: chromosome name
+        :returns: a CoverageMetaData object
+        '''
+        resourcePath = '/coverage/{Id}/{Chrom}/meta'        
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        resourcePath = resourcePath.replace('{Chrom}', Chrom)
+        resourcePath = resourcePath.replace('{Id}', Id)        
+        return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse, resourcePath, method,\
+                                      queryParams, headerParams,verbose=0)
+
+    def filterVariantSet(self,Id, Chrom, StartPos, EndPos, Format='json', queryPars=None):
+        '''
+        List the variants in a set of variants. Note the maximum returned records is 1000.
         
         :param Id: The id of the variant file 
-        :param Chrom: The chromosome of interest
+        :param Chrom: Chromosome name
         :param StartPos: The start position of the sequence of interest
         :param EndPos: The start position of the sequence of interest
-        :param Format: Set to 'vcf' to get the results as lines in VCF format (default is 'json')
+        :param Format: (optional) Format for results, possible values: 'vcf' (not implemented yet), 'json'(default, which actually returns an object)
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Variant objects, when Format is json; a string, when Format is vcf
         '''
         queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/variantset/{Id}/variants/{Chrom}'
@@ -756,51 +779,31 @@ class BaseSpaceAPI(BaseAPI):
         queryParams['Format']   = Format
         resourcePath = resourcePath.replace('{Chrom}', Chrom)
         resourcePath = resourcePath.replace('{Id}', Id)
-        return self.__listRequest__(Variant.Variant,resourcePath, method, queryParams, headerParams,verbose=0)
-    
-    def getIntervalCoverage(self, Id, Chrom, StartPos=None, EndPos=None, ):
-        '''
-        Mean coverage levels over a sequence interval
-        
-        :param Id: Chromosome to query
-        :param Chrom: The Id of the resource
-        :param StartPos: Get coverage starting at this position. Default is 1
-        :param EndPos: Get coverage up to and including this position. Default is StartPos + 1280
-        
-        :return:CoverageResponse -- an instance of CoverageResponse
-        '''
-        # Parse inputs
-        resourcePath = '/coverage/{Id}/{Chrom}'
-        resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'
-        queryParams = {}
-        headerParams = {}
-        queryParams['StartPos'] = self.apiClient.toPathValue(StartPos)
-        queryParams['EndPos'] = self.apiClient.toPathValue(EndPos)
-        resourcePath = resourcePath.replace('{Chrom}', Chrom)
-        resourcePath = resourcePath.replace('{Id}', Id)
-        return self.__singleRequest__(CoverageResponse.CoverageResponse,resourcePath, method,\
-                                      queryParams, headerParams,verbose=0)
+        if Format == 'vcf':
+            raise NotImplementedError("Returning native VCF format isn't yet supported by BaseSpacePy")
+        else:
+            return self.__listRequest__(Variant.Variant, resourcePath, method, queryParams, headerParams, verbose=0)
 
-    def getCoverageMetaInfo(self, Id, Chrom):
-        '''
-        Returns Metadata about coverage as a CoverageMetadata instance
+    def getVariantMetadata(self, Id, Format='json'):
+        '''        
+        Returns the header information of a VCF file.
         
-        :param Id: he Id of the Bam file 
-        :param Chrom: Chromosome to query
+        :param Id: The Id of the VCF file
+        :param Format: (optional) The return-value format, set to 'vcf' (not implemented yet) to VCF format (string) or 'json' (default, which acutally returns on object)
+        :returns: A VariantHeader object
         '''
-        # Parse inputs
-        resourcePath = '/coverage/{Id}/{Chrom}/meta'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        resourcePath = '/variantset/{Id}'        
         method = 'GET'
         queryParams = {}
         headerParams = {}
-        resourcePath = resourcePath.replace('{Chrom}', Chrom)
+        queryParams['Format'] = self.apiClient.toPathValue(Format)
         resourcePath = resourcePath.replace('{Id}', Id)
-        
-        return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse,resourcePath, method,\
-                                      queryParams, headerParams,verbose=0)
-     
+        if Format == 'vcf':
+            raise NotImplementedError("Returning native VCF format isn't yet supported by BaseSpacePy")
+        else:
+            return self.__singleRequest__(VariantsHeaderResponse.VariantsHeaderResponse, resourcePath, method,\
+                                          queryParams, headerParams, verbose=0)
+         
     def createAppResult(self, Id, name, desc, samples=None, appSessionId=None):
         '''
         Create an AppResult object

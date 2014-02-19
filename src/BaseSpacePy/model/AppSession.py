@@ -1,22 +1,5 @@
-"""
-Copyright 2012 Illumina
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.apache.org/licenses/LICENSE-2.0
- 
-    Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
 
 class AppSession(object):
-    '''
-    AppLaunch contains the data returned 
-    '''
 
     def __init__(self):
         self.swaggerTypes = {
@@ -37,6 +20,7 @@ class AppSession(object):
         
     def __str__(self):
         return "App session by " + str(self.UserCreatedBy) + " - Id: " + str(self.Id) + " - status: " + self.Status
+
     def __repr__(self):
         return str(self)
     
@@ -71,29 +55,3 @@ class AppSession(object):
         self.StatusSummary  = newSession.StatusSummary
         return self
  
-             
-# deprecated
-#    def getLaunchType(self):
-#        '''
-#        Returns a list [<launch type name>, list of objects] where <launch type name> is one of Projects, Samples, Analyses 
-#        '''
-#        try: 
-#            self.Projects
-#            return ['Projects', self.Projects]
-#        except: e=1
-#        try: 
-#            self.Samples
-#            return ['Samples', self.Samples]
-#        except: e=1
-#        try: 
-#            self.Analyses
-#            return ['Analyses', self.Analyses]
-#        except: e=1
-            
-        self.UserUserCreatedBy = None #  The user that triggered your application
-        self.Id                = None
-        self.Status            = None
-        self.StatusSummary     = None
-        self.Href              = None #  The URI of BaseSpace
-        self.DateCreated       = None #  The datetime the user acted in BaseSpace
-        self.References        = None

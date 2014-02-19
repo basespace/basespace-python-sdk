@@ -14,7 +14,6 @@ from BaseSpacePy.model.MultipartFileTransfer import Utils
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
 
-
 # Dependencies:
 # 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com; there should also be a 'DEFALT' profile in the config file
 # 2. Import the following data from Public Data on cloud-hoth.illumina.com:
@@ -47,7 +46,16 @@ tconst = {
            'sample_id': '855855',           
            'sample_file_0_id': '9895905',
            'appresult_id': '1213212',
-           'appresult_file_0_id': '9895886',           
+           'appresult_file_0_id': '9895886',
+           'bam_file_id': '9895890',
+           # for coverage and variant apis
+           'bam_cov_chr_name': 'chr',
+           'bam_cov_start_coord': '1',
+           'bam_cov_end_coord': '100',
+           'vcf_file_id': '9895892',
+           'vcf_chr_name': 'chr',
+           'vcf_start_coord': '1',
+           'vcf_end_coord': '200000',  
           }
 
 class TestFileDownloadMethods(TestCase):
@@ -1047,28 +1055,78 @@ class TestFileMethods(TestCase):
         with self.assertRaises(ModelNotInitializedException):
             file.isInit()
     
-    def testIsValidFileOption(self):
-        pass # TODO
+    # not testing isValidFileOption() -- deprecated   
 
     # downloadFile() is tested in a separate suite
     
     def testGetFileUrl(self):
-        pass # TODO            
-
+        url = self.file.getFileUrl(self.api)
+        url_parts = urlparse(url)
+        self.assertEqual(url_parts.scheme, 'https')
+    
     def testGetFileS3metadata(self):
-        pass # TODO            
+        meta = self.file.getFileS3metadata(self.api)        
+        self.assertTrue('url' in meta)
+        self.assertTrue('etag' in meta)        
 
     def testGetIntervalCoverage(self):
-        pass # TODO
-    
-    def testFilterVariant(self):
-        pass # TODO
-    
+        bam = self.api.getFileById(tconst['bam_file_id'])
+        cov = bam.getIntervalCoverage(
+            self.api,
+            Chrom = tconst['bam_cov_chr_name'],
+            StartPos = tconst['bam_cov_start_coord'],
+            EndPos = tconst['bam_cov_end_coord'] )
+        self.assertEqual(cov.Chrom, tconst['bam_cov_chr_name'])
+
     def testGetCoverageMeta(self):
-        pass # TODO
+        bam = self.api.getFileById(tconst['bam_file_id'])
+        cov_meta = bam.getCoverageMeta(
+            self.api,
+            Chrom = tconst['bam_cov_chr_name'] )
+        self.assertTrue(hasattr(cov_meta, 'MaxCoverage'))                    
+        
+    def testFilterVariant(self):
+        vcf = self.api.getFileById(tconst['vcf_file_id'])
+        vars = vcf.filterVariant(
+            self.api, 
+            Chrom = tconst['vcf_chr_name'],
+            StartPos = tconst['vcf_start_coord'],
+            EndPos = tconst['vcf_end_coord'], )            
+        self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
+    
+    def testFilterVariantWithQp(self):
+        vcf = self.api.getFileById(tconst['vcf_file_id'])
+        vars = vcf.filterVariant(
+            self.api, 
+            Chrom = tconst['vcf_chr_name'],
+            StartPos = tconst['vcf_start_coord'],
+            EndPos = tconst['vcf_end_coord'],
+            Format = 'json',
+            queryPars = qp({'Limit':1}) )
+        self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
+        self.assertEqual(len(vars), 1)
+        
+    def testFilterVariantReturnVCFString(self):
+        vcf = self.api.getFileById(tconst['vcf_file_id'])
+        with self.assertRaises(NotImplementedError): # for now...
+            vars = vcf.filterVariant(
+                self.api, 
+                Chrom = tconst['vcf_chr_name'],
+                StartPos = tconst['vcf_start_coord'],
+                EndPos = tconst['vcf_end_coord'],
+                Format = 'vcf')
+            #self.assertEqual(type(vars), str)            
     
     def testGetVariantMeta(self):
-        pass # TODO
+        vcf = self.api.getFileById(tconst['vcf_file_id'])
+        hdr = vcf.getVariantMeta(self.api)
+        self.assertTrue(hasattr(hdr, 'Metadata'))
+
+    def testGetVariantMetaReturnVCFString(self):
+        vcf = self.api.getFileById(tconst['vcf_file_id'])
+        with self.assertRaises(NotImplementedError): # for now...
+            hdr = vcf.getVariantMeta(self.api, Format='vcf')
+            #self.assertEqual(type(hdr), str)
 
 class TestAPIFileMethods(TestCase):
     '''
@@ -1296,5 +1354,7 @@ alltests = TestSuite()
 alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_projects, cred_genome_util] )
 alltests.addTest(large_file_transfers)
 
-#alltests.addTests( [runs_users_files, samples_appresults_projects] )
+#temptest = TestLoader().loadTestsFromTestCase(TestFileMethods)
+#alltests.addTests( [temptest] )
+
 TextTestRunner(verbosity=2).run(alltests)
