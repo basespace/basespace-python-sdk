@@ -13,6 +13,7 @@ class Variant(object):
             'QUAL':'int',
             'REF':'str'
         }
+        
     def __str__(self):
         return "Variant - " + self.CHROM + ": " + str(self.POS) + " id=" + str(self.ID)
 

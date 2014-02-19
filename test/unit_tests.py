@@ -45,7 +45,7 @@ tconst = {
            'bam_file_id': '9895890',
            'bam_cov_chr_name': 'chr',
            'bam_cov_start_coord': '1',
-           'bam_cov_end_coord': '100',
+           'bam_cov_end_coord': '128', # must be divisible by 128
            'vcf_file_id': '9895892',
            'vcf_chr_name': 'chr',
            'vcf_start_coord': '1',
@@ -1165,16 +1165,84 @@ class TestAPIFileMethods(TestCase):
         self.assertTrue('url' in meta)
         self.assertTrue('etag' in meta)
 
-# api file upload/download methods are tested in a separate suite:                
-    # __initiateMultipartFileUpload__()    
-    # __uploadMultipartUnit__()        
-    # __finalizeMultipartFileUpload__()        
-    # __singlepartFileUpload__()                        
-    # multipartFileUpload()            
-                    
-    # __downloadFile__()
-    # fileDownload()
-    # multipartFileDownload()        
+    # api file upload/download methods are tested in a separate suite:                
+        # __initiateMultipartFileUpload__()    
+        # __uploadMultipartUnit__()        
+        # __finalizeMultipartFileUpload__()        
+        # __singlepartFileUpload__()                        
+        # multipartFileUpload()            
+                        
+        # __downloadFile__()
+        # fileDownload()
+        # multipartFileDownload()        
+
+class TestAPICoverageMethods(TestCase):
+    '''
+    Tests API Coverage object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        
+    def testGetIntervalCoverage(self):
+        cov = self.api.getIntervalCoverage(
+            Id = tconst['bam_file_id'],
+            Chrom = tconst['bam_cov_chr_name'],
+            StartPos = tconst['bam_cov_start_coord'],
+            EndPos = tconst['bam_cov_end_coord'])        
+        self.assertEqual(cov.Chrom, tconst['bam_cov_chr_name'])
+        self.assertEqual(cov.StartPos, int(tconst['bam_cov_start_coord']))
+        self.assertEqual(cov.EndPos, int(tconst['bam_cov_end_coord']))      
+
+    def testGetCoverageMetaInfo(self):
+        cov_meta = self.api.getCoverageMetaInfo(
+            Id = tconst['bam_file_id'],
+            Chrom = tconst['bam_cov_chr_name'])
+        self.assertTrue(hasattr(cov_meta, 'MaxCoverage'))
+        
+class TestAPIVariantMethods(TestCase):
+    '''
+    Tests API Variant object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+    
+    def testFilterVariantSet(self):        
+        vars = self.api.filterVariantSet(
+            Id = tconst['vcf_file_id'], 
+            Chrom = tconst['vcf_chr_name'],
+            StartPos = tconst['vcf_start_coord'],
+            EndPos = tconst['vcf_end_coord'], )            
+        self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
+    
+    def testFilterVariantWithQp(self):
+        vars = self.api.filterVariantSet(
+            Id = tconst['vcf_file_id'], 
+            Chrom = tconst['vcf_chr_name'],
+            StartPos = tconst['vcf_start_coord'],
+            EndPos = tconst['vcf_end_coord'],
+            Format = 'json',
+            queryPars = qp({'Limit':1}) )
+        self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
+        self.assertEqual(len(vars), 1)
+        
+    def testFilterVariantReturnVCFString(self):        
+        with self.assertRaises(NotImplementedError): # for now...
+            vars = self.api.filterVariantSet(
+                Id = tconst['vcf_file_id'],
+                Chrom = tconst['vcf_chr_name'],
+                StartPos = tconst['vcf_start_coord'],
+                EndPos = tconst['vcf_end_coord'],
+                Format = 'vcf')
+            #self.assertEqual(type(vars), str)            
+    
+    def testGetVariantMeta(self):        
+        hdr = self.api.getVariantMetadata(tconst['vcf_file_id'])
+        self.assertTrue(hasattr(hdr, 'Metadata'))
+
+    def testGetVariantMetaReturnVCFString(self):        
+        with self.assertRaises(NotImplementedError): # for now...
+            hdr = self.api.getVariantMetadata(tconst['vcf_file_id'], Format='vcf')            
+            #self.assertEqual(type(hdr), str)
     
 class TestAPICredentialsMethods(TestCase):
     '''
@@ -1339,19 +1407,25 @@ project = TestLoader().loadTestsFromTestCase(TestProjectMethods)
 project_api = TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
 samples_appresults_projects = TestSuite( [sample, sample_api, ar, ar_api, project, project_api])
 
+cov_api = TestLoader().loadTestsFromTestCase(TestAPICoverageMethods)
+variant_api = TestLoader().loadTestsFromTestCase(TestAPIVariantMethods)
+cov_variant = TestSuite([cov_api, variant_api])
+
 cred = TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
 genome = TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
 util = TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
-cred_genome_util = TestSuite( [cred, genome, util])
+cred_genome_util = TestSuite([cred, genome, util])
+
+
 
 alltests = TestSuite()
 
 # to test all test cases:
-alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_projects, cred_genome_util] )
-alltests.addTest(large_file_transfers)
+alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_projects, cred_genome_util, cov_variant] )
+#alltests.addTest(large_file_transfers)
 
 # to test individual test cases: 
-#temptest = TestLoader().loadTestsFromTestCase(TestAppResultMethods)
-#alltests.addTests( [temptest] )
+#one_test = TestLoader().loadTestsFromTestCase(TestAPIVariantMethods)
+#alltests.addTests( [one_test] )
 
 TextTestRunner(verbosity=2).run(alltests)

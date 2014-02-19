@@ -108,8 +108,8 @@ class File(object):
         
         :param api: An instance of BaseSpaceAPI
         :param Chrom: Chromosome name as a string - for example 'chr2'
-        :param StartPos: The start position of region of interest as a string
-        :param EndPos: The end position of region of interest as a string
+        :param StartPos: get coverage starting at this position
+        :param EndPos: get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate        
         :returns: A Coverage object
         '''
         self.isInit()

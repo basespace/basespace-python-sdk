@@ -715,20 +715,18 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'        
         headerParams = {}
         return self.__listRequest__(GenomeV1.GenomeV1,resourcePath, method, queryParams, headerParams,verbose=0)
-        
-        
-    def getIntervalCoverage(self, Id, Chrom, StartPos=None, EndPos=None):
+                
+    def getIntervalCoverage(self, Id, Chrom, StartPos, EndPos):
         '''
         Returns metadata about an alignment, including max coverage and cov granularity.
         Note that HrefCoverage must be available for the provided BAM file.       
         
         :param Id: the Id of a BAM file
         :param Chrom: chromosome name
-        :param StartPos: (optional) get coverage starting at this position, default is 1
-        :param EndPos: (optinoal) get coverage up to and including this position, default is StartPos + 1280        
+        :param StartPos: get coverage starting at this position
+        :param EndPos: get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate        
         :returns: a Coverage object
-        '''
-        # TODO check that hrefCoverage is available for this file? give meaningful err msg
+        '''        
         resourcePath = '/coverage/{Id}/{Chrom}'        
         method = 'GET'
         queryParams = {}
