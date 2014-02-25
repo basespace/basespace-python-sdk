@@ -63,10 +63,20 @@ class BaseSpaceAPI(BaseAPI):
         super(BaseSpaceAPI, self).__init__(cred['accessToken'], timeout)
 
     def _set_credentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
-        '''
-        Returns dict with credentials from constructor, config file, or default (for optional args),
-        in this priority order for each credential.
-        If clientKey was provided only in config file, include 'name' (in return dict) with profile name
+        '''            
+        Returns credentials from constructor, config file, or default (for optional args), in this priority order
+        for each credential.
+        If clientKey was provided only in config file, include 'name' (in return dict) with profile name.
+        Raises exception if required creds aren't provided (clientKey, clientSecret, apiServer, apiVersion).
+
+        :param clientKey: the client key of the user's app
+        :param clientSecret: the client secret of the user's app
+        :param apiServer: the URL of the BaseSpace api server
+        :param version: the version of the BaseSpace API
+        :param appSessionId: the AppSession Id
+        :param AccessToken: an access token        
+        :param profile: name of profile in config file        
+        :returns: dictionary with credentials from constructor, config file, or default (for optional args), in this priority order.
         '''
         lcl_cred = self._get_local_credentials(profile)
         cred = {}
@@ -130,8 +140,11 @@ class BaseSpaceAPI(BaseAPI):
 
     def _get_local_credentials(self, profile):
         '''
-        Returns a dict with credentials from local config file (~/.basespacepy.cfg)
+        Returns credentials from local config file (~/.basespacepy.cfg)
         If some or all credentials are missing, they aren't included the in the returned dict
+        
+        :param profile: Profile name from local config file 
+        :returns: A dictionary with credentials from local config file 
         '''
         config_file = os.path.expanduser('~/.basespacepy.cfg')
         cred = {}        
@@ -169,7 +182,7 @@ class BaseSpaceAPI(BaseAPI):
                 pass            
         return cred
 
-    def __getTriggerObject__(self,obj):
+    def __getTriggerObject__(self, obj):
         '''
         Warning this method is not for general use and should only be called 
         from the getAppSession.
@@ -185,50 +198,34 @@ class BaseSpaceAPI(BaseAPI):
         res = res.__serializeReferences__(self)
         return res
     
-    def __serializeObject__(self,d,type):
-        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
-        if type.lower()=='project':
-            return tempApi.deserialize(d, Project.Project)
-        if type.lower()=='sample':
-            return tempApi.deserialize(d, Sample.Sample)
-        if type.lower()=='appresult':
-            return tempApi.deserialize(d, AppResult.AppResult)        
-        return d
-            
-    def getAppSessionById(self,id):
+    def getAppSessionById(self, Id):
         '''
-        Returns the appSession identified by id
+        Get metadata about an AppSession.
+        Note that the client key and secret must match those of the AppSession's Application.
         
-        :param id: The id of the appSession
-        '''
-        # TO_DO make special case for access-token only retrieval        
-        return self.getAppSession(Id=id)
+        :param Id: The Id of the AppSession
+        :returns: An AppSession instance
+        '''            
+        return self.getAppSession(Id=Id)
 
-    def getAppSession(self,Id=''):
+    def getAppSession(self, Id=None):
         '''
-        Returns an AppSession instance containing user and data-type the app was triggered by/on
-        Note that Properties are not currently supported for this method, use getAppSessionPropertiesById()
+        Get metadata about an AppSession.         
+        Note that the client key and secret must match those of the AppSession's Application.    
         
-        :param Id: (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating the BaseSpaceAPI instance.
-        
-        :param Id: (Optional) AppSession id, if not supplied the AppSession id used to initialize the 
+        :param Id: an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used 
+        :returns: An AppSession instance                
         '''
-        
-        if (not self.appSessionId) and (not Id):
-            raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method getAppSession")
-        if (not id) and (not self.key):
-            raise Exception("This BaseSpaceAPI instance has no client_secret (key) set and no alternative id was supplied for method getAppSession")
-        
-        resourcePath = self.apiServer + '/appsessions/{AppSessionId}'
+        if Id is None:
+            Id = self.appSessionId
         if not Id:
-            resourcePath = resourcePath.replace('{AppSessionId}', self.appSessionId)
-        else:
-            resourcePath = resourcePath.replace('{AppSessionId}', Id)
-        #print resourcePath
+            raise AppSessionException("An AppSession Id is required")
+        resourcePath = self.apiServer + '/appsessions/{AppSessionId}'        
+        resourcePath = resourcePath.replace('{AppSessionId}', Id)        
         response = cStringIO.StringIO()
         c = pycurl.Curl()
-        c.setopt(pycurl.URL,resourcePath)
-        c.setopt(pycurl.USERPWD,self.key + ":" + self.secret)
+        c.setopt(pycurl.URL, resourcePath)
+        c.setopt(pycurl.USERPWD, self.key + ":" + self.secret)
         c.setopt(c.WRITEFUNCTION, response.write)
         c.perform()
         c.close()
@@ -240,7 +237,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Returns the Properties of an AppSession
         
-        :param Id: The AppSessionId
+        :param Id: An AppSession Id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering            
         '''                
         queryParams = self._validateQueryParameters(queryPars)            
@@ -267,13 +264,13 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
                     
-
     def getAppSessionInputsById(self, Id, queryPars=None):
         '''
-        Returns a dictionary of input properties from the provided AppSessions, keyed by input Name
+        Returns the input properties of an AppSession
         
-        :param Id: The AppSessionId
-        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
+        :param Id: An AppSessionId
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a dictionary of input properties, keyed by input Name      
         '''            
         props = self.getAppSessionPropertiesById(Id, queryPars)
         inputs = {}
@@ -288,11 +285,11 @@ class BaseSpaceAPI(BaseAPI):
         Set the status of an AppSession in BaseSpace
         
         :param Id: The id of the AppSession
-        :param Status: The AppSession status string, must be one of: running, complete, needsattention, timedout, aborted
+        :param Status: The AppSession status string, must be one of: Running, Complete, NeedsAttention, TimedOut, Aborted
         :param Summary: The status summary string
+        :returns: An updated AppSession instance
         '''
-        resourcePath = '/appsessions/{Id}'
-        resourcePath = resourcePath.replace('{format}', 'json')
+        resourcePath = '/appsessions/{Id}'        
         method = 'POST'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
@@ -300,7 +297,7 @@ class BaseSpaceAPI(BaseAPI):
         postData = {}
         statusAllowed = ['running', 'complete', 'needsattention', 'timedout', 'aborted']
         if not Status.lower() in statusAllowed:
-            raise Exception("AppSession state must be in " + str(statusAllowed))
+            raise AppSessionException("AppSession state must be one of: " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
@@ -370,8 +367,22 @@ class BaseSpaceAPI(BaseAPI):
         return dict['access_token']
 
     def updatePrivileges(self,code,grantType='device',redirect_uri='http://www.myRedirect.com'):
+        '''
+        '''
         token = self.obtainAccessToken(code,grantType=grantType,redirect_uri=redirect_uri)
         self.setAccessToken(token)
+
+    def __serializeObject__(self,d,type):
+        '''
+        '''
+        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
+        if type.lower()=='project':
+            return tempApi.deserialize(d, Project.Project)
+        if type.lower()=='sample':
+            return tempApi.deserialize(d, Sample.Sample)
+        if type.lower()=='appresult':
+            return tempApi.deserialize(d, AppResult.AppResult)        
+        return d            
             
     def createProject(self, Name):
         '''

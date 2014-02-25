@@ -40,7 +40,8 @@ tconst = {
            'genome_id': '1',
            'project_id': '596596',
            'sample_id': '855855',           
-           'appresult_id': '1213212',           
+           'appresult_id': '1213212',
+           #'appsession_id': '1305304', TEMP           
            # for coverage and variant apis
            'bam_file_id': '9895890',
            'bam_cov_chr_name': 'chr',
@@ -1176,6 +1177,144 @@ class TestAPIFileMethods(TestCase):
         # fileDownload()
         # multipartFileDownload()        
 
+class TestAppSessionMethods(TestCase):
+    '''
+    Tests AppSession object methods
+    '''        
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+#        self.project = self.api.getProjectById(tconst['project_id'])
+# TODO
+        
+    def testIsInit(self):        
+#        self.assertEqual(self.project.isInit(), True)
+        pass # TODO
+            
+    def testIsInitException(self):
+#        project = Project.Project()
+#        with self.assertRaises(ModelNotInitializedException):
+#            project.isInit()
+        pass # TODO                  
+    
+    def test__serializeReferences__(self):
+        pass # TODO ignore since deprecated?
+    
+    def testCanWorkOn(self):
+        pass # TODO
+    
+    def setStatus(self):
+        pass # TODO
+    
+    # TODO also test AppSessionSemiCompact methods
+                        
+
+class TestAPIAppSessionMethods(TestCase):
+    '''
+    Tests API AppSession object methods
+    '''        
+    @classmethod
+    def setUpClass(cls):                        
+        cls.api = BaseSpaceAPI(profile='unit_tests')
+        # create an app session, since the client key and secret must match those of the ssn application
+        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.ar = cls.proj.createAppResult(cls.api, "test API AppSession Methods", "test API AppSession Methods", appSessionId="")
+        cls.ssn = cls.ar.AppSession
+
+    def test__getTriggerObject__(self):
+        pass 
+        # TODO test with BaseAPI methods - very similar to __singleRequest__() (replace with?)
+    
+    def testGetAppSessionById(self):                
+        ssn = self.api.getAppSessionById(self.ssn.Id)
+        self.assertEqual(ssn.Id, self.ssn.Id)
+
+    def testGetAppSession(self):
+        self.api.appSessionId = self.ssn.Id
+        ssn = self.api.getAppSession()
+        self.assertEqual(ssn.Id, self.ssn.Id)
+
+    def testGetAppSessionWithId(self):
+        ssn = self.api.getAppSession(self.ssn.Id)
+        self.assertEqual(ssn.Id, self.ssn.Id)
+
+    def testGetAppSessionPropertiesById(self):
+        props = self.api.getAppSessionPropertiesById(self.ssn.Id)
+        self.assertTrue(any((prop.Items[0].Id == self.ar.Id) for prop in props.Items if prop.Name == "Output.AppResults"))         
+
+    def testGetAppSessionPropertiesByIdWithQp(self):
+        props = self.api.getAppSessionPropertiesById(self.ssn.Id, qp({'Limit':1}))
+        self.assertTrue(any((prop.Items[0].Id == self.ar.Id) for prop in props.Items if prop.Name == "Output.AppResults"))
+        self.assertEqual(len(props.Items), 1)         
+
+    def testGetAppSessionPropertyByName(self):
+        prop = self.api.getAppSessionPropertyByName(self.ssn.Id, 'Output.AppResults')
+        self.assertEqual(prop.Items[0].Content.Id, self.ar.Id)
+        # TODO Hmm, it's odd that 'Content' is needed here but not in the prior test -- bug? difference in server response?
+
+    def testGetAppSessionPropertyByNameWithQp(self):
+        ars = self.api.getAppSessionPropertyByName(self.ssn.Id, 'Output.AppResults', qp({'Limit':1})) # Limit doesn't make much sense here
+        self.assertEqual(ars.Items[0].Content.Id, self.ar.Id)
+        # TODO same as test above
+
+    def testGetAppSessionInputsById(self):
+        props = self.api.getAppSessionInputsById(self.ssn.Id)
+        self.assertEqual(len(props), 0)
+        # TODO can't test this easily since self-created ssn don't have inputs. Add POST properties for ssns, and manually add an 'Input.Test' property, then test for it?
+    
+    def testGetAppSessionInputsByIdWithQp(self):
+        props = self.api.getAppSessionInputsById(self.ssn.Id, qp({'Limit':1}))
+        self.assertEqual(len(props), 0)
+        # TODO same as test above
+
+    def testSetAppSessionState_UpdatedStatus(self):
+        status = 'Running'
+        statusSummary = 'here we go, here we go'
+        ssn = self.api.setAppSessionState(self.ssn.Id, status, statusSummary)
+        self.assertEqual(ssn.Status, status)
+        self.assertEqual(ssn.StatusSummary, statusSummary)
+    
+    def testSetAppSessionStateToComplete(self):
+        status = 'Complete'
+        statusSummary = 'things are looking good'
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
+        ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
+        self.assertEqual(ssn.Status, status)
+        self.assertEqual(ssn.StatusSummary, statusSummary)
+
+    def testSetAppSessionStateToNeedsAttention(self):
+        status = 'NeedsAttention'
+        statusSummary = 'things are looking shaky'
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
+        ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
+        self.assertEqual(ssn.Status, status)
+        self.assertEqual(ssn.StatusSummary, statusSummary)
+    
+    def testSetAppSessionStateToTimedOut(self):
+        status = 'TimedOut'
+        statusSummary = 'things are falling behind'
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
+        ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
+        self.assertEqual(ssn.Status, status)
+        self.assertEqual(ssn.StatusSummary, statusSummary)
+
+    def testSetAppSessionStateToAborted(self):
+        status = 'Aborted'
+        statusSummary = 'things are looking bad'
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
+        ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
+        self.assertEqual(ssn.Status, status)
+        self.assertEqual(ssn.StatusSummary, statusSummary)
+        
+    def testSetAppSessionState_StatusException(self):
+        status = 'PrettyMuchWorkingKindaSorta'
+        statusSummary = 'tests, what tests'
+        with self.assertRaises(AppSessionException):
+            ssn = self.api.setAppSessionState(self.ssn.Id, status, statusSummary)
+    
 class TestAPICoverageMethods(TestCase):
     '''
     Tests API Coverage object methods
@@ -1436,6 +1575,10 @@ project = TestLoader().loadTestsFromTestCase(TestProjectMethods)
 project_api = TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
 samples_appresults_projects = TestSuite( [sample, sample_api, ar, ar_api, project, project_api])
 
+appssn = TestLoader().loadTestsFromTestCase(TestAppSessionMethods)
+appssn_api = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
+appsessions = TestSuite( [appssn, appssn_api])
+
 cov_api = TestLoader().loadTestsFromTestCase(TestAPICoverageMethods)
 variant_api = TestLoader().loadTestsFromTestCase(TestAPIVariantMethods)
 cov_variant = TestSuite([cov_api, variant_api])
@@ -1451,11 +1594,13 @@ cred_genome_util = TestSuite([cred, genome, util, queryp])
 alltests = TestSuite()
 
 # to test all test cases:
-alltests.addTests( [small_file_transfers, runs_users_files, samples_appresults_projects, cred_genome_util, cov_variant] )
+#alltests.addTests( [small_file_transfers, runs_users_files, 
+#    samples_appresults_projects, appsesssion, cred_genome_util, cov_variant] )
 #alltests.addTest(large_file_transfers)
 
 # to test individual test cases: 
-#one_test = TestLoader().loadTestsFromTestCase(TestQueryParametersMethods)
-#alltests.addTests( [one_test] )
+one_test = TestLoader().loadTestsFromTestCase(TestAppSessionMethods)
+two_test = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
+alltests.addTests( [one_test, two_test] )
 
 TextTestRunner(verbosity=2).run(alltests)

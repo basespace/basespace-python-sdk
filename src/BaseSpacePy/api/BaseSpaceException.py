@@ -64,3 +64,10 @@ class QueryParameterException(Exception):
         self.parameter = 'Error with query parameter: ' + value
     def __str__(self):
         return repr(self.parameter)
+
+class AppSessionException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Error with AppSession: ' + value
+    def __str__(self):
+        return repr(self.parameter)
+
