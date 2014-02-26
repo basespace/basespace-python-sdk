@@ -41,6 +41,7 @@ tconst = {
            'project_id': '596596',
            'sample_id': '855855',           
            'appresult_id': '1213212',
+           'appresult_referenced_sample_id': '855855',
            #'appsession_id': '1305304', TEMP           
            # for coverage and variant apis
            'bam_file_id': '9895890',
@@ -583,8 +584,13 @@ class TestAppResultMethods(TestCase):
         
     def testGetAccessStringWithArg(self):
         self.assertEqual(self.appResult.getAccessStr('read'), 'read appresult ' + self.appResult.Id)
+            
+    def testGetReferencedSamplesIds(self):
+        self.assertEqual(self.appResult.getReferencedSamplesIds(), [tconst['appresult_referenced_sample_id']])
         
-    # not testing getReferencedSamplesIds() or getReferencedSamples since References are deprecated
+    def testGetReferencedSamples(self):
+        samples = self.appResult.getReferencedSamples(self.api)
+        self.assertEqual(samples[0].Id, tconst['appresult_referenced_sample_id'])
     
     def testGetFiles(self):
         files = self.appResult.getFiles(self.api)        
@@ -831,8 +837,10 @@ class TestSampleMethods(TestCase):
         
     def testGetAccessStringWithArg(self):
         self.assertEqual(self.sample.getAccessStr('read'), 'read sample ' + self.sample.Id)
-        
-    # not testing getReferencedAppResults() since References are deprecated
+            
+    def testGetReferencedAppResults(self):
+        ars = self.sample.getReferencedAppResults(self.api)
+        self.assertTrue(hasattr(ars[0], 'Id'), "Referenced AppResult should have an Id (assuming this Sample has been analyzed)")
     
     def testGetFiles(self):
         files = self.sample.getFiles(self.api)        
@@ -1177,36 +1185,160 @@ class TestAPIFileMethods(TestCase):
         # fileDownload()
         # multipartFileDownload()        
 
+class TestAppSessionSemiCompactMethods(TestCase):
+    '''
+    Tests AppSessionSemiCompact object methods
+    '''        
+    @classmethod
+    def setUpClass(cls):                        
+        cls.api = BaseSpaceAPI(profile='unit_tests')
+        # create an app session, since the client key and secret must match those of the ssn application
+        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.ar = cls.proj.createAppResult(cls.api, "test AppSessionSemiCompact Methods", "test AppSessionSemiCompact Methods", appSessionId="")
+        cls.ssn = cls.ar.AppSession # this is an AppSessionSemiCompact instance
+
+    def testIsInit(self):        
+        self.assertEqual(self.ssn.isInit(), True)
+            
+    def testIsInitException(self):
+        ssn = AppSessionSemiCompact.AppSessionSemiCompact()        
+        with self.assertRaises(ModelNotInitializedException):
+            ssn.isInit()                                      
+                    
+    def testCanWorkOn(self):
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test canWorkOn()", "test canWorkOn()", appSessionId="")
+        self.assertEqual(ar.AppSession.canWorkOn(), True)
+        ar.AppSession.setStatus(self.api, 'NeedsAttention', "Will you look into this?")
+        self.assertEqual(ar.AppSession.canWorkOn(), True)
+        ar.AppSession.setStatus(self.api, 'TimedOut', "This is taking forever")
+        self.assertEqual(ar.AppSession.canWorkOn(), True)
+        ar.AppSession.setStatus(self.api, 'Complete', "Time to wrap things up")
+        self.assertEqual(ar.AppSession.canWorkOn(), False)            
+
+    def testCanWorkOn_Aborted(self):
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test canWorkOn() Aborted", "test canWorkOn() Aborted", appSessionId="")
+        self.assertEqual(ar.AppSession.canWorkOn(), True)
+        ar.AppSession.setStatus(self.api, 'Aborted', "Abandon Ship!")
+        self.assertEqual(ar.AppSession.canWorkOn(), False)            
+    
+    def setStatus(self):
+        status = 'Complete'
+        statusSummary = "Let's go home now"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setStatus()", "test setStatus()", appSessionId="")
+        ar.AppSession.setStatus(self.api, status, statusSummary)
+        self.assertEqual(ar.AppSession.Status, status)
+        self.assertEqual(ar.AppSession.StatusSummary, statusSummary)
+    
+    def testSetStatus_CompleteStatusException(self):
+        status = 'Complete'
+        statusSummary = "Let's go"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setStatus() Complete exception", "test setStatus() Complete exception", appSessionId="")
+        ar.AppSession.setStatus(self.api, status, statusSummary)
+        status = 'Aborted'
+        statusSummary = '(Too) late breaking changes'
+        with self.assertRaises(AppSessionException):
+            ar.AppSession.setStatus(self.api, status, statusSummary)
+
+    def testSetStatus_AbortedStatusException(self):
+        status = 'Aborted'
+        statusSummary = "Let's go"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setStatus() aborted exception", "test setStatus() aborted exception", appSessionId="")
+        ar.AppSession.setStatus(self.api, status, statusSummary)
+        status = 'Running'
+        statusSummary = "I thought everything was peachy?"
+        with self.assertRaises(AppSessionException):
+            ar.AppSession.setStatus(self.api, status, statusSummary)
+                        
 class TestAppSessionMethods(TestCase):
     '''
     Tests AppSession object methods
     '''        
-    def setUp(self):                            
-        self.api = BaseSpaceAPI(profile='unit_tests')
-#        self.project = self.api.getProjectById(tconst['project_id'])
-# TODO
-        
+    @classmethod
+    def setUpClass(cls):                        
+        cls.api = BaseSpaceAPI(profile='unit_tests')
+        # create an app session, since the client key and secret must match those of the ssn application
+        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.ar = cls.proj.createAppResult(cls.api, "test AppSession Methods", "test AppSession Methods", appSessionId="")
+        cls.ssn = cls.api.getAppSessionById(cls.ar.AppSession.Id) # this is an AppSession instance        
+
     def testIsInit(self):        
-#        self.assertEqual(self.project.isInit(), True)
-        pass # TODO
+        self.assertEqual(self.ssn.isInit(), True)
             
     def testIsInitException(self):
-#        project = Project.Project()
-#        with self.assertRaises(ModelNotInitializedException):
-#            project.isInit()
-        pass # TODO                  
-    
-    def test__serializeReferences__(self):
-        pass # TODO ignore since deprecated?
-    
+        ssn = AppSession.AppSession()        
+        with self.assertRaises(ModelNotInitializedException):
+            ssn.isInit()                                      
+                    
     def testCanWorkOn(self):
-        pass # TODO
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test canWorkOn()", "test canWorkOn()", appSessionId="")
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)
+        self.assertEqual(ssn.canWorkOn(), True)
+        ssn.setStatus(self.api, 'NeedsAttention', "Will you look into this?")
+        self.assertEqual(ssn.canWorkOn(), True)
+        ssn.setStatus(self.api, 'TimedOut', "This is taking forever")
+        self.assertEqual(ssn.canWorkOn(), True)
+        ssn.setStatus(self.api, 'Complete', "Time to wrap things up")
+        self.assertEqual(ssn.canWorkOn(), False)            
+
+    def testCanWorkOn_Aborted(self):
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test canWorkOn() Aborted", "test canWorkOn() Aborted", appSessionId="")
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)
+        self.assertEqual(ssn.canWorkOn(), True)
+        ssn.setStatus(self.api, 'Aborted', "Abandon Ship!")
+        self.assertEqual(ssn.canWorkOn(), False)            
     
     def setStatus(self):
+        status = 'Complete'
+        statusSummary = "Let's go home now"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setStatus()", "test setStatus()", appSessionId="")
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)
+        ssn.setStatus(self.api, status, statusSummary)
+        self.assertEqual(ssn.Status, status)
+        self.assertEqual(ssn.StatusSummary, statusSummary)
+    
+    def testSetStatus_CompleteStatusException(self):
+        status = 'Complete'
+        statusSummary = "Let's go"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setStatus() Complete exception", "test setStatus() Complete exception", appSessionId="")
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)        
+        ssn.setStatus(self.api, status, statusSummary)
+        status = 'Aborted'
+        statusSummary = '(Too) late breaking changes'
+        with self.assertRaises(AppSessionException):
+            ssn.setStatus(self.api, status, statusSummary)
+
+    def testSetStatus_AbortedStatusException(self):
+        status = 'Aborted'
+        statusSummary = "Let's go"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test setStatus() aborted exception", "test setStatus() aborted exception", appSessionId="")
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)        
+        ssn.setStatus(self.api, status, statusSummary)
+        status = 'Running'
+        statusSummary = "I thought everything was peachy?"
+        with self.assertRaises(AppSessionException):
+            ssn.setStatus(self.api, status, statusSummary)
+            
+    def test__serializeReferences__(self):
+        pass # TODO
+               
+
+class TestAppSessionLaunchObject(TestCase):
+    '''
+    Tests AppSessionLaunchObject object methods
+    '''
+    def test__serializeObject__(self):
         pass # TODO
     
-    # TODO also test AppSessionSemiCompact methods
-                        
 
 class TestAPIAppSessionMethods(TestCase):
     '''
@@ -1575,9 +1707,10 @@ project = TestLoader().loadTestsFromTestCase(TestProjectMethods)
 project_api = TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
 samples_appresults_projects = TestSuite( [sample, sample_api, ar, ar_api, project, project_api])
 
-appssn = TestLoader().loadTestsFromTestCase(TestAppSessionMethods)
+appssnsemi = TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods)
+appssn = TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods)
 appssn_api = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
-appsessions = TestSuite( [appssn, appssn_api])
+appsessions = TestSuite( [appssnsemi, appssn, appssn_api])
 
 cov_api = TestLoader().loadTestsFromTestCase(TestAPICoverageMethods)
 variant_api = TestLoader().loadTestsFromTestCase(TestAPIVariantMethods)
@@ -1594,13 +1727,14 @@ cred_genome_util = TestSuite([cred, genome, util, queryp])
 alltests = TestSuite()
 
 # to test all test cases:
-#alltests.addTests( [small_file_transfers, runs_users_files, 
-#    samples_appresults_projects, appsesssion, cred_genome_util, cov_variant] )
+alltests.addTests( [small_file_transfers, runs_users_files, 
+    samples_appresults_projects, appsesssion, cred_genome_util, cov_variant] )
 #alltests.addTest(large_file_transfers)
 
 # to test individual test cases: 
-one_test = TestLoader().loadTestsFromTestCase(TestAppSessionMethods)
-two_test = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
-alltests.addTests( [one_test, two_test] )
+#one_test = TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods)
+#two_test = TestLoader().loadTestsFromTestCase(TestAppSessionMethods)
+#three_test = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
+#alltests.addTests( [one_test, two_test, three_test] )
 
 TextTestRunner(verbosity=2).run(alltests)

@@ -54,26 +54,33 @@ class AppResult(object):
         
     def getReferencedSamplesIds(self):
         '''        
-        Return a list of sample ids for the samples referenced.
+        Return the sample ids for the referenced sample(s). 
+        If other reference types than Samples are present (they shouldn't be), they are ignored.
+        
+        :returns: a list of sample ids for the referenced samples.
         '''
         self.isInit()
-        res= []
+        res = []
         for s in self.References:
             if s['Type']=='Sample':
-                id = s['HrefContent'].split('/')[-1]
-                res.append(id)
+                sid = s['HrefContent'].split('/')[-1]
+                res.append(sid)
         return res        
     
     def getReferencedSamples(self, api):
         '''        
-        Returns a list of sample objects references by the AppResult. 
-        NOTE this method makes one request to REST server per sample
+        Returns the sample objects for the referenced sample(s). 
+        NOTE this method makes one request to REST server per sample.
+        If other reference types than Samples are present (they shouldn't be), they are ignored.
+        
+        :param api: A BaseSpaceAPI instance
+        :returns: A list of sample objects that are referenced by the AppResult.
         '''
         self.isInit()
         res = []
         ids = self.getReferencedSamplesIds()
-        for id in ids:            
-            sample = api.getSampleById(id)
+        for sid in ids:            
+            sample = api.getSampleById(sid)
             res.append(sample)                            
         return res
     

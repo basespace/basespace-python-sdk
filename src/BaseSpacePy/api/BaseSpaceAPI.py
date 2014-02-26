@@ -282,7 +282,8 @@ class BaseSpaceAPI(BaseAPI):
 
     def setAppSessionState(self, Id, Status, Summary):
         '''
-        Set the status of an AppSession in BaseSpace
+        Set the Status and StatusSummary of an AppSession in BaseSpace.
+        Note - once Status is set to Completed or Aborted, no further changes can made.
         
         :param Id: The id of the AppSession
         :param Status: The AppSession status string, must be one of: Running, Complete, NeedsAttention, TimedOut, Aborted
@@ -372,10 +373,13 @@ class BaseSpaceAPI(BaseAPI):
         token = self.obtainAccessToken(code,grantType=grantType,redirect_uri=redirect_uri)
         self.setAccessToken(token)
 
-    def __serializeObject__(self,d,type):
+    def __serializeObject__(self, d, type):
         '''
+        Called by Sample's getReferencedAppResults() and AppSessionLaunchObject's __serializeObject__() to serialize References
+        TODO
+        
         '''
-        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
+        tempApi = APIClient(AccessToken='', apiServer=self.apiServer)
         if type.lower()=='project':
             return tempApi.deserialize(d, Project.Project)
         if type.lower()=='sample':

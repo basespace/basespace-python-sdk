@@ -62,17 +62,21 @@ class Sample(object):
         self.isInit()
         return scope + ' sample ' + str(self.Id)
     
-    def getReferencedAppResults(self,api):
+    def getReferencedAppResults(self, api):
         '''                
-        Return the AppResults referenced by this sample. Note the returned AppResult objects
-        do not have their "References" field set, to get a fully populate AppResult object
-        you must use getAppResultById in BaseSpaceAPI.
+        Return the AppResults referenced by this sample. 
+        Note the returned AppResult objects do not have their "References" field set, 
+        to get a fully populated AppResult object you must use getAppResultById in BaseSpaceAPI.
+        If other reference types than AppResults are present (they shouldn't be), they are ignored.
+
+        :param api: A BaseSpaceAPI instance        
+        :returns: A list of AppResult that are referenced by this sample (with their References field not populated)
         '''
         res = []
         for s in self.References:
             if s['Type']=='AppResult':
                 jsonAppResult = s['Content']
-                myAR = api.__serializeObject__(jsonAppResult,"AppResult")
+                myAR = api.__serializeObject__(jsonAppResult, "AppResult")
                 res.append(myAR)
         return res
     

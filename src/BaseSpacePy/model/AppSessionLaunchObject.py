@@ -17,6 +17,6 @@ class AppSessionLaunchObject(object):
         return str(self)
     
     def __serializeObject__(self,api):
-        res = api.__serializeObject__(self.Content,self.Type)
+        res = api.__serializeObject__(self.Content, self.Type)
         self.Content = res
         return self
