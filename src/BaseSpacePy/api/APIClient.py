@@ -157,7 +157,7 @@ class APIClient:
             return obj
 
     def deserialize(self, obj, objClass):
-        """Derialize a JSON string into an object.
+        """Deserialize a JSON string into an object.
 
         Args:
             obj -- string or object to be deserialized

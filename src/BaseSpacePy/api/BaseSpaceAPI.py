@@ -303,6 +303,27 @@ class BaseSpaceAPI(BaseAPI):
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
+
+    def __serializeObject__(self, dct, type):
+        '''
+        Converts API response into object instances for Projects, Samples, and AppResults.
+        For other types, the input value is simply returned.
+        
+        (Currently called by Sample's getReferencedAppResults() and 
+        AppSessionLaunchObject's __serializeObject__() to serialize References)
+
+        :param dct: dictionary from an API response (converted from JSON) for a BaseSpace item (eg., a Project)
+        :param type: BaseSpace item name
+        :returns: for types Project, Sample, and AppResult, an object is returned; for other types, the input dict is returned.
+        '''
+        tempApi = APIClient(AccessToken='', apiServer=self.apiServer)
+        if type.lower()=='project':
+            return tempApi.deserialize(dct, Project.Project)
+        if type.lower()=='sample':
+            return tempApi.deserialize(dct, Sample.Sample)
+        if type.lower()=='appresult':
+            return tempApi.deserialize(dct, AppResult.AppResult)        
+        return dct            
                 
     def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
         '''
@@ -372,21 +393,6 @@ class BaseSpaceAPI(BaseAPI):
         '''
         token = self.obtainAccessToken(code,grantType=grantType,redirect_uri=redirect_uri)
         self.setAccessToken(token)
-
-    def __serializeObject__(self, d, type):
-        '''
-        Called by Sample's getReferencedAppResults() and AppSessionLaunchObject's __serializeObject__() to serialize References
-        TODO
-        
-        '''
-        tempApi = APIClient(AccessToken='', apiServer=self.apiServer)
-        if type.lower()=='project':
-            return tempApi.deserialize(d, Project.Project)
-        if type.lower()=='sample':
-            return tempApi.deserialize(d, Sample.Sample)
-        if type.lower()=='appresult':
-            return tempApi.deserialize(d, AppResult.AppResult)        
-        return d            
             
     def createProject(self, Name):
         '''

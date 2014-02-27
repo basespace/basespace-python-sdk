@@ -1328,18 +1328,41 @@ class TestAppSessionMethods(TestCase):
         with self.assertRaises(AppSessionException):
             ssn.setStatus(self.api, status, statusSummary)
             
-    def test__serializeReferences__(self):
-        pass # TODO
-               
+    def test__serializeReferences__(self):                
+        asla = AppSessionLaunchObject.AppSessionLaunchObject()
+        asla.Type = 'Project'
+        asla.Content = { "Id": "123", 
+                    "UserOwnedBy": {"Id": "321",
+                                    "Href": "v1pre3/users/321",
+                                    "Name": "Jay Flatley" },
+                    "Href": "v1pre3/projects/123",
+                    "Name": "Project Boomtown",
+                    "DataCreated": "2020-01-01T01:01:01.0000000" }
+        ssn = AppSession.AppSession()
+        ssn.References = [asla]
+        ssn.__serializeReferences__(self.api)
+        self.assertEqual(ssn.References[0].Content.Id, "123")
 
-class TestAppSessionLaunchObject(TestCase):
+class TestAppSessionLaunchObjectMethods(TestCase):
     '''
     Tests AppSessionLaunchObject object methods
     '''
-    def test__serializeObject__(self):
-        pass # TODO
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')    
     
-
+    def test__serializeObject__(self):
+        asla = AppSessionLaunchObject.AppSessionLaunchObject()
+        asla.Type = 'Project'
+        asla.Content = { "Id": "123", 
+                    "UserOwnedBy": {"Id": "321",
+                                    "Href": "v1pre3/users/321",
+                                    "Name": "Jay Flatley" },
+                    "Href": "v1pre3/projects/123",
+                    "Name": "Project Boomtown",
+                    "DataCreated": "2020-01-01T01:01:01.0000000" }        
+        asla.__serializeObject__(self.api)
+        self.assertEqual(asla.Content.Id, "123")
+    
 class TestAPIAppSessionMethods(TestCase):
     '''
     Tests API AppSession object methods
@@ -1446,6 +1469,40 @@ class TestAPIAppSessionMethods(TestCase):
         statusSummary = 'tests, what tests'
         with self.assertRaises(AppSessionException):
             ssn = self.api.setAppSessionState(self.ssn.Id, status, statusSummary)
+
+    def test__serializeObject__Project(self):        
+        type = 'Project'
+        dct = { "HrefSamples": "testurl",
+                "Gibberish": "more Gibberish" }
+        new_obj = self.api.__serializeObject__(dct, type)        
+        self.assertEqual(new_obj.HrefSamples, "testurl")
+        with self.assertRaises(AttributeError):
+            self.assertEqual(new_obj.Gibberish, "more Gibberish")
+    
+    def test__serializeObject__Sample(self):
+        type = 'Sample'
+        dct = { "SampleNumber": "123",
+                "Gibberish": "more Gibberish" }
+        new_obj = self.api.__serializeObject__(dct, type)        
+        self.assertEqual(new_obj.SampleNumber, 123)
+        with self.assertRaises(AttributeError):
+            self.assertEqual(new_obj.Gibberish, "more Gibberish")
+    
+    def test__serializeObject__AppResult(self):
+        type = 'AppResult'
+        dct = { "Description": "Fuzzy",
+                "Gibberish": "more Gibberish" }
+        new_obj = self.api.__serializeObject__(dct, type)        
+        self.assertEqual(new_obj.Description, "Fuzzy")
+        with self.assertRaises(AttributeError):
+            self.assertEqual(new_obj.Gibberish, "more Gibberish")
+    
+    def test__serializeObject__Other(self):
+        type = 'Other'
+        dct = { "Description": "Fuzzy",
+                "Gibberish": "more Gibberish" }
+        new_obj = self.api.__serializeObject__(dct, type)        
+        self.assertEqual(new_obj, dct)        
     
 class TestAPICoverageMethods(TestCase):
     '''
@@ -1682,59 +1739,63 @@ class TestQueryParametersMethods(TestCase):
 
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
-large1 = TestLoader().loadTestsFromTestCase( TestAPIFileUploadMethods_LargeFiles )
-large2 = TestLoader().loadTestsFromTestCase( TestAPIFileDownloadMethods_LargeFiles )
-large_file_transfers = TestSuite( [large1, large2] )
+large_file_transfers = TestSuite([
+    TestLoader().loadTestsFromTestCase( TestAPIFileUploadMethods_LargeFiles ),
+    TestLoader().loadTestsFromTestCase( TestAPIFileDownloadMethods_LargeFiles ), ])                                  
 
-small1 = TestLoader().loadTestsFromTestCase(TestFileDownloadMethods)
-small2 = TestLoader().loadTestsFromTestCase(TestAPIFileUploadMethods_SmallFiles)
-small3 = TestLoader().loadTestsFromTestCase(TestAPIFileDownloadMethods_SmallFiles)
-small_file_transfers = TestSuite( [small1, small2, small3])
+small_file_transfers = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestFileDownloadMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIFileUploadMethods_SmallFiles),
+    TestLoader().loadTestsFromTestCase(TestAPIFileDownloadMethods_SmallFiles), ])
 
-run = TestLoader().loadTestsFromTestCase(TestRunMethods)
-run_api = TestLoader().loadTestsFromTestCase(TestAPIRunMethods)
-user = TestLoader().loadTestsFromTestCase(TestUserMethods)
-user_api = TestLoader().loadTestsFromTestCase(TestAPIUserMethods)
-file = TestLoader().loadTestsFromTestCase(TestFileMethods)
-file_api = TestLoader().loadTestsFromTestCase(TestAPIFileMethods)
-runs_users_files = TestSuite( [run, run_api, user, user_api, file, file_api])
+runs_users_files = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestRunMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIRunMethods),
+    TestLoader().loadTestsFromTestCase(TestUserMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIUserMethods),
+    TestLoader().loadTestsFromTestCase(TestFileMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIFileMethods), ])                                                      
 
-sample = TestLoader().loadTestsFromTestCase(TestSampleMethods)
-sample_api = TestLoader().loadTestsFromTestCase(TestAPISampleMethods)
-ar = TestLoader().loadTestsFromTestCase(TestAppResultMethods)
-ar_api = TestLoader().loadTestsFromTestCase(TestAPIAppResultMethods)
-project = TestLoader().loadTestsFromTestCase(TestProjectMethods)
-project_api = TestLoader().loadTestsFromTestCase(TestAPIProjectMethods)
-samples_appresults_projects = TestSuite( [sample, sample_api, ar, ar_api, project, project_api])
+samples_appresults_projects = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestSampleMethods),
+    TestLoader().loadTestsFromTestCase(TestAPISampleMethods),
+    TestLoader().loadTestsFromTestCase(TestAppResultMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIAppResultMethods),
+    TestLoader().loadTestsFromTestCase(TestProjectMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIProjectMethods), ])
 
-appssnsemi = TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods)
-appssn = TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods)
-appssn_api = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
-appsessions = TestSuite( [appssnsemi, appssn, appssn_api])
+appsessions = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods),
+    TestLoader().loadTestsFromTestCase(TestAppSessionMethods),
+    TestLoader().loadTestsFromTestCase(TestAppSessionLaunchObjectMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods), ])
 
-cov_api = TestLoader().loadTestsFromTestCase(TestAPICoverageMethods)
-variant_api = TestLoader().loadTestsFromTestCase(TestAPIVariantMethods)
-cov_variant = TestSuite([cov_api, variant_api])
+cov_variant = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestAPICoverageMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIVariantMethods), ])
 
-cred = TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods)
-genome = TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods)
-util = TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods)
-queryp = TestLoader().loadTestsFromTestCase(TestQueryParametersMethods)
-cred_genome_util = TestSuite([cred, genome, util, queryp])
+cred_genome_util = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods),
+    TestLoader().loadTestsFromTestCase(TestQueryParametersMethods), ])
 
 
-
-alltests = TestSuite()
+tests = []
 
 # to test all test cases:
-alltests.addTests( [small_file_transfers, runs_users_files, 
-    samples_appresults_projects, appsesssion, cred_genome_util, cov_variant] )
-#alltests.addTest(large_file_transfers)
+tests.extend([ small_file_transfers, 
+               runs_users_files, 
+               samples_appresults_projects,
+               appsessions, 
+               cred_genome_util,
+               cov_variant, ])
+tests.append(large_file_transfers)
 
 # to test individual test cases: 
-#one_test = TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods)
-#two_test = TestLoader().loadTestsFromTestCase(TestAppSessionMethods)
-#three_test = TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods)
-#alltests.addTests( [one_test, two_test, three_test] )
+#tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods) )
+#tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionMethods) )
+#tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionLaunchObjectMethods) )
+#tests.append( TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods) )
 
-TextTestRunner(verbosity=2).run(alltests)
+TextTestRunner(verbosity=2).run( TestSuite(tests) )
