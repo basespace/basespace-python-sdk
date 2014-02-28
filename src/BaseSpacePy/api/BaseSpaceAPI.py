@@ -182,22 +182,6 @@ class BaseSpaceAPI(BaseAPI):
                 pass            
         return cred
 
-    def __getTriggerObject__(self, obj):
-        '''
-        Warning this method is not for general use and should only be called 
-        from the getAppSession.
-        
-        :param obj: The appTrigger json 
-        '''
-        response = obj
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-        tempApi   = APIClient(AccessToken='', apiServer=self.apiServer)
-        response  = tempApi.deserialize(obj, AppSessionResponse.AppSessionResponse) #@UndefinedVariable
-        res = response.Response
-        res = res.__serializeReferences__(self)
-        return res
-    
     def getAppSessionById(self, Id):
         '''
         Get metadata about an AppSession.
@@ -229,9 +213,21 @@ class BaseSpaceAPI(BaseAPI):
         c.setopt(c.WRITEFUNCTION, response.write)
         c.perform()
         c.close()
-        obj = json.loads(response.getvalue())
-        # TODO add exception if response isn't OK, e.g. incorrect server gives path not recognized
-        return self.__getTriggerObject__(obj) 
+        resp_dict = json.loads(response.getvalue())        
+        return self.__deserializeAppSessionResponse__(resp_dict) 
+
+    def __deserializeAppSessionResponse__(self, response):
+        '''
+        Converts a AppSession response from the API server to an AppSession object.        
+        
+        :param response: a dictionary (decoded from json) from getting an AppSession from the api server
+        :returns: An AppSession instance                
+        '''        
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                    
+        tempApi = APIClient(AccessToken='', apiServer=self.apiServer)
+        res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)            
+        return res.Response.__deserializeReferences__(self)
 
     def getAppSessionPropertiesById(self, Id, queryPars=None):
         '''
@@ -304,13 +300,13 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
                                       queryParams, headerParams,postData=postData,verbose=0)
 
-    def __serializeObject__(self, dct, type):
+    def __deserializeObject__(self, dct, type):
         '''
         Converts API response into object instances for Projects, Samples, and AppResults.
         For other types, the input value is simply returned.
         
         (Currently called by Sample's getReferencedAppResults() and 
-        AppSessionLaunchObject's __serializeObject__() to serialize References)
+        AppSessionLaunchObject's __deserializeObject__() to serialize References)
 
         :param dct: dictionary from an API response (converted from JSON) for a BaseSpace item (eg., a Project)
         :param type: BaseSpace item name
@@ -535,7 +531,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'        
         headerParams = {}
-        return self.__listRequest__(RunCompact.RunCompact, resourcePath, method, queryParams, headerParams)
+        return self.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
     
     def getRunById(self, Id, queryPars=None):
         '''        
@@ -639,7 +635,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
-        return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__singleRequest__(SampleResponse.SampleResponse, resourcePath, method, queryParams, headerParams, verbose=0)
     
     def getSamplePropertiesById(self, Id, queryPars=None):
         '''

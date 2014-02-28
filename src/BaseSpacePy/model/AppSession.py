@@ -23,7 +23,7 @@ class AppSession(AppSessionSemiCompact):
             'OriginatingUri': 'str',
         }
             
-    def __serializeReferences__(self, api):
+    def __deserializeReferences__(self, api):
         '''
         Convert References (actually, the Content of each AppSessionLaunchObject) from dicts to objects,
         if the type is a primary BaseSpace item (eg., Project)
@@ -33,7 +33,7 @@ class AppSession(AppSessionSemiCompact):
         '''        
         ref = []
         for r in self.References:
-            res = r.__serializeObject__(api)
+            res = r.__deserializeObject__(api)
             ref.append(res)
         self.References = ref
         return self

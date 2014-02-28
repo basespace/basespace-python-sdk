@@ -1328,7 +1328,7 @@ class TestAppSessionMethods(TestCase):
         with self.assertRaises(AppSessionException):
             ssn.setStatus(self.api, status, statusSummary)
             
-    def test__serializeReferences__(self):                
+    def test__deserializeReferences__(self):                
         asla = AppSessionLaunchObject.AppSessionLaunchObject()
         asla.Type = 'Project'
         asla.Content = { "Id": "123", 
@@ -1340,7 +1340,7 @@ class TestAppSessionMethods(TestCase):
                     "DataCreated": "2020-01-01T01:01:01.0000000" }
         ssn = AppSession.AppSession()
         ssn.References = [asla]
-        ssn.__serializeReferences__(self.api)
+        ssn.__deserializeReferences__(self.api)
         self.assertEqual(ssn.References[0].Content.Id, "123")
 
 class TestAppSessionLaunchObjectMethods(TestCase):
@@ -1350,7 +1350,7 @@ class TestAppSessionLaunchObjectMethods(TestCase):
     def setUp(self):                            
         self.api = BaseSpaceAPI(profile='unit_tests')    
     
-    def test__serializeObject__(self):
+    def test__deserializeObject__(self):
         asla = AppSessionLaunchObject.AppSessionLaunchObject()
         asla.Type = 'Project'
         asla.Content = { "Id": "123", 
@@ -1360,7 +1360,7 @@ class TestAppSessionLaunchObjectMethods(TestCase):
                     "Href": "v1pre3/projects/123",
                     "Name": "Project Boomtown",
                     "DataCreated": "2020-01-01T01:01:01.0000000" }        
-        asla.__serializeObject__(self.api)
+        asla.__deserializeObject__(self.api)
         self.assertEqual(asla.Content.Id, "123")
     
 class TestAPIAppSessionMethods(TestCase):
@@ -1375,9 +1375,24 @@ class TestAPIAppSessionMethods(TestCase):
         cls.ar = cls.proj.createAppResult(cls.api, "test API AppSession Methods", "test API AppSession Methods", appSessionId="")
         cls.ssn = cls.ar.AppSession
 
-    def test__getTriggerObject__(self):
-        pass 
-        # TODO test with BaseAPI methods - very similar to __singleRequest__() (replace with?)
+    def test__deserializeAppSessionResponse__(self):        
+        # very similar to 2nd half of BaseAPI.__singleRequest__()
+        references = [ { "Type": "Project",
+                       "Href": "v1pre3/projects/321", 
+                       "Content": {"Id": "321", } } ]                                          
+        ssn_dict = { "ResponseStatus": {},
+                     "Notifications": {}, 
+                     "Response": {"Id": "123",
+                                  "Href": "v1pre3/appsessions/123",
+                                  "References": references, } }                                                            
+        ssn = self.api.__deserializeAppSessionResponse__(ssn_dict)
+        self.assertEqual(ssn.Id, "123")
+        self.assertEqual(ssn.References[0].Content.Id, "321")
+
+    def test__deserializeAppSessionResponse__ErrorCodeException(self):
+        ssn_dict = { "ResponseStatus": { "ErrorCode": "666", "Message": "We are dying" } }
+        with self.assertRaises(AppSessionException):
+            self.api.__deserializeAppSessionResponse__(ssn_dict)    
     
     def testGetAppSessionById(self):                
         ssn = self.api.getAppSessionById(self.ssn.Id)
@@ -1470,38 +1485,38 @@ class TestAPIAppSessionMethods(TestCase):
         with self.assertRaises(AppSessionException):
             ssn = self.api.setAppSessionState(self.ssn.Id, status, statusSummary)
 
-    def test__serializeObject__Project(self):        
+    def test__deserializeObject__Project(self):        
         type = 'Project'
         dct = { "HrefSamples": "testurl",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__serializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)        
         self.assertEqual(new_obj.HrefSamples, "testurl")
         with self.assertRaises(AttributeError):
             self.assertEqual(new_obj.Gibberish, "more Gibberish")
     
-    def test__serializeObject__Sample(self):
+    def test__deserializeObject__Sample(self):
         type = 'Sample'
         dct = { "SampleNumber": "123",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__serializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)        
         self.assertEqual(new_obj.SampleNumber, 123)
         with self.assertRaises(AttributeError):
             self.assertEqual(new_obj.Gibberish, "more Gibberish")
     
-    def test__serializeObject__AppResult(self):
+    def test__deserializeObject__AppResult(self):
         type = 'AppResult'
         dct = { "Description": "Fuzzy",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__serializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)        
         self.assertEqual(new_obj.Description, "Fuzzy")
         with self.assertRaises(AttributeError):
             self.assertEqual(new_obj.Gibberish, "more Gibberish")
     
-    def test__serializeObject__Other(self):
+    def test__deserializeObject__Other(self):
         type = 'Other'
         dct = { "Description": "Fuzzy",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__serializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)        
         self.assertEqual(new_obj, dct)        
     
 class TestAPICoverageMethods(TestCase):
@@ -1784,13 +1799,15 @@ cred_genome_util = TestSuite([
 tests = []
 
 # to test all test cases:
-tests.extend([ small_file_transfers, 
+tests.extend([ 
+#               small_file_transfers, 
                runs_users_files, 
                samples_appresults_projects,
-               appsessions, 
-               cred_genome_util,
-               cov_variant, ])
-tests.append(large_file_transfers)
+#               appsessions, 
+#               cred_genome_util,
+#               cov_variant, 
+            ])
+#tests.append(large_file_transfers)
 
 # to test individual test cases: 
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods) )

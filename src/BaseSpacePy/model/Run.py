@@ -6,7 +6,6 @@ class Run(object):
     '''
     A BaseSpace Run object
     '''
-
     def __init__(self):
         self.swaggerTypes = {
             'Name': 'str',
@@ -27,7 +26,16 @@ class Run(object):
             'Properties': 'PropertyList',
             'ReagentBarcode': 'str',
             'FlowcellBarcode': 'str',
-            'TotalSize': 'int',                                        
+            'TotalSize': 'int',
+            'PlatformName': 'str',
+            'Workflow': 'str',
+            'InstrumentName': 'str',
+            'InstrumentType': 'str',
+            'NumCyclesRead1': 'int',
+            'NumCyclesRead2': 'int',
+            'NumCyclesIndex1': 'int',
+            'NumCyclesIndex2': 'int',
+            'LibraryCount': 'int',                                
         }
     def __str__(self):
         return self.Name

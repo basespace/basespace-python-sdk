@@ -26,10 +26,10 @@ class Sample(object):
             'StatusSummary': 'str',
             'DateCreated': 'datetime',
             'References':'dict',
-            'Run': 'RunCompact', # deprecated?
             'TotalSize': 'int',
             'AppSession': 'AppSessionSemiCompact',
             'Properties': 'PropertyList',
+            'Projects': 'list<Project>',
         }
 
     def __str__(self):
@@ -75,9 +75,9 @@ class Sample(object):
         res = []
         for s in self.References:
             if s['Type']=='AppResult':
-                jsonAppResult = s['Content']
-                myAR = api.__serializeObject__(jsonAppResult, "AppResult")
-                res.append(myAR)
+                ar_dict = s['Content']
+                ar = api.__deserializeObject__(ar_dict, "AppResult")
+                res.append(ar)
         return res
     
     def getFiles(self, api, queryPars=None):

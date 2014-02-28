@@ -21,7 +21,6 @@ __all__= [
  'UserCompact',
  'VariantHeader',
  'Project',
- 'RunCompact',
  'CoverageResponse',
  'Variant',
  'AppSessionResponse',

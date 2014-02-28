@@ -19,13 +19,13 @@ class AppSessionLaunchObject(object):
     def __repr__(self):
         return str(self)
     
-    def __serializeObject__(self, api):
+    def __deserializeObject__(self, api):
         '''
-        Called from AppSession instance when serializing References
+        Called from AppSession instance when deserializing References
         
         :param api: A BaseSpaceAPI instance
         :returns: Self, with Content converted from dict to an object if the type is a major BaseSpace item (eg., a Project)
         '''
-        res = api.__serializeObject__(self.Content, self.Type)
+        res = api.__deserializeObject__(self.Content, self.Type)
         self.Content = res
         return self
