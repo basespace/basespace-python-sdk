@@ -71,3 +71,15 @@ class AppSessionException(Exception):
     def __str__(self):
         return repr(self.parameter)
 
+class ModelNotSupportedException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Model not supported: ' + value
+    def __str__(self):
+        return repr(self.parameter)
+
+class OAuthException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Error with OAuth: ' + value
+    def __str__(self):
+        return repr(self.parameter)
+    

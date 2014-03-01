@@ -45,11 +45,8 @@ class BaseSpaceAPI(BaseAPI):
         :param AccessToken: optional, though will be needed for most methods (except to obtain a new access token)
         :param timeout: optional, timeout period in seconds for api calls, default 10 
         :param profile: optional, name of profile in config file, default 'DEFAULT'
-        '''        
-        # TODO get rid of this
-        #if not apiServer[-1]=='/': apiServer = apiServer + '/'
-                
-        cred = self._set_credentials(clientKey, clientSecret, apiServer, version, appSessionId, AccessToken, profile)
+        '''                
+        cred = self._setCredentials(clientKey, clientSecret, apiServer, version, appSessionId, AccessToken, profile)
             
         self.appSessionId   = cred['appSessionId']
         self.key            = cred['clientKey']
@@ -62,7 +59,7 @@ class BaseSpaceAPI(BaseAPI):
         self.weburl         = cred['apiServer'].replace('api.','')        
         super(BaseSpaceAPI, self).__init__(cred['accessToken'], timeout)
 
-    def _set_credentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
+    def _setCredentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
         '''            
         Returns credentials from constructor, config file, or default (for optional args), in this priority order
         for each credential.
@@ -78,7 +75,7 @@ class BaseSpaceAPI(BaseAPI):
         :param profile: name of profile in config file        
         :returns: dictionary with credentials from constructor, config file, or default (for optional args), in this priority order.
         '''
-        lcl_cred = self._get_local_credentials(profile)
+        lcl_cred = self._getLocalCredentials(profile)
         cred = {}
         # required credentials
         if clientKey is not None:
@@ -138,7 +135,7 @@ class BaseSpaceAPI(BaseAPI):
         
         return cred            
 
-    def _get_local_credentials(self, profile):
+    def _getLocalCredentials(self, profile):
         '''
         Returns credentials from local config file (~/.basespacepy.cfg)
         If some or all credentials are missing, they aren't included the in the returned dict
@@ -321,73 +318,75 @@ class BaseSpaceAPI(BaseAPI):
             return tempApi.deserialize(dct, AppResult.AppResult)        
         return dct            
                 
-    def getAccess(self,obj,accessType='write',web=0,redirectURL='',state=''):
+    def getAccess(self, obj, accessType='write', web=False, redirectURL='', state=''):
         '''
+        Requests access to the provided BaseSpace object.
         
-        :param obj: The data object we wish to get access to
-        :param accessType: (Optional) the type of access (read|write), default is write
+        :param obj: The data object we wish to get access to -- must be a Project, Sample, AppResult, or Run.
+        :param accessType: (Optional) the type of access (browse|read|write|create), default is write. Create is only supported for Projects.
         :param web: (Optional) true if the App is web-based, default is false meaning a device based app
-        :param redirectURL: (Optional) For the web-based case, a
-        :param state: (Optional)
+        :param redirectURL: (Optional) Redirect URL for the web-based case
+        :param state: (Optional) A parameter that will passed through to the redirect response.
+        :raises ModelNotSupportedException: for classes of objects not supported by this method
+        :returns: for device requests, a dictionary of server response; for web requests, a url to to send the user to
         '''
-        scopeStr = obj.getAccessStr(scope=accessType)
+        try:
+            scopeStr = obj.getAccessStr(scope=accessType)
+        except AttributeError:
+            raise ModelNotSupportedException("Error - the class of the provided object is not supported for this method")
         if web:
             return self.getWebVerificationCode(scopeStr, redirectURL, state)
         else:
             return self.getVerificationCode(scopeStr)
         
-    def getVerificationCode(self,scope,):
+    def getVerificationCode(self, scope):
         '''
-        Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve
-        access to a specific data scope.  
-        
-        Corresponding curl call:
-        curlCall = 'curl -d "response_type=device_code" -d "client_id=' + client_key + '" -d "scope=' + scope + '" ' + deviceURL
-        
-        For details see:
-        https://developer.basespace.illumina.com/docs/content/documentation/authentication/obtaining-access-tokens
+        For non-web applications (eg. devices), returns the device code 
+        and verification url for the user to approve access to a specific data scope.  
             
-        :param scope: The scope that access is requested for
+        :param scope: The scope that access is requested for (e.g. 'browse project 123')
+        :returns: dictionary of server response
         '''
-#        curlCall = 'curl -d "response_type=device_code" -d "client_id=' + self.key + '" -d "scope=' + scope + '" ' + self.apiServer + deviceURL
-#        print curlCall
-        if (not self.key):
-            raise Exception("This BaseSpaceAPI instance has no client_secret (key) set and no alternative id was supplied for method getVerificationCode")
-        data = [('client_id',self.key),('scope', scope),('response_type','device_code')]
-        return self.__makeCurlRequest__(data,self.apiServer + deviceURL)
+        data = [('client_id', self.key), ('scope', scope),('response_type', 'device_code')]
+        return self.__makeCurlRequest__(data, self.apiServer + deviceURL)
 
-    def getWebVerificationCode(self,scope,redirectURL,state=''):
+    def getWebVerificationCode(self, scope, redirectURL, state=''):
         '''
         Generates the URL the user should be redirected to for web-based authentication
          
-        :param scope: The scope that access is requested for
+        :param scope: The scope that access is requested for (e.g. 'browse project 123')
         :param redirectURL: The redirect URL
-        :state: An optional state parameter that will passed through to the redirect response
-        '''
-        
-        if (not self.key):
-            raise Exception("This BaseSpaceAPI instance has no client_id (key) set and no alternative id was supplied for method getVerificationCode")
-        data = {'client_id':self.key,'redirect_uri':redirectURL,'scope':scope,'response_type':'code',"state":state}
+        :param state: (Optional) A state parameter that will passed through to the redirect response
+        '''        
+        data = {'client_id': self.key, 'redirect_uri': redirectURL, 'scope': scope, 'response_type': 'code', "state": state}
         return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
 
-    def obtainAccessToken(self,code,grantType='device',redirect_uri='http://www.myRedirect.com'):
+    def obtainAccessToken(self, code, grantType='device', redirect_uri=None):
         '''
         Returns a user specific access token.    
         
-        :param code: The device code returned by the verification code method
-        :param grantType: Grant-type may be either device or 'device' or 'authorization_code' 
-        :param redirect_uri: The uri we should redirect to
+        :param code: The device code returned by the getVerificationCode method
+        :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps 
+        :param redirect_uri: The uri to redirect to; required for web apps only.
+        :raises OAuthException: when redirect_uri isn't provided by web apps
+        :returns: an access token
         '''
-        if (not self.key) or (not self.secret):
-            raise Exception("This BaseSpaceAPI instance has either no client_secret or no client_id set and no alternative id was supplied for method getVerificationCode")
-        data = [('client_id',self.key),('client_secret', self.secret),('code',code),('grant_type',grantType),('redirect_uri',redirect_uri)]
-        dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
-        return dict['access_token']
+        if grantType=='authorization_code' and redirect_uri is None:
+            raise OAuthException('A Redirect URI is requred for web apps to obtain access tokens')
+        data = [('client_id', self.key), ('client_secret', self.secret), ('code', code), ('grant_type', grantType), ('redirect_uri', redirect_uri)]
+        resp_dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
+        return resp_dict['access_token']
 
-    def updatePrivileges(self,code,grantType='device',redirect_uri='http://www.myRedirect.com'):
+    def updatePrivileges(self, code, grantType='device', redirect_uri=None):
         '''
+        Retrieves a user-specific access token, and sets the token on the current object.
+
+        :param code: The device code returned by the getVerificationCode method
+        :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps 
+        :param redirect_uri: The uri to redirect to; required for web apps only.
+        :returns: None        
         '''
-        token = self.obtainAccessToken(code,grantType=grantType,redirect_uri=redirect_uri)
+        token = self.obtainAccessToken(code, grantType=grantType, redirect_uri=redirect_uri)
         self.setAccessToken(token)
             
     def createProject(self, Name):

@@ -1595,8 +1595,8 @@ class TestAPICredentialsMethods(TestCase):
         self.profile = 'unit_tests'
         self.api = BaseSpaceAPI(profile=self.profile)
 
-    def test__set_credentials_all_from_profile(self):                                                            
-        creds = self.api._set_credentials(clientKey=None, clientSecret=None,
+    def test_setCredentials_all_from_profile(self):                                                            
+        creds = self.api._setCredentials(clientKey=None, clientSecret=None,
             apiServer=None, apiVersion=None, appSessionId='', accessToken='',
             profile=self.profile)
         self.assertEqual(creds['clientKey'], self.api.key)
@@ -1607,8 +1607,8 @@ class TestAPICredentialsMethods(TestCase):
         self.assertEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertEqual(creds['accessToken'], self.api.getAccessToken())
 
-    def test__set_credentials_all_from_constructor(self):                                                            
-        creds = self.api._set_credentials(clientKey='test_key', clientSecret='test_secret',
+    def test_setCredentials_all_from_constructor(self):                                                            
+        creds = self.api._setCredentials(clientKey='test_key', clientSecret='test_secret',
             apiServer='https://www.test.server.com', apiVersion='test_version', appSessionId='test_ssn',
             accessToken='test_token', profile=self.profile)
         self.assertNotEqual(creds['clientKey'], self.api.key)
@@ -1619,7 +1619,7 @@ class TestAPICredentialsMethods(TestCase):
         self.assertNotEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertNotEqual(creds['accessToken'], self.api.getAccessToken())
 
-    def test__set_credentials_missing_config_creds_exception(self):
+    def test_setCredentials_missing_config_creds_exception(self):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
         # 3) run test, 4) erase new, 5) mv current back        
@@ -1632,13 +1632,13 @@ class TestAPICredentialsMethods(TestCase):
         with open(cfg, "w") as f:
             f.write(new_cfg_content)
         with self.assertRaises(CredentialsException):
-            creds = self.api._set_credentials(clientKey=None, clientSecret=None,
+            creds = self.api._setCredentials(clientKey=None, clientSecret=None,
                 apiServer=None, apiVersion=None, appSessionId='', accessToken='',
                 profile=self.profile)
         os.remove(cfg)
         shutil.move(tmp_cfg, cfg)
 
-    def test__set_credentials_defaults_for_optional_args(self):
+    def test__setCredentials_defaults_for_optional_args(self):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
         # 3) run test, 4) erase new, 5) mv current back
@@ -1652,7 +1652,7 @@ class TestAPICredentialsMethods(TestCase):
                           "apiVersion=test\n")                          
         with open(cfg, "w") as f:
             f.write(new_cfg_content)    
-        creds = self.api._set_credentials(clientKey=None, clientSecret=None,
+        creds = self.api._setCredentials(clientKey=None, clientSecret=None,
                 apiServer=None, apiVersion=None, appSessionId='', accessToken='',
                 profile=self.profile)
         self.assertEqual(creds['appSessionId'], '')
@@ -1660,8 +1660,8 @@ class TestAPICredentialsMethods(TestCase):
         os.remove(cfg)
         shutil.move(tmp_cfg, cfg)        
 
-    def test__get_local_credentials(self):                                                            
-        creds = self.api._get_local_credentials(profile='unit_tests')
+    def test__getLocalCredentials(self):                                                            
+        creds = self.api._getLocalCredentials(profile='unit_tests')
         self.assertEqual('name' in creds, True)
         self.assertEqual('clientKey' in creds, True)
         self.assertEqual('clientSecret' in creds, True)
@@ -1670,8 +1670,8 @@ class TestAPICredentialsMethods(TestCase):
         self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
-    def test__get_local_credentials_default_profile(self):
-        creds = self.api._get_local_credentials(profile=self.profile)
+    def test__getLocalCredentials_default_profile(self):
+        creds = self.api._getLocalCredentials(profile=self.profile)
         self.assertEqual('name' in creds, True)
         self.assertEqual('clientKey' in creds, True)
         self.assertEqual('clientSecret' in creds, True)
@@ -1680,9 +1680,9 @@ class TestAPICredentialsMethods(TestCase):
         self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
-    def test__get_local_credentials_missing_profile(self):                                                        
+    def test__getLocalCredentials_missing_profile(self):                                                        
         with self.assertRaises(CredentialsException):
-            creds = self.api._get_local_credentials(profile="SuperCallaFragaListic AppTastic")                
+            creds = self.api._getLocalCredentials(profile="SuperCallaFragaListic AppTastic")                
 
 class TestAPIGenomeMethods(TestCase):
     '''
@@ -1752,6 +1752,68 @@ class TestQueryParametersMethods(TestCase):
         with self.assertRaises(IllegalParameterException):
             queryp.validate()
 
+class TestAPIOAuthMethods(TestCase):
+    '''
+    Tests API Oauth methods
+    '''
+    def setUp(self):                            
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        
+    def testGetAccess_Device(self):
+        proj = self.api.getProjectById(tconst['project_id'])
+        resp = self.api.getAccess(proj, accessType='browse')
+        self.assertTrue('device_code' in resp)
+
+    def testGetAccess_DeviceModelNotSupportedException(self):        
+        with self.assertRaises(ModelNotSupportedException):
+            self.api.getAccess("test")        
+    
+    def testGetAccess_Web(self):
+        proj = self.api.getProjectById(tconst['project_id'])
+        url = self.api.getAccess(proj, accessType='browse', web=True, redirectURL='http://www.basespacepy.tv', state='working')
+        self.assertTrue(url.startswith('http'))
+    
+    def testGetVerificationCode(self):
+        resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
+        self.assertTrue('device_code' in resp)
+    
+    def testGetWebVerificationCode(self):
+        url = self.api.getWebVerificationCode('browse project ' + tconst['project_id'], redirectURL='http://www.basespacepy.tv')
+        self.assertTrue(url.startswith('http'))
+        self.assertTrue('state=' in url)        
+    
+    def testGetWebVerificationCode_WithStateParam(self):
+        url = self.api.getWebVerificationCode('browse project ' + tconst['project_id'], redirectURL='http://www.basespacepy.tv', state='working')
+        self.assertTrue(url.startswith('http'))
+        self.assertTrue('state=working' in url)
+    
+    def testObtainAccessToken_DeviceApp(self):
+        resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
+        with self.assertRaises(Exception):
+            self.assertEqual(type(self.api.obtainAccessToken(resp['device_code'])), 'str')
+            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+
+    def testObtainAccessToken_WebApp(self):        
+        with self.assertRaises(Exception):
+            self.api.obtainAccessToken('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')
+            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+
+    def testObtainAccessToken_WebAppRedirectURIException(self):        
+        with self.assertRaises(OAuthException):
+            self.api.obtainAccessToken('123456', grantType='authorization_code', redirect_uri=None)
+            
+    def testUpdatePrivileges_DeviceApp(self):
+        resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
+        with self.assertRaises(Exception):
+            self.assertEqual(type(self.api.updatePrivileges(resp['device_code'])), 'str')
+            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+
+    def testUpdatePrivileges_WebApp(self):
+        with self.assertRaises(Exception):
+            self.api.updatePrivileges('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')
+            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+
+
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
 large_file_transfers = TestSuite([
@@ -1795,17 +1857,21 @@ cred_genome_util = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods),
     TestLoader().loadTestsFromTestCase(TestQueryParametersMethods), ])
 
+oauth = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestAPIOAuthMethods), ])
+
 
 tests = []
 
 # to test all test cases:
 tests.extend([ 
-#               small_file_transfers, 
+               small_file_transfers, 
                runs_users_files, 
                samples_appresults_projects,
-#               appsessions, 
-#               cred_genome_util,
-#               cov_variant, 
+               appsessions, 
+               cred_genome_util,
+               cov_variant, 
+               oauth,
             ])
 #tests.append(large_file_transfers)
 

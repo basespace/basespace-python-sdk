@@ -78,6 +78,13 @@ class BaseAPI(object):
     # test if 
 
     def __makeCurlRequest__(self, data, url):
+        '''
+        Make a curl POST request
+        
+        :param data: data to post (eg. list of tuples of form (key, value))
+        :param url: url to post data to
+        :returns: dictionary of api server response
+        '''
         post = urllib.urlencode(data)
         response = cStringIO.StringIO()
         c = pycurl.Curl()
@@ -90,8 +97,7 @@ class BaseAPI(object):
         obj = json.loads(response.getvalue())
         if obj.has_key('error'):
             raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
-        return obj
-      
+        return obj      
 
     def __str__(self):
         return "BaseSpaceAPI instance - using token=" + self.getAccessToken()
