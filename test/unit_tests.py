@@ -8,13 +8,14 @@ import multiprocessing
 import hashlib
 import webbrowser
 import time
-from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
+from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI, deviceURL
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import *
 from BaseSpacePy.model import *
 from BaseSpacePy.model.MultipartFileTransfer import Utils
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
+
 
 
 # Dependencies:
@@ -1968,6 +1969,47 @@ class TestBaseAPIMethods(TestCase):
         with self.assertRaises(ServerResponseException):
             self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
 
+    def test__makeCurlRequest__(self):
+        api = BaseSpaceAPI(profile='unit_tests')
+        scope = 'browse project ' + tconst['project_id']
+        postData = [('client_id', api.key), ('scope', scope),('response_type', 'device_code')]
+        resp = self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServer + deviceURL)        
+        self.assertTrue('device_code' in resp)
+
+    @skip("Not sure how to test this, requires no response from api server")
+    def test__makeCurlRequest__NoneResponseException(self):
+        pass
+
+    def test__makeCurlRequest__ServerErrorException(self):
+        # gibberish client id causes server error
+        api = BaseSpaceAPI(profile='unit_tests')
+        scope = 'browse project ' + tconst['project_id']
+        postData = [('client_id', 'gibberish'), ('scope', scope),('response_type', 'device_code')]
+        with self.assertRaises(ServerResponseException):
+            self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServer + deviceURL)        
+
+    def testGetTimeout(self):
+        self.assertEqual(self.bapi.getTimeout(), 10)
+        
+    def testSetTimeout(self):
+        self.bapi.setTimeout(20) 
+        self.assertEqual(self.bapi.apiClient.timeout, 20)
+        
+    def testGetAccessToken(self):
+        api = BaseSpaceAPI(profile='unit_tests')
+        self.assertEqual(self.bapi.getAccessToken(), api.apiClient.apiKey)
+        
+    def testSetAccessToken(self):
+        self.bapi.setAccessToken("abc")
+        self.assertEqual(self.bapi.getAccessToken(), "abc")
+        
+    def testGetServerUri(self):
+        api = BaseSpaceAPI(profile='unit_tests')
+        self.assertEqual(self.bapi.getServerUri(), api.apiClient.apiServer)                                                           
+        
+    def testSetServerUri(self):
+        self.bapi.setServerUri("http://test.tv")
+        self.assertEqual(self.bapi.getServerUri(), "http://test.tv")    
         
 #if __name__ == '__main__':   
 #    main()         # unittest.main()

@@ -349,7 +349,7 @@ class BaseSpaceAPI(BaseAPI):
         :returns: dictionary of server response
         '''
         data = [('client_id', self.key), ('scope', scope),('response_type', 'device_code')]
-        return self.__makeCurlRequest__(data, self.apiServer + deviceURL)
+        return self.__makeCurlRequest__(data, self.apiClient.apiServer + deviceURL)
 
     def getWebVerificationCode(self, scope, redirectURL, state=''):
         '''
@@ -375,7 +375,7 @@ class BaseSpaceAPI(BaseAPI):
         if grantType=='authorization_code' and redirect_uri is None:
             raise OAuthException('A Redirect URI is requred for web apps to obtain access tokens')
         data = [('client_id', self.key), ('client_secret', self.secret), ('code', code), ('grant_type', grantType), ('redirect_uri', redirect_uri)]
-        resp_dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
+        resp_dict = self.__makeCurlRequest__(data, self.apiClient.apiServer + tokenURL)
         return str(resp_dict['access_token'])
 
     def updatePrivileges(self, code, grantType='device', redirect_uri=None):

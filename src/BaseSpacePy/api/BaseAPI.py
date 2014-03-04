@@ -39,7 +39,8 @@ class BaseAPI(object):
         :param version: (optional) print detailed output, default False
         :param forcePost: (optional) use a POST call with pycurl instead of urllib, default False (used only when POSTing with no post data?)
         :param verbose: (optional) prints verbose output, default False
-        
+
+        :raises ServerResponseException: if server returns an error or has no response        
         :returns: an instance of the Response model from the provided myModel
         '''
         if verbose: 
@@ -71,7 +72,8 @@ class BaseAPI(object):
         :param queryParams: a dictionary of query parameters
         :param headerParams: a dictionary of header parameters
         :param verbose: (optional) prints verbose output, default False
-        
+
+        :raises ServerResponseException: if server returns an error or has no response        
         :returns: a list of instances of the provided model
         '''                
         if verbose: 
@@ -98,6 +100,8 @@ class BaseAPI(object):
         
         :param data: data to post (eg. list of tuples of form (key, value))
         :param url: url to post data to
+        
+        :raises ServerResponseException: if server returns an error or has no response
         :returns: dictionary of api server response
         '''
         post = urllib.urlencode(data)
@@ -109,9 +113,12 @@ class BaseAPI(object):
         c.setopt(c.WRITEFUNCTION, response.write)
         c.perform()
         c.close()
-        obj = json.loads(response.getvalue())
+        respVal = response.getvalue()
+        if not respVal:
+            raise ServerResponseException("No response from server")
+        obj = json.loads(respVal)
         if obj.has_key('error'):
-            raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
+            raise ServerResponseException(str(obj['error'] + ": " + obj['error_description']))
         return obj      
 
     def getTimeout(self):
