@@ -6,7 +6,10 @@ import shutil
 from urlparse import urlparse, urljoin
 import multiprocessing
 import hashlib
+import webbrowser
+import time
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
+from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import *
 from BaseSpacePy.model import *
@@ -18,6 +21,8 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 # 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com; there should also be a 'DEFALT' profile in the config file
 # 2. Import the following data from Public Data on cloud-hoth.illumina.com:
 #    from Public Dataset 'B. cereus': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
+#
+# Note that large file upload download tests may take minutes each to complete, and oauth tests will open web browsers.
 
 tconst = { 
            # for download tests
@@ -701,7 +706,7 @@ class TestAPIAppResultMethods(TestCase):
         proj = self.api.createProject(tconst['create_project_name'])   
         ar = self.api.createAppResult(proj.Id, name="test create appresult creds ssn", 
             desc="test create appresult creds ssn", appSessionId="")
-        url = urlparse(self.api.apiServer)
+        url = urlparse(self.api.apiClient.apiServer)
         newApiServer = url.scheme + "://" + url.netloc
         new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
@@ -943,7 +948,7 @@ class TestProjectMethods(TestCase):
         proj = self.api.createProject(tconst['create_project_name'])   
         ar = proj.createAppResult(self.api, name="test create appresult creds ssn, project obj", 
             desc="test create appresult creds ssn, project obj", appSessionId="")
-        url = urlparse(self.api.apiServer)
+        url = urlparse(self.api.apiClient.apiServer)
         newApiServer = url.scheme + "://" + url.netloc
         new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
@@ -1594,32 +1599,32 @@ class TestAPICredentialsMethods(TestCase):
     def setUp(self):        
         self.profile = 'unit_tests'
         self.api = BaseSpaceAPI(profile=self.profile)
-
-    def test_setCredentials_all_from_profile(self):                                                            
+        
+    def test_setCredentials_AllFromProfile(self):                                                            
         creds = self.api._setCredentials(clientKey=None, clientSecret=None,
             apiServer=None, apiVersion=None, appSessionId='', accessToken='',
             profile=self.profile)
         self.assertEqual(creds['clientKey'], self.api.key)
         self.assertEqual('profile' in creds, True)
         self.assertEqual(creds['clientSecret'], self.api.secret)
-        self.assertEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
+        self.assertEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServer)
         self.assertEqual(creds['apiVersion'], self.api.version)
         self.assertEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertEqual(creds['accessToken'], self.api.getAccessToken())
 
-    def test_setCredentials_all_from_constructor(self):                                                            
+    def test_setCredentials_AllFromConstructor(self):                                                            
         creds = self.api._setCredentials(clientKey='test_key', clientSecret='test_secret',
             apiServer='https://www.test.server.com', apiVersion='test_version', appSessionId='test_ssn',
             accessToken='test_token', profile=self.profile)
         self.assertNotEqual(creds['clientKey'], self.api.key)
         self.assertNotEqual('profile' in creds, True)
         self.assertNotEqual(creds['clientSecret'], self.api.secret)
-        self.assertNotEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiServer)
+        self.assertNotEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServer)
         self.assertNotEqual(creds['apiVersion'], self.api.version)
         self.assertNotEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertNotEqual(creds['accessToken'], self.api.getAccessToken())
 
-    def test_setCredentials_missing_config_creds_exception(self):
+    def test_setCredentials_MissingConfigCredsException(self):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
         # 3) run test, 4) erase new, 5) mv current back        
@@ -1638,7 +1643,7 @@ class TestAPICredentialsMethods(TestCase):
         os.remove(cfg)
         shutil.move(tmp_cfg, cfg)
 
-    def test__setCredentials_defaults_for_optional_args(self):
+    def test__setCredentials_DefaultsForOptionalArgs(self):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
         # 3) run test, 4) erase new, 5) mv current back
@@ -1670,7 +1675,7 @@ class TestAPICredentialsMethods(TestCase):
         self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
-    def test__getLocalCredentials_default_profile(self):
+    def test__getLocalCredentials_DefaultProfile(self):
         creds = self.api._getLocalCredentials(profile=self.profile)
         self.assertEqual('name' in creds, True)
         self.assertEqual('clientKey' in creds, True)
@@ -1680,7 +1685,7 @@ class TestAPICredentialsMethods(TestCase):
         self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
-    def test__getLocalCredentials_missing_profile(self):                                                        
+    def test__getLocalCredentials_MissingProfile(self):                                                        
         with self.assertRaises(CredentialsException):
             creds = self.api._getLocalCredentials(profile="SuperCallaFragaListic AppTastic")                
 
@@ -1752,6 +1757,20 @@ class TestQueryParametersMethods(TestCase):
         with self.assertRaises(IllegalParameterException):
             queryp.validate()
 
+class TestListResponseMethods(TestCase):
+    '''
+    Tests ListResponse methods
+    '''
+    def testConvertToObjectList(self):
+        lr = ListResponse.ListResponse()
+        lr.Response = ResourceList.ResourceList()
+        lr.Response.Items = ['{ "Id": "123", "Href": "asdf", "UserOwnedBy": { "Id":"321" }, "TotalSize": 555 }',
+                             '{ "Id": "456", "Href": "asdf", "UserOwnedBy": { "Id":"321" }, "TotalSize": 666 }',]
+        objs = lr._convertToObjectList()
+        self.assertEqual(objs[0]['Id'], "123")
+        self.assertEqual(objs[1]['TotalSize'], 666)
+        self.assertEqual(objs[0]['UserOwnedBy']['Id'], "321")
+
 class TestAPIOAuthMethods(TestCase):
     '''
     Tests API Oauth methods
@@ -1789,14 +1808,15 @@ class TestAPIOAuthMethods(TestCase):
     
     def testObtainAccessToken_DeviceApp(self):
         resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
-        with self.assertRaises(Exception):
-            self.assertEqual(type(self.api.obtainAccessToken(resp['device_code'])), 'str')
-            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+        webbrowser.open(resp['verification_with_code_uri'])        
+        time.sleep(25) # wait for user to accept oauth request
+        self.assertTrue(isinstance(self.api.obtainAccessToken(resp['device_code']), str))
 
-    def testObtainAccessToken_WebApp(self):        
+    @skip("Not sure how to test, since must parse auth code from redirect url - use django.test assertRedirects()?")
+    def testObtainAccessToken_WebApp(self):
         with self.assertRaises(Exception):
             self.api.obtainAccessToken('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')
-            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+            
 
     def testObtainAccessToken_WebAppRedirectURIException(self):        
         with self.assertRaises(OAuthException):
@@ -1804,16 +1824,151 @@ class TestAPIOAuthMethods(TestCase):
             
     def testUpdatePrivileges_DeviceApp(self):
         resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
-        with self.assertRaises(Exception):
-            self.assertEqual(type(self.api.updatePrivileges(resp['device_code'])), 'str')
-            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+        webbrowser.open(resp['verification_with_code_uri'])        
+        time.sleep(25) # wait for user to accept oauth request
+        origToken = self.api.getAccessToken()
+        self.api.updatePrivileges(resp['device_code'])
+        self.assertNotEqual(self.api.getAccessToken(), origToken)
+        self.assertTrue(isinstance(self.api.getAccessToken(), str))
 
+    @skip("Not sure how to test, since must parse auth code from redirect url - use django.test assertRedirects()?")
     def testUpdatePrivileges_WebApp(self):
         with self.assertRaises(Exception):
-            self.api.updatePrivileges('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')
-            # TODO not sure how to test, since user must actively click OK in browser to exchange code for token - open browser during unit tests?
+            self.api.updatePrivileges('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')            
 
+class TestBaseAPIMethods(TestCase):
+    '''
+    Tests Base API methods
+    '''
+    def setUp(self):
+        api = BaseSpaceAPI(profile='unit_tests')                                                    
+        self.bapi = BaseAPI(api.getAccessToken(), api.apiClient.apiServer)
+        
+    def testConstructor(self):
+        accessToken = "123"
+        apiServer = "http://api.tv"
+        timeout = 50
+        bapi = BaseAPI(accessToken, apiServer, timeout)
+        self.assertEqual(bapi.apiClient.apiKey, accessToken)
+        self.assertEqual(bapi.apiClient.apiServer, apiServer)
+        self.assertEqual(bapi.apiClient.timeout, timeout)
 
+    def test__singleRequest__(self):
+        # get current user
+        resourcePath = '/users/current'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        user = self.bapi.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
+        self.assertTrue(hasattr(user, 'Id'))
+
+    def test__singleRequest__WithPostData(self):
+        # create a project
+        resourcePath = '/projects/'        
+        method = 'POST'
+        queryParams = {}
+        headerParams = {}
+        postData = { 'Name': tconst['create_project_name'] }            
+        proj = self.bapi.__singleRequest__(ProjectResponse.ProjectResponse, 
+            resourcePath, method, queryParams, headerParams, postData=postData)
+        self.assertEqual(proj.Name, tconst['create_project_name'])
+    
+    def test__singleRequest__WithForcePost(self):
+        # initiate a multipart upload -- requires a POST with no post data ('force post')
+        api = BaseSpaceAPI(profile='unit_tests')                                                    
+        proj = api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(api, "test __singleResult__WithForcePost", "test __singleResult__WithForcePost", appSessionId="") 
+        resourcePath = '/appresults/{Id}/files'        
+        method = 'POST'
+        resourcePath = resourcePath.replace('{Id}', ar.Id)
+        queryParams = {}
+        queryParams['name']          = "test file name"
+        queryParams['directory']     = "test directory"
+        queryParams['multipart']     = 'true' 
+        headerParams                 = {}
+        headerParams['Content-Type'] = 'text/plain'                        
+        postData                     = None        
+        file = self.bapi.__singleRequest__(FileResponse.FileResponse, resourcePath, method,
+            queryParams, headerParams, postData=postData, forcePost=1)
+        self.assertTrue(hasattr(file, 'Id'), 'Successful force post should return file object with Id attribute here')                            
+
+    def test__singleRequest__Verbose(self):
+        # get current user
+        resourcePath = '/users/current'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        user = self.bapi.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams, verbose=True)
+        self.assertTrue(hasattr(user, 'Id'))
+
+    @skip("Not sure how to test this, requires no response from api server")
+    def test__singleRequest__NoneResponseException(self):
+        pass
+    
+    def test__singleRequest__ErrorResponseException(self):
+        # malformed resoucePath, BadRequest Error and Message in response
+        resourcePath = '/users/curren'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        with self.assertRaises(ServerResponseException):
+            self.bapi.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
+
+    def test__singleRequest__UnrecognizedPathResponseException(self):
+        # malformed resoucePath, Message in response is 'not recognized path' (no error code)
+        resourcePath = '/users/current/run'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        with self.assertRaises(ServerResponseException):
+            self.bapi.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
+
+    def test__listRequest__(self):
+        # get current user
+        resourcePath = '/users/current/runs'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        runs = self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
+        self.assertTrue(isinstance(runs, list))
+        self.assertTrue(hasattr(runs[0], "Id"))
+
+    def test__listRequest__Verbose(self):
+        # get current user
+        resourcePath = '/users/current/runs'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        runs = self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams, verbose=True)
+        self.assertTrue(isinstance(runs, list))
+        self.assertTrue(hasattr(runs[0], "Id"))
+
+    @skip("Not sure how to test this, requires no response from api server")
+    def test__listRequest__NoneResponseException(self):
+        pass
+    
+    def test__listRequest__ErrorResponseException(self):
+        # Unauthorized - use nonsense acccess token
+        api = BaseSpaceAPI(profile='unit_tests')                                                    
+        bapi = BaseAPI(AccessToken="123123123123123123", apiServer=api.apiClient.apiServer)
+
+        resourcePath = '/users/current/uns'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        with self.assertRaises(ServerResponseException):
+            bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
+
+    def test__listRequest__UnrecognizedPathResponseException(self):
+        # malformed resoucePath, not recognized path message
+        resourcePath = '/users/current/uns'        
+        method = 'GET'        
+        queryParams = {}
+        headerParams = {}
+        with self.assertRaises(ServerResponseException):
+            self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
+
+        
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
 large_file_transfers = TestSuite([
@@ -1851,14 +2006,18 @@ cov_variant = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPICoverageMethods),
     TestLoader().loadTestsFromTestCase(TestAPIVariantMethods), ])
 
-cred_genome_util = TestSuite([
+cred_genome_util_lists = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPICredentialsMethods),
     TestLoader().loadTestsFromTestCase(TestAPIGenomeMethods),
     TestLoader().loadTestsFromTestCase(TestAPIUtilityMethods),
-    TestLoader().loadTestsFromTestCase(TestQueryParametersMethods), ])
+    TestLoader().loadTestsFromTestCase(TestQueryParametersMethods),
+    TestLoader().loadTestsFromTestCase(TestListResponseMethods), ])
 
 oauth = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPIOAuthMethods), ])
+
+baseapi = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestBaseAPIMethods), ])
 
 
 tests = []
@@ -1869,9 +2028,10 @@ tests.extend([
                runs_users_files, 
                samples_appresults_projects,
                appsessions, 
-               cred_genome_util,
+               cred_genome_util_lists,
                cov_variant, 
-               oauth,
+#               oauth, # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
+               baseapi,
             ])
 #tests.append(large_file_transfers)
 
@@ -1879,6 +2039,6 @@ tests.extend([
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods) )
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionMethods) )
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionLaunchObjectMethods) )
-#tests.append( TestLoader().loadTestsFromTestCase(TestAPIAppSessionMethods) )
+#tests.append( TestLoader().loadTestsFromTestCase(TestBaseAPIMethods) )
 
 TextTestRunner(verbosity=2).run( TestSuite(tests) )

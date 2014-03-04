@@ -11,7 +11,10 @@ class ListResponse(object):
             'Notifications': 'list<Str>'
         }
 
-    def convertToObjectList(self):
+    def _convertToObjectList(self):
+        '''
+        Converts items in server response from list of strings to list of python objects (though not BaseSpacePy models)                
+        '''
         l = []
         for m in self.Response.Items:
             io = eval(m)

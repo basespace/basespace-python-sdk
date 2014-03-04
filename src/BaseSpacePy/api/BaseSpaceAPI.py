@@ -50,14 +50,15 @@ class BaseSpaceAPI(BaseAPI):
             
         self.appSessionId   = cred['appSessionId']
         self.key            = cred['clientKey']
-        self.secret         = cred['clientSecret']
-        self.apiServer      = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
+        self.secret         = cred['clientSecret']        
         self.version        = cred['apiVersion']        
         if 'profile' in cred:
             self.profile    = cred['profile']
         # TODO this replacement won't work for all environments
-        self.weburl         = cred['apiServer'].replace('api.','')        
-        super(BaseSpaceAPI, self).__init__(cred['accessToken'], timeout)
+        self.weburl         = cred['apiServer'].replace('api.','')
+        
+        apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])        
+        super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, timeout)
 
     def _setCredentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
         '''            
@@ -201,7 +202,7 @@ class BaseSpaceAPI(BaseAPI):
             Id = self.appSessionId
         if not Id:
             raise AppSessionException("An AppSession Id is required")
-        resourcePath = self.apiServer + '/appsessions/{AppSessionId}'        
+        resourcePath = self.apiClient.apiServer + '/appsessions/{AppSessionId}'        
         resourcePath = resourcePath.replace('{AppSessionId}', Id)        
         response = cStringIO.StringIO()
         c = pycurl.Curl()
@@ -222,7 +223,7 @@ class BaseSpaceAPI(BaseAPI):
         '''        
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                    
-        tempApi = APIClient(AccessToken='', apiServer=self.apiServer)
+        tempApi = APIClient(AccessToken='', apiServer=self.apiClient.apiServer)
         res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)            
         return res.Response.__deserializeReferences__(self)
 
@@ -294,8 +295,8 @@ class BaseSpaceAPI(BaseAPI):
             raise AppSessionException("AppSession state must be one of: " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
-        return self.__singleRequest__(AppSessionResponse.AppSessionResponse,resourcePath, method,\
-                                      queryParams, headerParams,postData=postData,verbose=0)
+        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method,\
+                                      queryParams, headerParams, postData=postData, verbose=0)
 
     def __deserializeObject__(self, dct, type):
         '''
@@ -309,7 +310,7 @@ class BaseSpaceAPI(BaseAPI):
         :param type: BaseSpace item name
         :returns: for types Project, Sample, and AppResult, an object is returned; for other types, the input dict is returned.
         '''
-        tempApi = APIClient(AccessToken='', apiServer=self.apiServer)
+        tempApi = APIClient(AccessToken='', apiServer=self.apiClient.apiServer)
         if type.lower()=='project':
             return tempApi.deserialize(dct, Project.Project)
         if type.lower()=='sample':
@@ -363,7 +364,7 @@ class BaseSpaceAPI(BaseAPI):
 
     def obtainAccessToken(self, code, grantType='device', redirect_uri=None):
         '''
-        Returns a user specific access token.    
+        Returns a user specific access token, for either device (non-web) or web apps.   
         
         :param code: The device code returned by the getVerificationCode method
         :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps 
@@ -375,7 +376,7 @@ class BaseSpaceAPI(BaseAPI):
             raise OAuthException('A Redirect URI is requred for web apps to obtain access tokens')
         data = [('client_id', self.key), ('client_secret', self.secret), ('code', code), ('grant_type', grantType), ('redirect_uri', redirect_uri)]
         resp_dict = self.__makeCurlRequest__(data,self.apiServer + tokenURL)
-        return resp_dict['access_token']
+        return str(resp_dict['access_token'])
 
     def updatePrivileges(self, code, grantType='device', redirect_uri=None):
         '''
@@ -396,8 +397,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Name: Name of the project        
         '''        
-        resourcePath            = '/projects/'
-        resourcePath            = resourcePath.replace('{format}', 'json')
+        resourcePath            = '/projects/'        
         method                  = 'POST'
         queryParams             = {}
         headerParams            = {}
@@ -910,7 +910,7 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: AppResult id.        
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
-        :param contentType: The content-type of the file.
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
         :returns: Newly created File object      
         '''
         resourcePath = '/appresults/{Id}/files'        
@@ -1070,7 +1070,7 @@ class BaseSpaceAPI(BaseAPI):
         iter_size = 16*1024 # python default
         if len(byteRange):
             req.add_header('Range', 'bytes=%s-%s' % (byteRange[0], byteRange[1]))
-        flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking                
+        flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking                
         totRead = 0
         with open(filename, 'r+b', 0) as fp:
             if len(byteRange) and standaloneRangeFile == False:
@@ -1158,7 +1158,7 @@ class BaseSpaceAPI(BaseAPI):
         # GET S3 url and record etag         
         req = urllib2.Request(response['Response']['HrefContent'])        
         req.add_header('Range', 'bytes=%s-%s' % (0, 1))         
-        flo = urllib2.urlopen(req, timeout=self.timeout) # timeout prevents blocking  
+        flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking  
         try:        
             etag = flo.headers['etag']
         except KeyError:

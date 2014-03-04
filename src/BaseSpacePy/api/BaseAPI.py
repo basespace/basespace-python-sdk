@@ -10,72 +10,87 @@ import json
 import os
 
 from BaseSpacePy.api.APIClient import APIClient
-from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
-from BaseSpacePy.model import * #@UnusedWildImport
+from BaseSpacePy.api.BaseSpaceException import *
+from BaseSpacePy.model import *
 
 
 class BaseAPI(object):
     '''
-    Parent class for BaseSpaceAPI and BillingAPI objects
+    Parent class for BaseSpaceAPI and BillingAPI classes
     '''
-    def __init__(self, AccessToken='', timeout=10):
-        self.apiClient = None
-        self.setTimeout(timeout)
-        self.setAccessToken(AccessToken)        # logic for setting the access-token 
+    def __init__(self, AccessToken, apiServer, timeout=10):
+        '''
+        :param AccessToken: the current access token
+        :param apiServer: the api server URL with api version
+        :param timeout: (optional) the timeout in seconds for each request made, default 10 
+        '''
+        self.apiClient = APIClient(AccessToken, apiServer, timeout=timeout)
 
-    def __updateAccessToken__(self,AccessToken):
-        self.apiClient.apiKey = AccessToken
-
-    def __singleRequest__(self,myModel,resourcePath, method, queryParams, headerParams,postData=None,verbose=0,forcePost=0,noAPI=1):
-        # test if access-token has been set
-        if not self.apiClient and noAPI:
-            raise Exception('Access-token not set, use the "setAccessToken"-method to supply a token value')
-        if verbose: print "    # " + str(resourcePath)
+    def __singleRequest__(self, myModel, resourcePath, method, queryParams, headerParams, postData=None, verbose=False, forcePost=False):
+        '''
+        Call a REST API and deserialize response into an object.
         
-        # Make the API Call
-        response = self.apiClient.callAPI(resourcePath, method, queryParams,postData, headerParams,forcePost=forcePost)
-        if verbose: 
-            print "    # "
-            print "    # forcePost: " + str(forcePost) 
-            pprint(response)
-        if not response: 
-            raise Exception('BaseSpace error: None response returned')
+        :param myModel: a Response object that includes a 'Response' swaggerType key with a value for the model type to return
+        :param resourcePath: the api url path to call (without server and version)
+        :param method: the REST method type, eg. GET
+        :param queryParams: a dictionary of query parameters
+        :param headerParams: a dictionary of header parameters
+        :param postData: (optional) data to POST, default None
+        :param version: (optional) print detailed output, default False
+        :param forcePost: (optional) use a POST call with pycurl instead of urllib, default False (used only when POSTing with no post data?)
+        :param verbose: (optional) prints verbose output, default False
         
-        # throw exception here for various error messages
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-         
-        # Create output objects if the response has more than one object
-        responseObject = self.apiClient.deserialize(response,myModel)
-        return responseObject.Response
-
-    def __listRequest__(self,myModel,resourcePath, method, queryParams, headerParams,verbose=0,noAPI=1):
-        # test if access-token has been set
-        if not self.apiClient and noAPI:
-            raise Exception('Access-token not set, use the "setAccessToken"-method to supply a token value')
-        
-        # Make the API Call
+        :returns: an instance of the Response model from the provided myModel
+        '''
         if verbose: 
             print '    # Path: ' + str(resourcePath)
-            print '    # Pars: ' + str(queryParams)
-        response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if not response: 
-            raise Exception('BaseSpace Exception: No data returned')
-        
+            print '    # QPars: ' + str(queryParams)
+            print '    # Hdrs: ' + str(headerParams)
+            print '    # forcePost: ' + str(forcePost)             
+        response = self.apiClient.callAPI(resourcePath, method, queryParams, postData, headerParams, forcePost=forcePost)
         if verbose: 
-            print '    # response: ' 
+            print '    # Response: '            
             pprint(response)
-        if not isinstance(response, list): response = [response]
-        responseObjects = []
-        for responseObject in response:
-            responseObjects.append(self.apiClient.deserialize(responseObject, ListResponse.ListResponse))
+        if not response: 
+            raise ServerResponseException('No response returned')                
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
+        elif response['ResponseStatus'].has_key('Message'):
+            raise ServerResponseException(str(response['ResponseStatus']['Message']))
+                 
+        responseObject = self.apiClient.deserialize(response, myModel)
+        return responseObject.Response
+
+    def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams, verbose=False):
+        '''
+        Call a REST API that returns a list and deserialize response into a list of objects of the provided model.
+
+        :param myModel: a Model type to return a list of
+        :param resourcePath: the api url path to call (without server and version)
+        :param method: the REST method type, eg. GET
+        :param queryParams: a dictionary of query parameters
+        :param headerParams: a dictionary of header parameters
+        :param verbose: (optional) prints verbose output, default False
         
-        # convert list response dict to object type
-        # TODO check that Response is present -- errors sometime don't include
-        convertet = [self.apiClient.deserialize(c,myModel) for c in responseObjects[0].convertToObjectList()]
-#        print response 
-        return convertet
-    # test if 
+        :returns: a list of instances of the provided model
+        '''                
+        if verbose: 
+            print '    # Path: ' + str(resourcePath)
+            print '    # QPars: ' + str(queryParams)
+            print '    # Hdrs: ' + str(headerParams)
+        response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
+        if verbose:
+            print '    # Response: '             
+            pprint(response)
+        if not response: 
+            raise ServerResponseException('No response returned')
+        if response['ResponseStatus'].has_key('ErrorCode'):
+            raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
+        elif response['ResponseStatus'].has_key('Message'):
+            raise ServerResponseException(str(response['ResponseStatus']['Message']))
+        
+        respObj = self.apiClient.deserialize(response, ListResponse.ListResponse)
+        return [self.apiClient.deserialize(c, myModel) for c in respObj._convertToObjectList()]
 
     def __makeCurlRequest__(self, data, url):
         '''
@@ -99,39 +114,44 @@ class BaseAPI(object):
             raise Exception("BaseSpace exception: " + obj['error'] + " - " + obj['error_description'])
         return obj      
 
-    def __str__(self):
-        return "BaseSpaceAPI instance - using token=" + self.getAccessToken()
-    
-    def __repr__(self):
-        return str(self)  
+    def getTimeout(self):
+        '''
+        Returns the timeout in seconds for each request made
+        '''
+        return self.apiClient.timeout
 
-    def setTimeout(self,time):
+    def setTimeout(self, time):
         '''
         Specify the timeout in seconds for each request made
         
-        :param time: timeout in second
-        '''
-        self.timeout = time
-        if self.apiClient:
-            self.apiClient.timeout = self.timeout
+        :param time: timeout in seconds
+        '''        
+        self.apiClient.timeout = time
         
-    def setAccessToken(self,token):
-        self.apiClient      = None
-        if token: 
-            apiClient = APIClient(AccessToken=token,apiServer=self.apiServer,timeout=self.timeout)
-            self.apiClient = apiClient
-
     def getAccessToken(self):
         '''
-        Returns the access-token that was used to initialize the BaseSpaceAPI object.
+        Returns the current access token. 
+        '''        
+        return self.apiClient.apiKey        
+
+    def setAccessToken(self, token):
         '''
-        if self.apiClient:
-            return self.apiClient.apiKey
-        return ""
-    
+        Sets the current access token.
+                
+        :param token: an access token
+        '''
+        self.apiClient.apiKey = token            
+
     def getServerUri(self):
         '''
         Returns the server uri used by this instance
         '''
         return self.apiClient.apiServer
 
+    def setServerUri(self, apiServer):
+        '''
+        Sets the server uri used by this instance
+        
+        :param apiServer: the api server url with version
+        '''
+        self.apiClient.apiServer = apiServer 

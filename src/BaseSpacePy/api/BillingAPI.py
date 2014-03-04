@@ -1,4 +1,5 @@
 
+import urlparse
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model import * #@UnusedWildImport
@@ -8,13 +9,17 @@ class BillingAPI(BaseAPI):
     '''
     The API class used for all communication with the BaseSpace Billng server
     '''
-    def __init__(self, apiServer, version, appSessionId='', AccessToken=''):
-        if not apiServer[-1]=='/': apiServer = apiServer + '/'
-        
-        self.appSessionId   = appSessionId
-        self.apiServer      = apiServer + version
-        self.version        = version
-        super(BillingAPI, self).__init__(AccessToken)
+    def __init__(self, apiServer, version, appSessionId='', AccessToken=''):        
+        '''
+        :param apiServer: the URL of the BaseSpace api server
+        :param version: the version of the BaseSpace API
+        :param appSessionId: optional, though may be needed for AppSession-related methods
+        :param AccessToken: optional, though will be needed for most methods (except to obtain a new access token)
+        '''        
+        self.appSessionId   = appSessionId        
+        self.version        = version        
+        apiServerAndVersion = urlparse.urljoin(apiServer, version)        
+        super(BillingAPI, self).__init__(AccessToken, apiServerAndVersion)
 
     def createPurchase(self, products, appSessionId=''):
         '''

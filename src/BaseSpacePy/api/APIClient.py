@@ -18,25 +18,30 @@ from model import *
 
 
 class APIClient:
-    def __init__(self, AccessToken=None, apiServer=None, timeout=10):
-        if AccessToken == None:
-            raise Exception('You must pass an access token when instantiating the '
-                            'APIClient')
+    def __init__(self, AccessToken, apiServer=None, timeout=10):
+        '''
+        Initialize the API instance
+        
+        :param AccessToken: an access token
+        :param apiServer: (optional) the URL of the BaseSpace api server with api version, default None
+        :param timeout: (optional) the timeout in seconds for each request made, default 10
+        '''
         self.apiKey     = AccessToken
         self.apiServer  = apiServer
         self.timeout    = timeout
 
-    def __forcePostCall__(self,resourcePath,postData,headers,data=None):
+    def __forcePostCall__(self, resourcePath, postData, headers, data=None):
         '''
-        For forcing a post request using pycurl
-        :param qParams:Query oaramter string
-        :param resourcePath: The url 
+        For forcing a post request using pycurl (seems to be used when POSTing with no post data)
+                
+        :param resourcePath: The url to visit
+        :param postData:
+        :param headers:
+        :param data: (optional) 
         '''
         postData = [(p,postData[p]) for p in postData]
         headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
         post =  urllib.urlencode(postData)
-#        print "header prep " + str(headerPrep)
-#        print "post " + str(post)
         response = cStringIO.StringIO()
         c = pycurl.Curl()
         c.setopt(pycurl.URL,resourcePath + '?' + post)
@@ -48,45 +53,38 @@ class APIClient:
         c.close()
         return response.getvalue()
 
-    def __putCall__(self,resourcePath,postData,headers,transFile):
-        headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
-#        name = '/home/mkallberg/Desktop/multi/tempfiles/temp.bam' + resourcePath.split('/')[-1]  
-#        f = open(name,'w')
-#        f.write(data)
-#        f.close()
-#        f = open(name)
-#        print len(f.read())
-#        c = pycurl.Curl()
-#        c.setopt(pycurl.URL,resourcePath)
-#        c.setopt(pycurl.HTTPHEADER, headerPrep)
-#        c.setopt(pycurl.PUT, 1)
-#        c.setopt(pycurl.UPLOAD,dataInput)
-#        c.setopt(pycurl.INFILESIZE,10239174)
-#        c.setopt(c.WRITEFUNCTION, response.write)
-#        c.perform()
-#        c.close()
-#        print resourcePath
-#        
+    def __putCall__(self, resourcePath, postData, headers, transFile):
+        '''
+        :param resourcePath:
+        :param postData:
+        :param headers:
+        :param transFile:
+        '''
+        headerPrep  = [k + ':' + headers[k] for k in headers.keys()]        
         cmd = 'curl -H "x-access-token:' + self.apiKey + '" -H "Content-MD5:' + headers['Content-MD5'].strip() +'" -T "'+ transFile +'" -X PUT ' + resourcePath
-        ##cmd = data +'|curl -H "x-access-token:' + self.apiKey + '" -H "Content-MD5:' + headers['Content-MD5'].strip() +'" -d @- -X PUT ' + resourcePath
         p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        output = p.stdout.read()
-        return output
+        return p.stdout.read()        
+
+    def callAPI(self, resourcePath, method, queryParams, postData, headerParams=None, forcePost=0):
+        '''
+        Call a REST API
         
-
-    def callAPI(self, resourcePath, method, queryParams, postData,
-                headerParams=None,forcePost=0):
-
+        :param resourcePath:
+        :param method:
+        :param queryParams:
+        :param postData:
+        :param headerParams: (optional)
+        :param forcePost: (optional)
+        '''
         url = self.apiServer + resourcePath
         headers = {}
         if headerParams:
             for param, value in headerParams.iteritems():
                 headers[param] = value
         # specify the content type
-        if not headers.has_key('Content-Type') and not method=='PUT' and not forcePost: headers['Content-Type'] = 'application/json'
-
+        if not headers.has_key('Content-Type') and not method=='PUT' and not forcePost: 
+            headers['Content-Type'] = 'application/json'
         # include access token in header 
-
         headers['Authorization'] = 'Bearer ' + self.apiKey
         
         data = None
@@ -112,13 +110,11 @@ class APIClient:
             if data:
                 if type(postData) not in [str, int, float, bool]:
                     data = json.dumps(postData)
-#            print "!!! " + str(url)
-#            print "!!! " + str(data)
             if not forcePost:
                 if data and not len(data): data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
                 request = urllib2.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:                                    # use pycurl to force a post call, even w/o data
-                response = self.__forcePostCall__(forcePostUrl,sentQueryParams,headers)
+                response = self.__forcePostCall__(forcePostUrl, sentQueryParams, headers)
             if method in ['PUT', 'DELETE']: #urllib doesnt do put and delete, default to pycurl here
                 response = self.__putCall__(url, queryParams, headers, data)
                 response =  response.split()[-1]
@@ -127,12 +123,9 @@ class APIClient:
             raise Exception('Method ' + method + ' is not recognized.')
 
         # Make the request, request may raise 403 forbidden, or 404 non-response
-        if not forcePost and not method in ['PUT', 'DELETE']:                                      # the normal case
-#            print url
-            #print request
-#            print "request with timeout=" + str(self.timeout)
+        if not forcePost and not method in ['PUT', 'DELETE']: # the normal case
             try:
-                response = urllib2.urlopen(request,timeout=self.timeout).read()
+                response = urllib2.urlopen(request, timeout=self.timeout).read()
             except urllib2.HTTPError as e:
                 # handle HTTP errors in caller
                 response = e.read()

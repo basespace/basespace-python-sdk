@@ -23,9 +23,9 @@ class WrongFiletypeException(Exception):
     def __str__(self):
         return repr(self.parameter)
     
-class NoRepsonseException(Exception):
+class ServerResponseException(Exception):
     def __init__(self, value):
-        self.parameter = 'No response was returned from the server for this request'
+        self.parameter = 'Error with API server response: ' + value
     def __str__(self):
         return repr(self.parameter)
     
