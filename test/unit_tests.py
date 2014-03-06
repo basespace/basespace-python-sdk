@@ -2215,6 +2215,89 @@ class TestAPIClientMethods(TestCase):
     def testCallAPI_JsonParsingException(self):
         pass
 
+    def testDeserialize_ClassObjClass_String(self):
+        obj = "test"
+        objClass = str
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
+        
+    # TODO test all native python types
+        
+    def testDeserialize_StringObjClass_String(self):
+        obj = "test"
+        objClass = 'str'
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
+
+    # TODO test all native python types
+
+    def testDeserialize_ClassObjClass_Project(self):
+        obj = {"Id":"123"}
+        objClass = Project.Project
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.Id, "123")
+
+    # TODO File, Property, and unknown Class
+
+    def testDeserialize_StringObjClass_Project(self):
+        obj = {"Id":"123"}
+        objClass = "Project"
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.Id, "123")
+
+    # TODO File, Property, and unknown Class
+
+    def testDeserialize_ClassObjClass_DynamicType(self):        
+        obj = { 'ResponseStatus': 'test',
+                'Response': { # DynamicType
+                    # MultiValueAppResultList                             
+                    'Type': 'appresult[]',                                     
+                    'DisplayedCount': 10,
+                    },               
+                'Notifications': ''
+              }
+        objClass = MultiValuePropertyResponse.MultiValuePropertyResponse
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.Response.DisplayedCount, 10)
+
+    # TODO unrecognized dynamic type
+        
+    def testDeserialize_ClassObjClass_List(self):
+        obj = { 'CHROM': 'chr3',                 
+                'ID': ['1', '2', '3'] }  # 'list<Str>'
+        objClass = Variant.Variant
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.ID[0], '1')
+
+    def testDeserialize_ClassObjClass_ListOfDynamicTypes(self):
+        obj = { 'Items': [  # 'list<DynamicType>',
+                          {'Type': 'string', 'Name': 'teststring'}, # PropertyString
+                          {'Type': 'project', 'Name': 'testproject'}, # PropertyProject
+                          ], }                             
+        objClass = PropertyList.PropertyList
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.Items[0].Name, 'teststring')
+        self.assertEqual(out.Items[1].Name, 'testproject')
+        
+    def testDeserialize_ClassObjClass_ListOfLists(self):
+        obj = { 'Items': [  #'listoflists<PropertyMapKeyValues>',
+                          [ {'Key': 'testA1'}, {'Key': 'testA2'}], # PropertyMapKeyValues
+                          [ {'Key': 'testB1'}, {'Key': 'testB2'}], # PropertyMapKeyValues
+                          ], }
+        objClass = PropertyMaps.PropertyMaps
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.Items[0][0].Key, 'testA1')
+        self.assertEqual(out.Items[1][1].Key, 'testB2')
+
+    def testDeserialize_ClassObjClass_Dict(self):
+        pass # TODO
+    
+    def testDeserialize_ClassObjClass_Datetime(self):
+        pass # TODO
+    
+    # TODO test exception conditions? test recursion explicitely?
+
+
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
 large_file_transfers = TestSuite([
@@ -2271,13 +2354,13 @@ tests = []
 
 # to test all test cases:
 tests.extend([ 
-#               small_file_transfers, 
-#               runs_users_files, 
-#               samples_appresults_projects,
-#               appsessions, 
-#               cred_genome_util_lists,
-#               cov_variant, 
-#               baseapi_apiclient,
+               small_file_transfers, 
+               runs_users_files, 
+               samples_appresults_projects,
+               appsessions, 
+               cred_genome_util_lists,
+               cov_variant, 
+               baseapi_apiclient,
             ])
 #tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
 #tests.append(large_file_transfers) # these tests may take tens of minutes to complete

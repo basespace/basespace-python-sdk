@@ -149,31 +149,36 @@ class APIClient:
         return data            
 
     def deserialize(self, obj, objClass):
-        """Deserialize a JSON string into an object.
+        """
+        Deserialize a JSON string into a BaseSpacePy object.
 
-        Args:
-            obj -- string or object to be deserialized
-            objClass -- class literal for deserialzied object, or string
-                of class name
-        Returns:
-            object -- deserialized object"""
-
-        # Have to accept objClass as string or actual type. Type could be a
-        # native Python type, or one of the model classes.
-        if type(objClass) == str:
+        :param obj: A dictionary (or object?) to be deserialized into a class (objClass); or a value to be passed into a new native python type (objClass)
+        :param objClass: A class object or native python type for the deserialized object, or a string of a class name or native python type. (eg, Project.Project, int, 'Project', 'int') 
+        :returns: A deserialized object
+        """        
+        # Create an object class from objClass, if a string was passed in
+        # Avoid native python types 'file' and 'property'
+        if type(objClass) == str:            
             try:
-                # Hack to avoid native python-type 'file' (non-capital 'f') and 'property'
                 if ((not str(objClass)=='File') and (not str(objClass)=='Property')): 
                     objClass = eval(objClass.lower())
                 else:
                     objClass = eval(objClass + '.' + objClass)
             except NameError: # not a native type, must be model class
                 objClass = eval(objClass + '.' + objClass)
-
+        
+        # Create an instance of the object class
+        # If the instance is a native python type, return it        
         if objClass in [str, int, float, bool]:
             return objClass(obj)
         instance = objClass()
         
+        # For every swaggerType in the instance that is also in the passed-in obj,
+        # set the instance value for native python types,
+        # or recursively deserialize class instances.
+        # For dynamic types, substitute real class after looking up 'Type' value.
+        # For lists, deserialize all members of a list, including lists of lists (though not list of list of list...).
+        # For datetimes, convert to a readable output string 
         for attr, attrType in instance.swaggerTypes.iteritems():
             if attr in obj:
                 value = obj[attr]
@@ -190,8 +195,7 @@ class APIClient:
                     except KeyError:
                         warn("Warning - unrecognized dynamic type: " + value['Type'])                                                                                    
                     else:
-                        setattr(instance, attr, self.deserialize(value, 
-                            model_name))
+                        setattr(instance, attr, self.deserialize(value, model_name))
                 elif 'list<' in attrType:
                     match = re.match('list<(.*)>', attrType)
                     subClass = match.group(1)                    
@@ -225,11 +229,11 @@ class APIClient:
                     setattr(instance, attr, outvals)
                                             
                 elif attrType=='dict':                                          
-                    setattr(instance, attr,value)
+                    setattr(instance, attr, value)
                 elif attrType=='datetime':
                     dt = dateutil.parser.parse(value)
-                    setattr(instance, attr,dt)
+                    setattr(instance, attr, dt)
                 else:
                     # recursive call with attribute type
-                    setattr(instance, attr, self.deserialize(value,attrType))
+                    setattr(instance, attr, self.deserialize(value, attrType))
         return instance
