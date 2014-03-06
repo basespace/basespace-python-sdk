@@ -12,32 +12,31 @@ from subprocess import *
 import subprocess
 import dateutil.parser
 from warnings import warn
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
-from model import *
+from BaseSpacePy.model import *
+from BaseSpacePy.api.BaseSpaceException import RestMethodException, ServerResponseException
 
 
 class APIClient:
-    def __init__(self, AccessToken, apiServer=None, timeout=10):
+    def __init__(self, AccessToken, apiServer, timeout=10):
         '''
         Initialize the API instance
         
         :param AccessToken: an access token
-        :param apiServer: (optional) the URL of the BaseSpace api server with api version, default None
+        :param apiServer: the URL of the BaseSpace api server with api version
         :param timeout: (optional) the timeout in seconds for each request made, default 10
         '''
-        self.apiKey     = AccessToken
-        self.apiServer  = apiServer
-        self.timeout    = timeout
+        self.apiKey = AccessToken
+        self.apiServer = apiServer
+        self.timeout = timeout
 
-    def __forcePostCall__(self, resourcePath, postData, headers, data=None):
+    def __forcePostCall__(self, resourcePath, postData, headers):
         '''
-        For forcing a post request using pycurl (seems to be used when POSTing with no post data)
+        For forcing a REST POST request using pycurl (seems to be used when POSTing with no post data)
                 
-        :param resourcePath: The url to visit
-        :param postData:
-        :param headers:
-        :param data: (optional) 
+        :param resourcePath: the url to call, including server address and api version
+        :param postData: a dictionary of data to post
+        :param headers: a dictionary of header key/values to include in call
+        :returns: server response (a string containing json)
         '''
         postData = [(p,postData[p]) for p in postData]
         headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
@@ -53,28 +52,39 @@ class APIClient:
         c.close()
         return response.getvalue()
 
-    def __putCall__(self, resourcePath, postData, headers, transFile):
+    def __putCall__(self, resourcePath, headers, transFile):
         '''
-        :param resourcePath:
-        :param postData:
-        :param headers:
-        :param transFile:
+        Performs a REST PUT call to the API server.
+        
+        :param resourcePath: the url to call, including server address and api version        
+        :param headers: a dictionary of header key/values to include in call        
+        :param transFile: the name of the file containing only data to be PUT
+        :returns: server response (a string containing upload status message (from curl?) followed by json response)
         '''
         headerPrep  = [k + ':' + headers[k] for k in headers.keys()]        
         cmd = 'curl -H "x-access-token:' + self.apiKey + '" -H "Content-MD5:' + headers['Content-MD5'].strip() +'" -T "'+ transFile +'" -X PUT ' + resourcePath
         p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        return p.stdout.read()        
+        return p.stdout.read()
 
-    def callAPI(self, resourcePath, method, queryParams, postData, headerParams=None, forcePost=0):
+    def callAPI(self, resourcePath, method, queryParams, postData, headerParams=None, forcePost=False):
         '''
-        Call a REST API
+        Call a REST API and return the server response.
         
-        :param resourcePath:
-        :param method:
-        :param queryParams:
-        :param postData:
-        :param headerParams: (optional)
-        :param forcePost: (optional)
+        An access token header is automatically added.
+        If a Content-Type header isn't included, one will be added with 'application/json' (except for PUT and forcePost calls).
+        Query parameters with values of None aren't sent to the server.
+        Server errors are to be handled by the caller (returned response contains error codes/msgs).
+        
+        :param resourcePath: the url to call, not including server address and api version
+        :param method: REST method, including GET, POST (and forcePost, see below), and PUT (DELETE not yet supported)
+        :param queryParams: dictionary of query parameters to be added to url, except for forcePost where they are added as 'postData'; not used for PUT calls
+        :param postData: for POST calls, a dictionary to post; not used for forcePost calls; for PUT calls, name of file to put
+        :param headerParams: (optional) a dictionary of header data, default None
+        :param forcePost: (optional) 'force' a POST call using curl (instead of urllib), default False
+
+        :raises RestMethodException: for unrecognized REST method
+        :raises ServerResponseException: for errors in parsing json response from server, and for urlerrors from the opening url
+        :returns: Server response deserialized to a python object (dict)
         '''
         url = self.apiServer + resourcePath
         headers = {}
@@ -111,43 +121,32 @@ class APIClient:
                 if type(postData) not in [str, int, float, bool]:
                     data = json.dumps(postData)
             if not forcePost:
-                if data and not len(data): data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
+                if data and not len(data): 
+                    data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
                 request = urllib2.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:                                    # use pycurl to force a post call, even w/o data
                 response = self.__forcePostCall__(forcePostUrl, sentQueryParams, headers)
             if method in ['PUT', 'DELETE']: #urllib doesnt do put and delete, default to pycurl here
-                response = self.__putCall__(url, queryParams, headers, data)
-                response =  response.split()[-1]
-                
+                if method == 'DELETE':
+                    raise NotImplementedError("DELETE REST API calls aren't currently supported")
+                response = self.__putCall__(url, headers, data)
+                response =  response.split()[-1] # discard upload status msg (from curl put?)                
         else:
-            raise Exception('Method ' + method + ' is not recognized.')
+            raise RestMethodException('Method ' + method + ' is not recognized.')
 
-        # Make the request, request may raise 403 forbidden, or 404 non-response
+        # Make the request
         if not forcePost and not method in ['PUT', 'DELETE']: # the normal case
             try:
-                response = urllib2.urlopen(request, timeout=self.timeout).read()
-            except urllib2.HTTPError as e:
-                # handle HTTP errors in caller
-                response = e.read()
-                pass
+             response = urllib2.urlopen(request, timeout=self.timeout).read()
+            except urllib2.HTTPError as e:                
+                response = e.read() # treat http error as a response (handle in caller)                
+            except urllib2.URLError as e:
+                raise ServerResponseException('URLError: ' + str(e))            
         try:
             data = json.loads(response)
-        except Exception, err:
-            err
-            data= None
-        return data
-
-    def toPathValue(self, obj):
-        """Serialize a list to a CSV string, if necessary.
-        Args:
-            obj -- data object to be serialized
-        Returns:
-            string -- json serialization of object
-        """
-        if type(obj) == list:
-            return ','.join(obj)
-        else:
-            return obj
+        except ValueError as e:
+            raise ServerResponseException('Error decoding json in server response')
+        return data            
 
     def deserialize(self, obj, objClass):
         """Deserialize a JSON string into an object.

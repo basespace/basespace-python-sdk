@@ -28,7 +28,7 @@ class BaseAPI(object):
 
     def __singleRequest__(self, myModel, resourcePath, method, queryParams, headerParams, postData=None, verbose=False, forcePost=False):
         '''
-        Call a REST API and deserialize response into an object.
+        Call a REST API and deserialize response into an object, handles errors from server.
         
         :param myModel: a Response object that includes a 'Response' swaggerType key with a value for the model type to return
         :param resourcePath: the api url path to call (without server and version)
@@ -65,6 +65,7 @@ class BaseAPI(object):
     def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams, verbose=False):
         '''
         Call a REST API that returns a list and deserialize response into a list of objects of the provided model.
+        Handles errors from server.
 
         :param myModel: a Model type to return a list of
         :param resourcePath: the api url path to call (without server and version)

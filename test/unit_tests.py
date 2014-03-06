@@ -8,6 +8,7 @@ import multiprocessing
 import hashlib
 import webbrowser
 import time
+import json
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI, deviceURL
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.APIClient import APIClient
@@ -2010,7 +2011,210 @@ class TestBaseAPIMethods(TestCase):
     def testSetServerUri(self):
         self.bapi.setServerUri("http://test.tv")
         self.assertEqual(self.bapi.getServerUri(), "http://test.tv")    
+
+class TestAPIClientMethods(TestCase):
+    '''
+    Tests APIClient methods
+    '''
+    def setUp(self):
+        self.api = BaseSpaceAPI(profile='unit_tests')
+        self.apiClient = APIClient(self.api.apiClient.apiKey, self.api.apiClient.apiServer)                                                    
+    
+    def test__init__(self):
+        accessToken = "abc"
+        apiServer = "http://basesinspaces.tv"
+        timeout = 20
+        apiClient = APIClient(AccessToken=accessToken, apiServer=apiServer, timeout=timeout)
+        self.assertEqual(accessToken, apiClient.apiKey)                                                    
+        self.assertEqual(apiServer, apiClient.apiServer)
+        self.assertEqual(timeout, apiClient.timeout)
+
+    def test__forcePostCall__(self):
+        # initiate a multipart upload -- requires a POST with no post data ('force post')
+        # all method params are required for success in this example - resourcePath, headerParams, and postData(queryParams                                                        
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test__forcePostCall__", "test__forcePostCall__", appSessionId="") 
         
+        resourcePath = '/appresults/{Id}/files'
+        resourcePath = resourcePath.replace('{Id}', ar.Id)
+        queryParams = {}
+        queryParams['name'] = "test file name"
+        queryParams['directory'] = "test directory"
+        queryParams['multipart'] = 'true' 
+        headerParams = {}
+        headerParams['Content-Type'] = 'text/plain'
+        # normally added by callAPI()
+        headerParams['Authorization'] = 'Bearer ' + self.apiClient.apiKey                                    
+
+        jsonResp = self.apiClient.__forcePostCall__(resourcePath=self.apiClient.apiServer + resourcePath, postData=queryParams, headers=headerParams)    
+        dictResp = json.loads(jsonResp)
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
+        self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))        
+
+    def test__putCall__(self):
+        # upload a part of a multipart upload (the only PUT call in BaseSpacePy, for now)
+        testDir = "test__putCall__"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test__putCall__", "test__putCall__", appSessionId="")
+        file = self.api.__initiateMultipartFileUpload__(
+            Id = ar.Id,
+            fileName = os.path.basename(tconst['file_small_upload']),            
+            directory = testDir,
+            contentType = tconst['file_small_upload_content_type'])
+        with open(tconst['file_small_upload']) as fp:
+            out = fp.read()
+            md5 = hashlib.md5(out).digest().encode('base64')
+                        
+        method                       = 'PUT'
+        resourcePath                 = '/files/{Id}/parts/{partNumber}'
+        resourcePath                 = resourcePath.replace('{Id}', file.Id)
+        resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
+        headerParams                 = {'Content-MD5': md5}
+        transFile                    = tconst['file_small_upload']
+        putResp = self.apiClient.__putCall__(resourcePath=self.apiClient.apiServer + resourcePath, headers=headerParams, transFile=transFile)
+        #print "RESPONSE is: " + putResp        
+        jsonResp =  putResp.split()[-1] # normally done in callAPI()
+        dictResp = json.loads(jsonResp)
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
+        self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))                                                                    
+
+    def testCallAPI_GET(self):   
+        # get current user uses GET                                 
+        resourcePath = '/users/current'        
+        method = 'GET'        
+        queryParams = {}
+        #headerParams = {}
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)#, headerParams=None, forcePost=False)
+        self.assertTrue('Response' in dictResp, 'response is: ' + str(dictResp))       
+        self.assertTrue('Id' in dictResp['Response'])                                                                    
+        
+    @skip('There are no GET calls in the BaseSpace API that require headerParams')
+    def testCallAPI_GETwithHeaderParams(self):
+        pass
+    
+    def testCallAPI_POST(self):
+        # create a project uses POST
+        resourcePath            = '/projects/'        
+        method                  = 'POST'
+        queryParams             = {}
+        #headerParams            = {}
+        postData                = {}
+        postData['Name']        = tconst['create_project_name']        
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData)#, headerParams=None, forcePost=False)
+        self.assertTrue('Response' in dictResp)
+        self.assertTrue('Id' in dictResp['Response'])
+
+    def testCallAPI_POSTwithHeaderAndQueryParams(self):
+        # single part file upload uses POST with required qp and hdrs        
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test upload", "test upload", appSessionId="")                        
+        testDir = "testCallAPI_POSTwithHeaderAndQueryParams"
+        fileName = os.path.basename(tconst['file_small_upload'])
+        localPath=tconst['file_small_upload']
+        
+        method = 'POST'
+        resourcePath = '/appresults/{Id}/files'        
+        resourcePath                 = resourcePath.replace('{Id}', ar.Id)
+        queryParams                  = {}
+        queryParams['name']          = fileName
+        queryParams['directory']     = testDir 
+        headerParams                 = {}
+        headerParams['Content-Type'] = tconst['file_small_upload_content_type']                
+        postData                     = open(localPath).read()
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData, headerParams=headerParams)#, forcePost=False)                
+        self.assertTrue('Response' in dictResp)
+        self.assertTrue('Id' in dictResp['Response'])        
+        self.assertEqual(dictResp['Response']['Path'], os.path.join(testDir, fileName))
+
+    def testCallAPI_ForcePOST(self):
+        # initiate a multipart upload -- requires a POST with no post data ('force post')
+        # all method params are required for success in this example - resourcePath, headerParams, and postData(queryParams                                                        
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "test__forcePostCall__", "test__forcePostCall__", appSessionId="") 
+        
+        method = 'POST'
+        resourcePath = '/appresults/{Id}/files'
+        resourcePath = resourcePath.replace('{Id}', ar.Id)
+        queryParams = {}
+        queryParams['name'] = "test file name"
+        queryParams['directory'] = "test directory"
+        queryParams['multipart'] = 'true' 
+        headerParams = {}
+        headerParams['Content-Type'] = 'text/plain'
+        postData = None
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData, headerParams=headerParams, forcePost=True)
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
+        self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))        
+
+    def testCallAPI_PUT(self):
+        # upload a part of a multipart upload (the only PUT call in BaseSpacePy, for now)
+        testDir = "testCallAPI_PUT"
+        proj = self.api.createProject(tconst['create_project_name'])                        
+        ar = proj.createAppResult(self.api, "testCallAPI_PUT", "testCallAPI_PUT", appSessionId="")
+        file = self.api.__initiateMultipartFileUpload__(
+            Id = ar.Id,
+            fileName = os.path.basename(tconst['file_small_upload']),            
+            directory = testDir,
+            contentType = tconst['file_small_upload_content_type'])
+        with open(tconst['file_small_upload']) as fp:
+            out = fp.read()
+            md5 = hashlib.md5(out).digest().encode('base64')
+                        
+        method                       = 'PUT'
+        resourcePath                 = '/files/{Id}/parts/{partNumber}'
+        resourcePath                 = resourcePath.replace('{Id}', file.Id)
+        resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
+        headerParams                 = {'Content-MD5': md5}
+        queryParams                  = {} # not used for PUT calls
+        transFile                    = tconst['file_small_upload']
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=transFile, headerParams=headerParams)
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
+        self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))                                                                    
+
+    def testCallAPI_DELETE(self):        
+        method                       = 'DELETE'
+        resourcePath                 = ''        
+        queryParams                  = {}        
+        with self.assertRaises(NotImplementedError):
+            dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)
+
+    def testCallAPI_UnrecognizedRESTmethodException(self):
+        method                       = 'TAKEOVERTHEWORLD'
+        resourcePath                 = ''        
+        queryParams                  = {}        
+        with self.assertRaises(RestMethodException):
+            dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)
+
+    def testCallAPI_HandleHttpError_ForGET(self):
+        # bad access token throws 401 Error and HTTPError exception by urllib2; get current user uses GET                                 
+        self.apiClient.apiKey = 'badtoken'
+        resourcePath = '/users/current'        
+        method = 'GET'        
+        queryParams = {}
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)
+        self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))       
+        self.assertTrue('ErrorCode' in dictResp['ResponseStatus'])
+        self.assertTrue('Message' in dictResp['ResponseStatus'])
+        self.assertEqual(dictResp['ResponseStatus']['Message'], 'Unauthorized')
+
+    def testCallAPI_HandleHttpError_ForPOST(self):
+        # bad access token throws 401 Error and HTTPError exception by urllib2;  create a project uses POST                                 
+        self.apiClient.apiKey = 'badtoken'        
+        resourcePath            = '/projects/'        
+        method                  = 'POST'
+        queryParams             = {}
+        postData                = {}
+        postData['Name']        = tconst['create_project_name']        
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData)
+        self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))       
+        self.assertTrue('ErrorCode' in dictResp['ResponseStatus'])
+        self.assertTrue('Message' in dictResp['ResponseStatus'])
+        self.assertEqual(dictResp['ResponseStatus']['Message'], 'Unauthorized')
+
+    @skip('Not sure how to cause json returned from server to be malformed, in order to cause an exception in json parsing')
+    def testCallAPI_JsonParsingException(self):
+        pass
+
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
 large_file_transfers = TestSuite([
@@ -2058,29 +2262,30 @@ cred_genome_util_lists = TestSuite([
 oauth = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPIOAuthMethods), ])
 
-baseapi = TestSuite([
-    TestLoader().loadTestsFromTestCase(TestBaseAPIMethods), ])
+baseapi_apiclient = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestBaseAPIMethods),
+    TestLoader().loadTestsFromTestCase(TestAPIClientMethods), ])
 
 
 tests = []
 
 # to test all test cases:
 tests.extend([ 
-               small_file_transfers, 
-               runs_users_files, 
-               samples_appresults_projects,
-               appsessions, 
-               cred_genome_util_lists,
-               cov_variant, 
-#               oauth, # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
-               baseapi,
+#               small_file_transfers, 
+#               runs_users_files, 
+#               samples_appresults_projects,
+#               appsessions, 
+#               cred_genome_util_lists,
+#               cov_variant, 
+#               baseapi_apiclient,
             ])
-#tests.append(large_file_transfers)
+#tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
+#tests.append(large_file_transfers) # these tests may take tens of minutes to complete
 
 # to test individual test cases: 
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods) )
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionMethods) )
 #tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionLaunchObjectMethods) )
-#tests.append( TestLoader().loadTestsFromTestCase(TestBaseAPIMethods) )
+#tests.append( TestLoader().loadTestsFromTestCase(TestAPIClientMethods) )
 
 TextTestRunner(verbosity=2).run( TestSuite(tests) )

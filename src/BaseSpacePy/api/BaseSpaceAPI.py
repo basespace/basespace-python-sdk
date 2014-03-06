@@ -17,11 +17,11 @@ import urlparse
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
-from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
-from BaseSpacePy.model.MultipartFileTransfer import MultipartUpload as mpu #@UnresolvedImport
-from BaseSpacePy.model.MultipartFileTransfer import MultipartDownload as mpd #@UnresolvedImport
-from BaseSpacePy.model.QueryParameters import QueryParameters as qp #@UnresolvedImport
-from BaseSpacePy.model import * #@UnusedWildImport
+from BaseSpacePy.api.BaseSpaceException import *
+from BaseSpacePy.model.MultipartFileTransfer import MultipartUpload as mpu
+from BaseSpacePy.model.MultipartFileTransfer import MultipartDownload as mpd
+from BaseSpacePy.model.QueryParameters import QueryParameters as qp
+from BaseSpacePy.model import *
 
 # Uris for obtaining a access token, user verification code, and app trigger information
 tokenURL                   = '/oauthv2/token'
@@ -747,8 +747,8 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         queryParams = {}
         headerParams = {}
-        queryParams['StartPos'] = self.apiClient.toPathValue(StartPos)
-        queryParams['EndPos'] = self.apiClient.toPathValue(EndPos)
+        queryParams['StartPos'] = StartPos
+        queryParams['EndPos'] = EndPos
         resourcePath = resourcePath.replace('{Chrom}', Chrom)
         resourcePath = resourcePath.replace('{Id}', Id)
         return self.__singleRequest__(CoverageResponse.CoverageResponse, resourcePath, method,\
@@ -803,14 +803,14 @@ class BaseSpaceAPI(BaseAPI):
         Returns the header information of a VCF file.
         
         :param Id: The Id of the VCF file
-        :param Format: (optional) The return-value format, set to 'vcf' (not implemented yet) to VCF format (string) or 'json' (default, which acutally returns on object)
+        :param Format: (optional) The return-value format, set to 'json' (default) to return return an object (not actually json format), or 'vcf' (not implemented yet) to return a string in VCF format.
         :returns: A VariantHeader object
         '''
         resourcePath = '/variantset/{Id}'        
         method = 'GET'
         queryParams = {}
         headerParams = {}
-        queryParams['Format'] = self.apiClient.toPathValue(Format)
+        queryParams['Format'] = Format
         resourcePath = resourcePath.replace('{Id}', Id)
         if Format == 'vcf':
             raise NotImplementedError("Returning native VCF format isn't yet supported by BaseSpacePy")
@@ -820,13 +820,15 @@ class BaseSpaceAPI(BaseAPI):
          
     def createAppResult(self, Id, name, desc, samples=None, appSessionId=None):
         '''
-        Create an AppResult object
+        Create an AppResult object.
         
         :param Id: The id of the project in which the AppResult is to be added
         :param name: The name of the AppResult
         :param desc: A description of the AppResult
         :param samples: (Optional) A list of one or more Samples Ids that the AppResult is related to 
         :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
+        :raises Exception: when attempting to create AppResult in an AppSession that has a status other than 'running'.
+        :returns: a newly created AppResult instance
         '''
         if (not self.appSessionId) and (appSessionId==None):
             raise Exception("This BaseSpaceAPI instance has no appSessionId set and no alternative id was supplied for method createAppResult")
@@ -840,14 +842,16 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         postData = {}
         
-        if appSessionId:        queryParams['appsessionid'] = appSessionId
-        if appSessionId==None:  queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
+        if appSessionId:
+            queryParams['appsessionid'] = appSessionId
+        if appSessionId==None:
+            queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
         
         # add the sample references
         if len(samples):
             ref = []
             for s in samples:
-                d = {"Rel":"using","Type": "Sample", "HrefContent": self.version + '/samples/' + s.Id}
+                d = {"Rel": "using", "Type": "Sample", "HrefContent": self.version + '/samples/' + s.Id}
                 ref.append(d)
             postData['References']  = ref
         # case, an appSession is provided, we need to check if the a
@@ -856,7 +860,7 @@ class BaseSpaceAPI(BaseAPI):
             if not session.canWorkOn():
                 raise Exception('AppSession status must be "running," to create and AppResults. Current status is ' + session.Status)
             
-        postData['Name']        = name
+        postData['Name'] = name
         postData['Description'] = desc
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
             
@@ -880,7 +884,8 @@ class BaseSpaceAPI(BaseAPI):
         
     def __singlepartFileUpload__(self, Id, localPath, fileName, directory, contentType):
         '''
-        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object  
+        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
+        Intended for small files -- reads whole file into memory prior to upload.
         
         :param Id: AppResult id.
         :param localPath: The local path to the file to be uploaded, including file name.
@@ -888,16 +893,14 @@ class BaseSpaceAPI(BaseAPI):
         :param directory: The directory the file should be placed in on the BaseSpace server.
         :param contentType: The content-type of the file.         
         '''        
-        resourcePath = '/appresults/{Id}/files'
-        resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'POST'
+        method                       = 'POST'
+        resourcePath                 = '/appresults/{Id}/files'
         resourcePath                 = resourcePath.replace('{Id}', Id)
         queryParams                  = {}
         queryParams['name']          = fileName
         queryParams['directory']     = directory 
         headerParams                 = {}
-        headerParams['Content-Type'] = contentType
-                
+        headerParams['Content-Type'] = contentType                
         postData                     = open(localPath).read()
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
             queryParams, headerParams, postData=postData, verbose=0)
@@ -935,12 +938,11 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: file id 
         :param partNumber: the file part to be uploaded
         :param md5: md5 sum of datastream
-        :param data: the file containing only data to be uploaded
+        :param data: the name of the file containing only data to be uploaded
         :returns: A dictionary of the server response, with a 'Response' key that contains a dict, which contains an 'ETag' key and value on success. On failure, this method returns None 
         '''
-        resourcePath                 = '/files/{Id}/parts/{partNumber}'
-        resourcePath                 = resourcePath.replace('{format}', 'json')
         method                       = 'PUT'
+        resourcePath                 = '/files/{Id}/parts/{partNumber}'
         resourcePath                 = resourcePath.replace('{Id}', Id)
         resourcePath                 = resourcePath.replace('{partNumber}', str(partNumber))
         queryParams                  = {}

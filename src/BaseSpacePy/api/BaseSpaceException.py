@@ -82,4 +82,10 @@ class OAuthException(Exception):
         self.parameter = 'Error with OAuth: ' + value
     def __str__(self):
         return repr(self.parameter)
+
+class RestMethodException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Error with REST API method: ' + value
+    def __str__(self):
+        return repr(self.parameter)
     
