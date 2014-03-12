@@ -247,6 +247,15 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_upload_md5'])
         os.remove(downPath)                        
 
+
+class TestMultipartFileTransferMethods(TestCase):
+    '''
+    Tests classes and methods in MultipartFileTransfer.py
+    '''
+    @skip('Tests not written yet')
+    def testTODO(self):
+        pass
+
 class TestAPIFileUploadMethods_LargeFiles(TestCase):
     '''
     Tests multi-part upload methods on large(-ish) files -- may be time consuming
@@ -2221,7 +2230,23 @@ class TestAPIClientMethods(TestCase):
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out, obj)
         
-    # TODO test all native python types
+    def testDeserialize_ClassObjClass_Integer(self):
+        obj = 123
+        objClass = int
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
+
+    def testDeserialize_ClassObjClass_Boolean(self):
+        obj = True
+        objClass = bool
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
+
+    def testDeserialize_ClassObjClass_Float(self):
+        obj = 1.23
+        objClass = float
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
         
     def testDeserialize_StringObjClass_String(self):
         obj = "test"
@@ -2229,7 +2254,23 @@ class TestAPIClientMethods(TestCase):
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out, obj)
 
-    # TODO test all native python types
+    def testDeserialize_StringObjClass_Integer(self):
+        obj = 123
+        objClass = 'int'
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
+
+    def testDeserialize_StringObjClass_Boolean(self):
+        obj = True
+        objClass = 'bool'
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
+
+    def testDeserialize_StringObjClass_Float(self):
+        obj = 1.23
+        objClass = 'float'
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out, obj)
 
     def testDeserialize_ClassObjClass_Project(self):
         obj = {"Id":"123"}
@@ -2237,15 +2278,21 @@ class TestAPIClientMethods(TestCase):
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.Id, "123")
 
-    # TODO File, Property, and unknown Class
-
+    # not testing passing in an unknown class
+    
     def testDeserialize_StringObjClass_Project(self):
         obj = {"Id":"123"}
         objClass = "Project"
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.Id, "123")
 
-    # TODO File, Property, and unknown Class
+    def testDeserialize_StringObjClass_File(self):
+        obj = {"Id":"123"}
+        objClass = "File"
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.Id, "123")
+
+    # not testing passing in an unknown class
 
     def testDeserialize_ClassObjClass_DynamicType(self):        
         obj = { 'ResponseStatus': 'test',
@@ -2260,7 +2307,7 @@ class TestAPIClientMethods(TestCase):
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.Response.DisplayedCount, 10)
 
-    # TODO unrecognized dynamic type
+    # not testing passing in an unrecognized dynamic type - should warn    
         
     def testDeserialize_ClassObjClass_List(self):
         obj = { 'CHROM': 'chr3',                 
@@ -2290,19 +2337,46 @@ class TestAPIClientMethods(TestCase):
         self.assertEqual(out.Items[1][1].Key, 'testB2')
 
     def testDeserialize_ClassObjClass_Dict(self):
-        pass # TODO
+        obj = { 'INFO': 'test' } # dict    
+        objClass = Variant.Variant
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.INFO, 'test')
     
     def testDeserialize_ClassObjClass_Datetime(self):
-        pass # TODO
+        obj = { 'DateCreated': '2013-10-03T19:40:26.0000000' } # datetime    
+        objClass = Run.Run
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.DateCreated.year, 2013)
+
+    def testDeserialize_ClassObjClass_Recursion(self):
+        obj = { 'UserOwnedBy': { 'Id': '123' } }
+        objClass = Project.Project
+        out = self.apiClient.deserialize(obj, objClass)
+        self.assertEqual(out.UserOwnedBy.Id, '123')
+
+class TestBillingAPIMethods(TestCase):
+    '''
+    Tests BillingAPI methods
+    '''
+    @skip('Test not written yet')
+    def test__init__(self):
+        pass
     
-    # TODO test exception conditions? test recursion explicitely?
+class TestQueryParameterPurchasedProductMethods(TestCase):
+    '''
+    Tests QueryParameterPurchasedProduct methods
+    '''
+    @skip('Test not written yet')
+    def test__init__(self):
+        pass
 
 
 #if __name__ == '__main__':   
 #    main()         # unittest.main()
 large_file_transfers = TestSuite([
     TestLoader().loadTestsFromTestCase( TestAPIFileUploadMethods_LargeFiles ),
-    TestLoader().loadTestsFromTestCase( TestAPIFileDownloadMethods_LargeFiles ), ])                                  
+    TestLoader().loadTestsFromTestCase( TestAPIFileDownloadMethods_LargeFiles ),
+    TestLoader().loadTestsFromTestCase( TestMultipartFileTransferMethods ), ])                                  
 
 small_file_transfers = TestSuite([
     TestLoader().loadTestsFromTestCase(TestFileDownloadMethods),
@@ -2349,6 +2423,10 @@ baseapi_apiclient = TestSuite([
     TestLoader().loadTestsFromTestCase(TestBaseAPIMethods),
     TestLoader().loadTestsFromTestCase(TestAPIClientMethods), ])
 
+billing_qppp = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestBillingAPIMethods),                          
+    TestLoader().loadTestsFromTestCase(TestQueryParameterPurchasedProductMethods), ])
+                          
 
 tests = []
 
@@ -2361,14 +2439,12 @@ tests.extend([
                cred_genome_util_lists,
                cov_variant, 
                baseapi_apiclient,
+               billing_qppp,
             ])
 #tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
-#tests.append(large_file_transfers) # these tests may take tens of minutes to complete
+tests.append(large_file_transfers) # these tests may take tens of minutes to complete
 
 # to test individual test cases: 
-#tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionSemiCompactMethods) )
-#tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionMethods) )
-#tests.append( TestLoader().loadTestsFromTestCase(TestAppSessionLaunchObjectMethods) )
 #tests.append( TestLoader().loadTestsFromTestCase(TestAPIClientMethods) )
 
 TextTestRunner(verbosity=2).run( TestSuite(tests) )

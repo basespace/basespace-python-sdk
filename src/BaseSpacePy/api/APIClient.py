@@ -157,10 +157,10 @@ class APIClient:
         :returns: A deserialized object
         """        
         # Create an object class from objClass, if a string was passed in
-        # Avoid native python types 'file' and 'property'
+        # Avoid native python types 'file'
         if type(objClass) == str:            
             try:
-                if ((not str(objClass)=='File') and (not str(objClass)=='Property')): 
+                if (not str(objClass)=='File'): 
                     objClass = eval(objClass.lower())
                 else:
                     objClass = eval(objClass + '.' + objClass)
