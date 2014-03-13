@@ -31,7 +31,8 @@ class Project(object):
         Tests if the Project instance has been initialized.
         
         :raises ModelNotInitializedException: if the Id variable is not set
-        :return True on success
+        :returns: True on success
+        
         '''
         err = 'The Project object has not been initialized yet'
         try:

@@ -13,8 +13,8 @@
 
 
 \title{BaseSpacePy Documentation}
-\date{February 04, 2014}
-\release{0.1.3}
+\date{March 12, 2014}
+\release{0.2}
 \author{Illumina}
 \newcommand{\sphinxlogo}{}
 \renewcommand{\releasename}{Release}
@@ -124,7 +124,7 @@ Contents:
 \label{Available modules:api}\index{BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey}, \emph{clientSecret}, \emph{apiServer}, \emph{version}, \emph{appSessionId='`}, \emph{AccessToken='`}, \emph{timeout=10}}{}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.api.BaseSpaceAPI.}\bfcode{BaseSpaceAPI}}{\emph{clientKey=None}, \emph{clientSecret=None}, \emph{apiServer=None}, \emph{version=None}, \emph{appSessionId='`}, \emph{AccessToken='`}, \emph{timeout=10}, \emph{profile='DEFAULT'}}{}
 The main API class used for all communication with the REST server
 \index{appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
@@ -152,6 +152,9 @@ with multipart upload.
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a newly created File instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -160,7 +163,7 @@ with multipart upload.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{Id}, \emph{name}, \emph{desc}, \emph{samples=None}, \emph{appSessionId=None}}{}
-Create an AppResult object
+Create an AppResult object.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -170,15 +173,21 @@ Create an AppResult object
 \textbf{name} -- The name of the AppResult
 
 \item {} 
-\textbf{desc} -- A describtion of the AppResult
+\textbf{desc} -- A description of the AppResult
 
 \item {} 
-\textbf{samples} -- (Optional) The samples
+\textbf{samples} -- (Optional) A list of one or more Samples Ids that the AppResult is related to
 
 \item {} 
 \textbf{appSessionId} -- (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object
 
 \end{itemize}
+
+\item[{Raises Exception}] \leavevmode
+when attempting to create AppResult in an AppSession that has a status other than `running'.
+
+\item[{Returns}] \leavevmode
+a newly created AppResult instance
 
 \end{description}\end{quote}
 
@@ -194,6 +203,9 @@ If a project with this name already exists, the existing project is returned.
 \item[{Parameters}] \leavevmode
 \textbf{Name} -- Name of the project
 
+\item[{Returns}] \leavevmode
+a Project instance of the newly created project
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -206,8 +218,7 @@ Downloads a BaseSpace file to a local directory, and names the file with the Bas
 If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir 
 (to disable this, set createBsPath=False).
 
-If the file is large, multi-part download will be used. 
-Returns file object when complete; raises exception if download fails.
+If the file is large, multi-part download will be used.
 
 Byte-range requests are supported for only small byte ranges (single-part downloads).
 Byte-range requests are restricted to a single request of `start' and `end' bytes, without support for
@@ -228,6 +239,12 @@ negative or empty values for `start' or `end'.
 
 \end{itemize}
 
+\item[{Raises ByteRangeException}] \leavevmode
+if the provided byte range is invalid
+
+\item[{Returns}] \leavevmode
+a File instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -240,6 +257,12 @@ Returns the S3 url and etag (md5 for small files uploaded as a single part) for 
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
 \textbf{Id} -- The file id
+
+\item[{Raises Exception}] \leavevmode
+if REST API call to BaseSpace server fails
+
+\item[{Returns}] \leavevmode
+Dict with s3 url (`url' key) and etag (`etag' key)
 
 \end{description}\end{quote}
 
@@ -256,6 +279,12 @@ Returns URL of file (on S3)
 \item[{Parameters}] \leavevmode
 \textbf{Id} -- The file id
 
+\item[{Raises Exception}] \leavevmode
+if REST API call to BaseSpace server fails
+
+\item[{Returns}] \leavevmode
+a URL
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -263,15 +292,15 @@ Returns URL of file (on S3)
 \index{filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet}\pysiglinewithargsret{\bfcode{filterVariantSet}}{\emph{Id}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}, \emph{Format}, \emph{queryPars=None}}{}
-List the variants in a set of variants. Maximum returned records is 1000
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.filterVariantSet}\pysiglinewithargsret{\bfcode{filterVariantSet}}{\emph{Id}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}, \emph{Format='json'}, \emph{queryPars=None}}{}
+List the variants in a set of variants. Note the maximum returned records is 1000.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{Id} -- The id of the variant file
 
 \item {} 
-\textbf{Chrom} -- The chromosome of interest
+\textbf{Chrom} -- Chromosome name
 
 \item {} 
 \textbf{StartPos} -- The start position of the sequence of interest
@@ -280,12 +309,15 @@ List the variants in a set of variants. Maximum returned records is 1000
 \textbf{EndPos} -- The start position of the sequence of interest
 
 \item {} 
-\textbf{Format} -- Set to `vcf' to get the results as lines in VCF format (default is `json')
+\textbf{Format} -- (optional) Format for results, possible values: `vcf' (not implemented yet), `json'(default, which actually returns an object)
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of Variant instances, when Format is json; a string, when Format is vcf
 
 \end{description}\end{quote}
 
@@ -294,24 +326,32 @@ List the variants in a set of variants. Maximum returned records is 1000
 \index{getAccess() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess}\pysiglinewithargsret{\bfcode{getAccess}}{\emph{obj}, \emph{accessType='write'}, \emph{web=0}, \emph{redirectURL='`}, \emph{state='`}}{}~\begin{quote}\begin{description}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccess}\pysiglinewithargsret{\bfcode{getAccess}}{\emph{obj}, \emph{accessType='write'}, \emph{web=False}, \emph{redirectURL='`}, \emph{state='`}}{}
+Requests access to the provided BaseSpace object.
+\begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{obj} -- The data object we wish to get access to
+\textbf{obj} -- The data object we wish to get access to -- must be a Project, Sample, AppResult, or Run.
 
 \item {} 
-\textbf{accessType} -- (Optional) the type of access (read\textbar{}write), default is write
+\textbf{accessType} -- (Optional) the type of access (browse\textbar{}read\textbar{}write\textbar{}create), default is write. Create is only supported for Projects.
 
 \item {} 
 \textbf{web} -- (Optional) true if the App is web-based, default is false meaning a device based app
 
 \item {} 
-\textbf{redirectURL} -- (Optional) For the web-based case, a
+\textbf{redirectURL} -- (Optional) Redirect URL for the web-based case
 
 \item {} 
-\textbf{state} -- (Optional)
+\textbf{state} -- (Optional) A parameter that will passed through to the redirect response.
 
 \end{itemize}
+
+\item[{Raises ModelNotSupportedException}] \leavevmode
+for classes of objects not supported by this method
+
+\item[{Returns}] \leavevmode
+for device requests, a dictionary of server response; for web requests, a url to to send the user to
 
 \end{description}\end{quote}
 
@@ -320,17 +360,14 @@ List the variants in a set of variants. Maximum returned records is 1000
 \index{getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser}\pysiglinewithargsret{\bfcode{getAccessibleRunsByUser}}{\emph{Id}, \emph{queryPars=None}}{}
-Returns a list of accessible runs for the User with id=Id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAccessibleRunsByUser}\pysiglinewithargsret{\bfcode{getAccessibleRunsByUser}}{\emph{queryPars=None}}{}
+Returns a list of accessible runs for the current User
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{Id} -- An user id
-
-\item {} 
+\item[{Parameters}] \leavevmode
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
-\end{itemize}
+\item[{Returns}] \leavevmode
+a list of Run instances
 
 \end{description}\end{quote}
 
@@ -351,6 +388,9 @@ Returns an AppResult object corresponding to Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+an AppResult instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -358,17 +398,47 @@ Returns an AppResult object corresponding to Id
 \index{getAppResultFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles}\pysiglinewithargsret{\bfcode{getAppResultFiles}}{\emph{Id}, \emph{queryPars=None}}{}
-Returns a list of File object for the AppResult with id  = Id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFiles}\pysiglinewithargsret{\bfcode{getAppResultFiles}}{\emph{Id}, \emph{queryPars=None}}{}~\begin{itemize}
+\item {} 
+Deprecated in favor of getAppResultFileById() *
+
+\end{itemize}
+
+Returns a list of File object for an AppResult
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The id of the appresult.
+\textbf{Id} -- The id of the AppResult
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of File instances
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getAppResultFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultFilesById}\pysiglinewithargsret{\bfcode{getAppResultFilesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns a list of File object for an AppResult
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- The id of the AppResult
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of File instances
 
 \end{description}\end{quote}
 
@@ -378,7 +448,7 @@ Returns a list of File object for the AppResult with id  = Id
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppResultPropertiesById}\pysiglinewithargsret{\bfcode{getAppResultPropertiesById}}{\emph{Id}, \emph{queryPars=None}}{}
-Returns the Properties of an AppResult object corresponding to Id
+Returns the Properties of an AppResult object corresponding to AppResult Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -388,6 +458,9 @@ Returns the Properties of an AppResult object corresponding to Id
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a PropertyList instance
 
 \end{description}\end{quote}
 
@@ -407,9 +480,12 @@ Returns a list of AppResult object associated with the project with Id
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \item {} 
-\textbf{statuses} -- An (optional) list of AppResult statuses to filter by
+\textbf{statuses} -- An (optional) list of AppResult statuses to filter by, eg., `complete'
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of AppResult instances
 
 \end{description}\end{quote}
 
@@ -418,18 +494,15 @@ Returns a list of AppResult object associated with the project with Id
 \index{getAppSession() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSession}\pysiglinewithargsret{\bfcode{getAppSession}}{\emph{Id='`}}{}
-Returns an AppSession instance containing user and data-type the app was triggered by/on
-Note that Properties are not currently supported for this method, use getAppSessionPropertiesById()
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSession}\pysiglinewithargsret{\bfcode{getAppSession}}{\emph{Id=None}}{}
+Get metadata about an AppSession.         
+Note that the client key and secret must match those of the AppSession's Application.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{Id} -- (Optional) The AppSessionId, id not supplied the AppSessionId used for instantiating the BaseSpaceAPI instance.
+\item[{Parameters}] \leavevmode
+\textbf{Id} -- an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used
 
-\item {} 
-\textbf{Id} -- (Optional) AppSession id, if not supplied the AppSession id used to initialize the
-
-\end{itemize}
+\item[{Returns}] \leavevmode
+An AppSession instance
 
 \end{description}\end{quote}
 
@@ -438,11 +511,15 @@ Note that Properties are not currently supported for this method, use getAppSess
 \index{getAppSessionById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById}\pysiglinewithargsret{\bfcode{getAppSessionById}}{\emph{id}}{}
-Returns the appSession identified by id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionById}\pysiglinewithargsret{\bfcode{getAppSessionById}}{\emph{Id}}{}
+Get metadata about an AppSession.
+Note that the client key and secret must match those of the AppSession's Application.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
-\textbf{id} -- The id of the appSession
+\textbf{Id} -- The Id of the AppSession
+
+\item[{Returns}] \leavevmode
+An AppSession instance
 
 \end{description}\end{quote}
 
@@ -452,16 +529,19 @@ Returns the appSession identified by id
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getAppSessionInputsById}\pysiglinewithargsret{\bfcode{getAppSessionInputsById}}{\emph{Id}, \emph{queryPars=None}}{}
-Returns a dictionary of input properties from the provided AppSessions, keyed by input Name
+Returns the input properties of an AppSession
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The AppSessionId
+\textbf{Id} -- An AppSessionId
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a dictionary of input properties, keyed by input Name
 
 \end{description}\end{quote}
 
@@ -475,12 +555,15 @@ Returns the Properties of an AppSession
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- The AppSessionId
+\textbf{Id} -- An AppSession Id
 
 \item {} 
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+A PropertyList instance
 
 \end{description}\end{quote}
 
@@ -505,6 +588,9 @@ Note - this method (and REST API) is supported for ONLY multi-value Properties.
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+A multi-value propertylist instance such as MultiValuePropertyAppResultsList (depending on the Property Type)
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -518,6 +604,9 @@ Returns a list of all available genomes
 \item[{Parameters}] \leavevmode
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
+\item[{Returns}] \leavevmode
+a list of GenomeV1 instances
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -526,16 +615,20 @@ Returns a list of all available genomes
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getCoverageMetaInfo}\pysiglinewithargsret{\bfcode{getCoverageMetaInfo}}{\emph{Id}, \emph{Chrom}}{}
-Returns Metadata about coverage as a CoverageMetadata instance
+Returns metadata about coverage of a chromosome.
+Note that HrefCoverage must be available for the provided BAM file
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- he Id of the Bam file
+\textbf{Id} -- the Id of a Bam file
 
 \item {} 
-\textbf{Chrom} -- Chromosome to query
+\textbf{Chrom} -- chromosome name
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a CoverageMetaData instance
 
 \end{description}\end{quote}
 
@@ -556,6 +649,9 @@ Returns a file object by Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a File instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -575,6 +671,9 @@ Returns the Properties of a file object by Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a PropertyList instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -582,8 +681,13 @@ Returns the Properties of a file object by Id
 \index{getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample}\pysiglinewithargsret{\bfcode{getFilesBySample}}{\emph{Id}, \emph{queryPars=None}}{}
-Returns a list of File objects associated with sample with Id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getFilesBySample}\pysiglinewithargsret{\bfcode{getFilesBySample}}{\emph{Id}, \emph{queryPars=None}}{}~\begin{itemize}
+\item {} 
+Deprecated in favor of getSampleFilesById() *
+
+\end{itemize}
+
+Returns a list of File objects associated with a Sample
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -593,6 +697,9 @@ Returns a list of File objects associated with sample with Id
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of File instances
 
 \end{description}\end{quote}
 
@@ -607,6 +714,9 @@ Returns an instance of Genome with the specified Id
 \item[{Parameters}] \leavevmode
 \textbf{Id} -- The genome id
 
+\item[{Returns}] \leavevmode
+a GenomeV1 instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -614,27 +724,29 @@ Returns an instance of Genome with the specified Id
 \index{getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getIntervalCoverage}\pysiglinewithargsret{\bfcode{getIntervalCoverage}}{\emph{Id}, \emph{Chrom}, \emph{StartPos=None}, \emph{EndPos=None}}{}
-Mean coverage levels over a sequence interval
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getIntervalCoverage}\pysiglinewithargsret{\bfcode{getIntervalCoverage}}{\emph{Id}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}}{}
+Returns metadata about an alignment, including max coverage and cov granularity.
+Note that HrefCoverage must be available for the provided BAM file.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{Id} -- Chromosome to query
+\textbf{Id} -- the Id of a BAM file
 
 \item {} 
-\textbf{Chrom} -- The Id of the resource
+\textbf{Chrom} -- chromosome name
 
 \item {} 
-\textbf{StartPos} -- Get coverage starting at this position. Default is 1
+\textbf{StartPos} -- get coverage starting at this position
 
 \item {} 
-\textbf{EndPos} -- Get coverage up to and including this position. Default is StartPos + 1280
+\textbf{EndPos} -- get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate
 
 \end{itemize}
 
-\end{description}\end{quote}
+\item[{Returns}] \leavevmode
+a Coverage instance
 
-:return:CoverageResponse -- an instance of CoverageResponse
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -653,6 +765,9 @@ Request a project object by Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a Project instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -660,17 +775,14 @@ Request a project object by Id
 \index{getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser}\pysiglinewithargsret{\bfcode{getProjectByUser}}{\emph{Id}, \emph{queryPars=None}}{}
-Returns a list available projects for a User with the specified Id
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getProjectByUser}\pysiglinewithargsret{\bfcode{getProjectByUser}}{\emph{queryPars=None}}{}
+Returns a list available projects for the current User.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{Id} -- The id of the user
+\item[{Parameters}] \leavevmode
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
-\item {} 
-\textbf{qp} -- An (optional) object of type QueryParameters for custom sorting and filtering
-
-\end{itemize}
+\item[{Returns}] \leavevmode
+a list of Project instances
 
 \end{description}\end{quote}
 
@@ -691,6 +803,9 @@ Request the Properties of a project object by Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a ProjectList instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -709,6 +824,9 @@ Request a run object by Id
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a Run instance
 
 \end{description}\end{quote}
 
@@ -729,6 +847,9 @@ Request the files associated with a Run, using the Run's Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a list of Run instances
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -747,6 +868,9 @@ Request the Properties of a run object by Id
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a PropertyList instance
 
 \end{description}\end{quote}
 
@@ -767,6 +891,9 @@ Request the Samples associated with a Run, using the Run's Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a list of Sample instances
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -785,6 +912,31 @@ Returns a Sample object
 \textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a Sample instance
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getSampleFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getSampleFilesById}\pysiglinewithargsret{\bfcode{getSampleFilesById}}{\emph{Id}, \emph{queryPars=None}}{}
+Returns a list of File objects associated with a Sample
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{Id} -- A Sample id
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of File instances
 
 \end{description}\end{quote}
 
@@ -805,6 +957,9 @@ Returns the Properties of a Sample object
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a PropertyList instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -824,6 +979,9 @@ Returns a list of samples associated with a project with Id
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a list of Sample instances
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -832,10 +990,13 @@ Returns a list of samples associated with a project with Id
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getUserById}\pysiglinewithargsret{\bfcode{getUserById}}{\emph{Id}}{}
-Returns the User object corresponding to Id
+Returns the User object corresponding to User Id
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
 \textbf{Id} -- The Id of the user
+
+\item[{Returns}] \leavevmode
+a User instance
 
 \end{description}\end{quote}
 
@@ -844,17 +1005,20 @@ Returns the User object corresponding to Id
 \index{getVariantMetadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVariantMetadata}\pysiglinewithargsret{\bfcode{getVariantMetadata}}{\emph{Id}, \emph{Format}}{}
-Returns a VariantMetadata object for the variant file
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVariantMetadata}\pysiglinewithargsret{\bfcode{getVariantMetadata}}{\emph{Id}, \emph{Format='json'}}{}
+Returns the header information of a VCF file.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{Id} -- The Id of the VCF file
 
 \item {} 
-\textbf{Format} -- Set to `vcf' to get the results as lines in VCF format
+\textbf{Format} -- (optional) The return-value format, set to `json' (default) to return return an object (not actually json format), or `vcf' (not implemented yet) to return a string in VCF format.
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+A VariantHeader instance
 
 \end{description}\end{quote}
 
@@ -864,17 +1028,14 @@ Returns a VariantMetadata object for the variant file
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.getVerificationCode}\pysiglinewithargsret{\bfcode{getVerificationCode}}{\emph{scope}}{}
-Returns the BaseSpace dictionary containing the verification code and verification url for the user to approve
-access to a specific data scope.
-
-Corresponding curl call:
-curlCall = `curl -d ``response\_type=device\_code'' -d ``client\_id=' + client\_key + `'' -d ``scope=' + scope + `'' ` + deviceURL
-
-For details see:
-\href{https://developer.basespace.illumina.com/docs/content/documentation/authentication/obtaining-access-tokens}{https://developer.basespace.illumina.com/docs/content/documentation/authentication/obtaining-access-tokens}
+For non-web applications (eg. devices), returns the device code 
+and verification url for the user to approve access to a specific data scope.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
-\textbf{scope} -- The scope that access is requested for
+\textbf{scope} -- The scope that access is requested for (e.g. `browse project 123')
+
+\item[{Returns}] \leavevmode
+dictionary of server response
 
 \end{description}\end{quote}
 
@@ -888,15 +1049,18 @@ Generates the URL the user should be redirected to for web-based authentication
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{scope} -- The scope that access is requested for
+\textbf{scope} -- The scope that access is requested for (e.g. `browse project 123')
 
 \item {} 
 \textbf{redirectURL} -- The redirect URL
 
+\item {} 
+\textbf{state} -- (Optional) A state parameter that will passed through to the redirect response
+
 \end{itemize}
 
-\item[{State }] \leavevmode
-An optional state parameter that will passed through to the redirect response
+\item[{Returns}] \leavevmode
+a url
 
 \end{description}\end{quote}
 
@@ -907,7 +1071,6 @@ An optional state parameter that will passed through to the redirect response
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileDownload}\pysiglinewithargsret{\bfcode{multipartFileDownload}}{\emph{Id}, \emph{localDir}, \emph{processCount=10}, \emph{partSize=25}, \emph{createBsDir=False}, \emph{tempDir='`}}{}
 Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
-Returns a file object, exception raised on download failure.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -930,6 +1093,9 @@ Returns a file object, exception raised on download failure.
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a File instance
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -939,7 +1105,6 @@ Returns a file object, exception raised on download failure.
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.multipartFileUpload}\pysiglinewithargsret{\bfcode{multipartFileUpload}}{\emph{Id}, \emph{localPath}, \emph{fileName}, \emph{directory}, \emph{contentType}, \emph{tempDir=None}, \emph{processCount=10}, \emph{partSize=25}}{}
 Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
-Returns a File object (that is updated after the upload has completed).
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -968,6 +1133,9 @@ Returns a File object (that is updated after the upload has completed).
 
 \end{itemize}
 
+\item[{Returns}] \leavevmode
+a File instance, which has been updated after the upload has completed.
+
 \end{description}\end{quote}
 
 \end{fulllineitems}
@@ -975,20 +1143,26 @@ Returns a File object (that is updated after the upload has completed).
 \index{obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken}\pysiglinewithargsret{\bfcode{obtainAccessToken}}{\emph{code}, \emph{grantType='device'}, \emph{redirect\_uri='http://www.myRedirect.com'}}{}
-Returns a user specific access token.
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.obtainAccessToken}\pysiglinewithargsret{\bfcode{obtainAccessToken}}{\emph{code}, \emph{grantType='device'}, \emph{redirect\_uri=None}}{}
+Returns a user specific access token, for either device (non-web) or web apps.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\textbf{code} -- The device code returned by the verification code method
+\textbf{code} -- The device code returned by the getVerificationCode method
 
 \item {} 
-\textbf{grantType} -- Grant-type may be either device or `device' or `authorization\_code'
+\textbf{grantType} -- Grant-type may be either `device' for non-web apps (default), or `authorization\_code' for web apps
 
 \item {} 
-\textbf{redirect\_uri} -- The uri we should redirect to
+\textbf{redirect\_uri} -- The uri to redirect to; required for web apps only.
 
 \end{itemize}
+
+\item[{Raises OAuthException}] \leavevmode
+when redirect\_uri isn't provided by web apps
+
+\item[{Returns}] \leavevmode
+an access token
 
 \end{description}\end{quote}
 
@@ -998,19 +1172,48 @@ Returns a user specific access token.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.setAppSessionState}\pysiglinewithargsret{\bfcode{setAppSessionState}}{\emph{Id}, \emph{Status}, \emph{Summary}}{}
-Set the status of an AppSession in BaseSpace
+Set the Status and StatusSummary of an AppSession in BaseSpace.
+Note - once Status is set to Completed or Aborted, no further changes can made.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{Id} -- The id of the AppSession
 
 \item {} 
-\textbf{Status} -- The AppSession status string, must be one of: running, complete, needsattention, timedout, aborted
+\textbf{Status} -- The AppSession status string, must be one of: Running, Complete, NeedsAttention, TimedOut, Aborted
 
 \item {} 
 \textbf{Summary} -- The status summary string
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+An updated AppSession instance
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{updatePrivileges() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI.updatePrivileges}\pysiglinewithargsret{\bfcode{updatePrivileges}}{\emph{code}, \emph{grantType='device'}, \emph{redirect\_uri=None}}{}
+Retrieves a user-specific access token, and sets the token on the current object.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{code} -- The device code returned by the getVerificationCode method
+
+\item {} 
+\textbf{grantType} -- Grant-type may be either `device' for non-web apps (default), or `authorization\_code' for web apps
+
+\item {} 
+\textbf{redirect\_uri} -- The uri to redirect to; required for web apps only.
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+None
 
 \end{description}\end{quote}
 
@@ -1033,7 +1236,7 @@ Represents a BaseSpace Project object.
 \index{createAppResult() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{api}, \emph{name}, \emph{desc}, \emph{appSessionId=None}, \emph{samples=}\optional{}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.createAppResult}\pysiglinewithargsret{\bfcode{createAppResult}}{\emph{api}, \emph{name}, \emph{desc}, \emph{samples=None}, \emph{appSessionId=None}}{}
 Return a newly created app result object
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1045,6 +1248,12 @@ Return a newly created app result object
 
 \item {} 
 \textbf{desc} -- A description of the app result
+
+\item {} 
+\textbf{samples} -- (Optional) A list of one or more Samples Ids that the AppResult is related to
+
+\item {} 
+\textbf{appSessionId} -- (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object
 
 \end{itemize}
 
@@ -1068,7 +1277,7 @@ Returns the scope-string to used for requesting BaseSpace access to the object
 \index{getAppResults() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getAppResults}\pysiglinewithargsret{\bfcode{getAppResults}}{\emph{api}, \emph{myQp=\{\}}, \emph{statuses=}\optional{}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getAppResults}\pysiglinewithargsret{\bfcode{getAppResults}}{\emph{api}, \emph{queryPars=None}, \emph{statuses=None}}{}
 Returns a list of AppResult objects.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1076,7 +1285,10 @@ Returns a list of AppResult objects.
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{statuses} -- An optional list of statuses
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\item {} 
+\textbf{statuses} -- An optional list of statuses, eg. `complete'
 
 \end{itemize}
 
@@ -1087,11 +1299,17 @@ Returns a list of AppResult objects.
 \index{getSamples() (BaseSpacePy.model.Project.Project method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getSamples}\pysiglinewithargsret{\bfcode{getSamples}}{\emph{api}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.getSamples}\pysiglinewithargsret{\bfcode{getSamples}}{\emph{api}, \emph{queryPars=None}}{}
 Returns a list of Sample objects.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{api} -- An instance of BaseSpaceAPI
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -1101,12 +1319,15 @@ Returns a list of Sample objects.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.Project.Project.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
-Is called to test if the Project instance has been initialized.
-\begin{description}
-\item[{Throws:}] \leavevmode
-ModelNotInitializedException - Indicates the object has not been populated yet.
+Tests if the Project instance has been initialized.
+\begin{quote}\begin{description}
+\item[{Raises ModelNotInitializedException}] \leavevmode
+if the Id variable is not set
 
-\end{description}
+\item[{Returns}] \leavevmode
+True on success
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1120,29 +1341,7 @@ ModelNotInitializedException - Indicates the object has not been populated yet.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.AppSession.AppSession}\pysigline{\strong{class }\code{BaseSpacePy.model.AppSession.}\bfcode{AppSession}}
-AppLaunch contains the data returned
-\index{setStatus() (BaseSpacePy.model.AppSession.AppSession method)}
-
-\begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.AppSession.AppSession.setStatus}\pysiglinewithargsret{\bfcode{setStatus}}{\emph{api}, \emph{Status}, \emph{Summary}}{}
-Sets the status of the AppSession (note: once set to `completed' or `aborted' no more work can be done to the instance)
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\textbf{api} -- An instance of BaseSpaceAPI
-
-\item {} 
-\textbf{Status} -- The status value, must be completed, aborted, working, or suspended
-
-\item {} 
-\textbf{Summary} -- The status summary
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
+Returned from getAppSessionById() and getAppSesssion()
 
 \end{fulllineitems}
 
@@ -1165,7 +1364,7 @@ Returns the scope-string to be used for requesting BaseSpace access to the objec
 \index{getFiles() (BaseSpacePy.model.AppResult.AppResult method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{myQp=\{\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{queryPars=None}}{}
 Returns a list of file objects
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1173,7 +1372,7 @@ Returns a list of file objects
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{myQp} -- (Optional) QueryParameters for sorting and filtering the file list
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
 
@@ -1185,7 +1384,17 @@ Returns a list of file objects
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.getReferencedSamples}\pysiglinewithargsret{\bfcode{getReferencedSamples}}{\emph{api}}{}
-Returns a list of sample objects references by the AppResult. NOTE this method makes one request to REST server per sample
+Returns the sample objects for the referenced sample(s). 
+NOTE this method makes one request to REST server per sample.
+If other reference types than Samples are present (they shouldn't be), they are ignored.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{api} -- A BaseSpaceAPI instance
+
+\item[{Returns}] \leavevmode
+A list of sample objects that are referenced by the AppResult.
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1193,7 +1402,13 @@ Returns a list of sample objects references by the AppResult. NOTE this method m
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.getReferencedSamplesIds}\pysiglinewithargsret{\bfcode{getReferencedSamplesIds}}{}{}
-Return a list of sample ids for the samples referenced.
+Return the sample ids for the referenced sample(s). 
+If other reference types than Samples are present (they shouldn't be), they are ignored.
+\begin{quote}\begin{description}
+\item[{Returns}] \leavevmode
+a list of sample ids for the referenced samples.
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1201,12 +1416,15 @@ Return a list of sample ids for the samples referenced.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.AppResult.AppResult.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
-Is called to test if the Project instance has been initialized
-\begin{description}
-\item[{Throws:}] \leavevmode
-ModelNotInitializedException  - if the instance has not been populated.
+Tests if the AppResult instance has been initialized.
+\begin{quote}\begin{description}
+\item[{Raises ModelNotInitializedException}] \leavevmode
+if the Id variable is not set
 
-\end{description}
+\item[{Returns}] \leavevmode
+True on success
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1248,7 +1466,7 @@ Uploads a local file to the BaseSpace AppResult
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.Sample.Sample}\pysigline{\strong{class }\code{BaseSpacePy.model.Sample.}\bfcode{Sample}}
-Representation of a BaseSpace Sample object.
+A BaseSpace Sample object.
 \index{getAccessStr() (BaseSpacePy.model.Sample.Sample method)}
 
 \begin{fulllineitems}
@@ -1256,7 +1474,7 @@ Representation of a BaseSpace Sample object.
 Returns the scope-string to used for requesting BaseSpace access to the sample.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
-\textbf{scope} -- The scope type that is request (write\textbar{}read).
+\textbf{scope} -- The scope type that is request (eg. write, read).
 
 \end{description}\end{quote}
 
@@ -1265,7 +1483,7 @@ Returns the scope-string to used for requesting BaseSpace access to the sample.
 \index{getFiles() (BaseSpacePy.model.Sample.Sample method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Sample.Sample.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{myQp=\{\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Sample.Sample.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{queryPars=None}}{}
 Returns a list of File objects
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1273,7 +1491,7 @@ Returns a list of File objects
 \textbf{api} -- A BaseSpaceAPI instance
 
 \item {} 
-\textbf{myQp} -- Query parameters to sort and filter the file list by.
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
 
@@ -1285,9 +1503,18 @@ Returns a list of File objects
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.Sample.Sample.getReferencedAppResults}\pysiglinewithargsret{\bfcode{getReferencedAppResults}}{\emph{api}}{}
-Return the AppResults referenced by this sample. Note the returned AppResult objects
-do not have their ``References'' field set, to get a fully populate AppResult object
-you must use getAppResultById in BaseSpaceAPI.
+Return the AppResults referenced by this sample. 
+Note the returned AppResult objects do not have their ``References'' field set, 
+to get a fully populated AppResult object you must use getAppResultById in BaseSpaceAPI.
+If other reference types than AppResults are present (they shouldn't be), they are ignored.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{api} -- A BaseSpaceAPI instance
+
+\item[{Returns}] \leavevmode
+A list of AppResult that are referenced by this sample (with their References field not populated)
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1295,12 +1522,15 @@ you must use getAppResultById in BaseSpaceAPI.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.Sample.Sample.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
-Is called to test if the sample instance has been initialized.
-\begin{description}
-\item[{Throws:}] \leavevmode
-ModelNotInitializedException - Indicated the Id variable is not set.
+Tests if the Sample instance has been initialized.
+\begin{quote}\begin{description}
+\item[{Raises ModelNotInitializedException}] \leavevmode
+if the Id variable is not set
 
-\end{description}
+\item[{Returns}] \leavevmode
+True on success
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1314,7 +1544,7 @@ ModelNotInitializedException - Indicated the Id variable is not set.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.File.File}\pysigline{\strong{class }\code{BaseSpacePy.model.File.}\bfcode{File}}
-Represents a BaseSpace file object.
+Represents a BaseSpace file object
 \index{downloadFile() (BaseSpacePy.model.File.File method)}
 
 \begin{fulllineitems}
@@ -1344,15 +1574,15 @@ start and stop byte in the range.
 \index{filterVariant() (BaseSpacePy.model.File.File method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.File.File.filterVariant}\pysiglinewithargsret{\bfcode{filterVariant}}{\emph{api}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}, \emph{q=None}}{}
-Returns a list of Variant objects available in the specified region
+\phantomsection\label{Available modules:BaseSpacePy.model.File.File.filterVariant}\pysiglinewithargsret{\bfcode{filterVariant}}{\emph{api}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}, \emph{Format='json'}, \emph{queryPars=None}}{}
+List the variants in a set of variants. Note the maximum returned records is 1000.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{Chrom} -- Chromosome as a string - for example `chr2'
+\textbf{Chrom} -- Chromosome name
 
 \item {} 
 \textbf{StartPos} -- The start position of region of interest as a string
@@ -1361,9 +1591,15 @@ Returns a list of Variant objects available in the specified region
 \textbf{EndPos} -- The end position of region of interest as a string
 
 \item {} 
-\textbf{q} -- An instance of
+\textbf{Format} -- (optional) Format for results, possible values: `vcf' (not implemented yet), `json'(default, which actually returns an object)
+
+\item {} 
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a list of Variant objects, when Format is json; a string, when Format is vcf
 
 \end{description}\end{quote}
 
@@ -1373,16 +1609,36 @@ Returns a list of Variant objects available in the specified region
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.File.File.getCoverageMeta}\pysiglinewithargsret{\bfcode{getCoverageMeta}}{\emph{api}, \emph{Chrom}}{}
-Return an object of CoverageMetadata for the selected region
+Returns metadata about an alignment, including max coverage and cov granularity.        
+Note that HrefCoverage must be available for the provided BAM file.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{api} -- An instance of BaseSpaceAPI.
 
 \item {} 
-\textbf{Chrom} -- The chromosome of interest.
+\textbf{Chrom} -- Chromosome name
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+a CoverageMetaData object
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getFileS3metadata() (BaseSpacePy.model.File.File method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.File.File.getFileS3metadata}\pysiglinewithargsret{\bfcode{getFileS3metadata}}{\emph{api}}{}
+Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{api} -- A BaseSpaceAPI with read access on the scope including the file object.
+
+\item[{Returns}] \leavevmode
+Dict with s3 url (`url' key) and etag (`etag' key)
 
 \end{description}\end{quote}
 
@@ -1392,6 +1648,8 @@ Return an object of CoverageMetadata for the selected region
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.File.File.getFileUrl}\pysiglinewithargsret{\bfcode{getFileUrl}}{\emph{api}}{}
+** Deprecated in favor of getFileS3metadata() **
+
 Return the S3 url of the file.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -1405,22 +1663,26 @@ Return the S3 url of the file.
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.File.File.getIntervalCoverage}\pysiglinewithargsret{\bfcode{getIntervalCoverage}}{\emph{api}, \emph{Chrom}, \emph{StartPos}, \emph{EndPos}}{}
-Return a coverage object for the specified region and chromosome.
+Returns mean coverage levels over a sequence interval.
+Note that HrefCoverage must be available for the provided BAM file.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{Chrom} -- Chromosome as a string - for example `chr2'
+\textbf{Chrom} -- Chromosome name as a string - for example `chr2'
 
 \item {} 
-\textbf{StartPos} -- The start position of region of interest as a string
+\textbf{StartPos} -- get coverage starting at this position
 
 \item {} 
-\textbf{EndPos} -- The end position of region of interest as a string
+\textbf{EndPos} -- get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate
 
 \end{itemize}
+
+\item[{Returns}] \leavevmode
+A Coverage object
 
 \end{description}\end{quote}
 
@@ -1429,11 +1691,20 @@ Return a coverage object for the specified region and chromosome.
 \index{getVariantMeta() (BaseSpacePy.model.File.File method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.File.File.getVariantMeta}\pysiglinewithargsret{\bfcode{getVariantMeta}}{\emph{api}}{}
-Return the the meta info for a VCF file as a VariantInfo object
+\phantomsection\label{Available modules:BaseSpacePy.model.File.File.getVariantMeta}\pysiglinewithargsret{\bfcode{getVariantMeta}}{\emph{api}, \emph{Format='json'}}{}
+Returns the header information of a VCF file.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \textbf{api} -- An instance of BaseSpaceAPI
+
+\item {} 
+\textbf{Format} -- (optional) The return-value format, set to `vcf' to VCF format (string) or `json' (default, which acutally returns on object)
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+A VariantHeader object
 
 \end{description}\end{quote}
 
@@ -1443,23 +1714,33 @@ Return the the meta info for a VCF file as a VariantInfo object
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.File.File.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
-Is called to test if the File instance has been initialized.
-\begin{description}
-\item[{Throws:}] \leavevmode
-ModelNotInitializedException if the instance has not been populated yet.
+Tests if the File instance has been initialized.
+\begin{quote}\begin{description}
+\item[{Raises ModelNotInitializedException}] \leavevmode
+if the Id variable is not set
 
-\end{description}
+\item[{Returns}] \leavevmode
+True on success
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
 \index{isValidFileOption() (BaseSpacePy.model.File.File method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.File.File.isValidFileOption}\pysiglinewithargsret{\bfcode{isValidFileOption}}{\emph{filetype}}{}
-Is called to test if the File instance is matches the filtype parameter
+\phantomsection\label{Available modules:BaseSpacePy.model.File.File.isValidFileOption}\pysiglinewithargsret{\bfcode{isValidFileOption}}{\emph{filetype}}{}~\begin{description}
+\item[{** Deprecated - HrefCoverage should be present for all BAM files in BaseSpace.}] \leavevmode
+However, the attribute may be missing when there has been an error
+when BaseSpace internally generates coverage data from the BAM file. 
+This is the same situation for HrefVariants on all VCF files. **
+
+\end{description}
+
+Is called to test if the File instance matches the filetype parameter
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
-\textbf{filetype} -- The filetype for coverage or variant requests
+\textbf{filetype} -- The filetype for coverage or variant requests (eg., `bam', `vcf')
 
 \end{description}\end{quote}
 
@@ -1474,10 +1755,25 @@ Is called to test if the File instance is matches the filtype parameter
 \label{Available modules:run}\index{Run (class in BaseSpacePy.model.Run)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run}\pysigline{\strong{class }\code{BaseSpacePy.model.Run.}\bfcode{Run}}~\index{getFiles() (BaseSpacePy.model.Run.Run method)}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run}\pysigline{\strong{class }\code{BaseSpacePy.model.Run.}\bfcode{Run}}
+A BaseSpace Run object
+\index{getAccessStr() (BaseSpacePy.model.Run.Run method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{myQp=\{\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getAccessStr}\pysiglinewithargsret{\bfcode{getAccessStr}}{\emph{scope='write'}}{}
+Returns the scope-string to used for requesting BaseSpace access to the Run.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\textbf{scope} -- The scope type that is request (eg. write, read).
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{getFiles() (BaseSpacePy.model.Run.Run method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getFiles}\pysiglinewithargsret{\bfcode{getFiles}}{\emph{api}, \emph{queryPars=None}}{}
 Returns a list of File objects associated with the Run
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1485,7 +1781,7 @@ Returns a list of File objects associated with the Run
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{myQp} -- (Optional) QueryParameters for sorting and filtering the file list
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
 
@@ -1496,7 +1792,7 @@ Returns a list of File objects associated with the Run
 \index{getSamples() (BaseSpacePy.model.Run.Run method)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getSamples}\pysiglinewithargsret{\bfcode{getSamples}}{\emph{api}, \emph{myQp=\{\}}}{}
+\phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.getSamples}\pysiglinewithargsret{\bfcode{getSamples}}{\emph{api}, \emph{queryPars=None}}{}
 Returns a list of Sample objects associated with the Run
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1504,7 +1800,7 @@ Returns a list of Sample objects associated with the Run
 \textbf{api} -- An instance of BaseSpaceAPI
 
 \item {} 
-\textbf{myQp} -- (Optional) QueryParameters for sorting and filtering the file list
+\textbf{queryPars} -- An (optional) object of type QueryParameters for custom sorting and filtering
 
 \end{itemize}
 
@@ -1516,9 +1812,15 @@ Returns a list of Sample objects associated with the Run
 
 \begin{fulllineitems}
 \phantomsection\label{Available modules:BaseSpacePy.model.Run.Run.isInit}\pysiglinewithargsret{\bfcode{isInit}}{}{}
-Tests if the Project instance has been initialized
+Tests if the Run instance has been initialized.
+\begin{quote}\begin{description}
+\item[{Raises ModelNotInitializedException}] \leavevmode
+if the Id variable is not set
 
-Throws: ModelNotInitializedException  - if the instance has not been populated.
+\item[{Returns}] \leavevmode
+True on success
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1531,8 +1833,36 @@ Throws: ModelNotInitializedException  - if the instance has not been populated.
 \label{Available modules:queryparameters}\index{QueryParameters (class in BaseSpacePy.model.QueryParameters)}
 
 \begin{fulllineitems}
-\phantomsection\label{Available modules:BaseSpacePy.model.QueryParameters.QueryParameters}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.model.QueryParameters.}\bfcode{QueryParameters}}{\emph{pars=\{\}, required={[}'SortBy', `Offset', `Limit', `SortDir'{]}}}{}
-The QueryParameters class can be passed as an optional arguments for a specific sorting of list-responses (such as lists of sample, AppResult, or variants)
+\phantomsection\label{Available modules:BaseSpacePy.model.QueryParameters.QueryParameters}\pysiglinewithargsret{\strong{class }\code{BaseSpacePy.model.QueryParameters.}\bfcode{QueryParameters}}{\emph{pars=None}, \emph{required=None}}{}
+The QueryParameters class can be passed as an optional argument
+for sorting/filtering of list-responses (such as lists of samples, AppResults, variants, etc.)
+\index{validate() (BaseSpacePy.model.QueryParameters.QueryParameters method)}
+
+\begin{fulllineitems}
+\phantomsection\label{Available modules:BaseSpacePy.model.QueryParameters.QueryParameters.validate}\pysiglinewithargsret{\bfcode{validate}}{}{}
+Validates that query parameter keys and values are properly formed:
+required keys are present, and keys and values are within the set of 
+known acceptable keys/values.
+\begin{quote}\begin{description}
+\item[{Raises}] \leavevmode\begin{itemize}
+\item {} 
+\textbf{UndefinedParameterException} -- when a required parameter is not present
+
+\item {} 
+\textbf{UnknownParameterException} -- when a parameter name is not present in the list of acceptable parameters names
+
+\item {} 
+\textbf{IllegalParameterException} -- when a parameter value (with a valid name) is not present in the list of acceptable parameters values
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+None
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 
 \end{fulllineitems}
 

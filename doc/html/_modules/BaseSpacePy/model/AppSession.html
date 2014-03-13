@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>BaseSpacePy.model.AppSession &mdash; BaseSpacePy 0.1.3 documentation</title>
+    <title>BaseSpacePy.model.AppSession &mdash; BaseSpacePy 0.2 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.3',
+        VERSION:     '0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="BaseSpacePy 0.1.3 documentation" href="../../../index.html" />
+    <link rel="top" title="BaseSpacePy 0.2 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="../../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../../../index.html">BaseSpacePy 0.1.3 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">BaseSpacePy 0.2 documentation</a> &raquo;</li>
           <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -46,102 +46,46 @@
           <div class="body">
             
   <h1>Source code for BaseSpacePy.model.AppSession</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2012 Illumina</span>
+<span class="kn">from</span> <span class="nn">BaseSpacePy.model.AppSessionSemiCompact</span> <span class="kn">import</span> <span class="n">AppSessionSemiCompact</span>
 
-<span class="sd">    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
-<span class="sd">you may not use this file except in compliance with the License.</span>
-<span class="sd">You may obtain a copy of the License at</span>
-<span class="sd">http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="sd"> </span>
-<span class="sd">    Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
-<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
-<span class="sd">See the License for the specific language governing permissions and</span>
-<span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="AppSession"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.AppSession.AppSession">[docs]</a><span class="k">class</span> <span class="nc">AppSession</span><span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    AppLaunch contains the data returned </span>
+<span class="k">class</span> <span class="nc">AppSession</span><span class="p">(</span><span class="n">AppSessionSemiCompact</span><span class="p">):</span>
+<div class="viewcode-block" id="AppSession"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.AppSession.AppSession">[docs]</a>    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returned from getAppSessionById() and getAppSesssion()</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">swaggerTypes</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&#39;Id&#39;</span><span class="p">:</span><span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;Href&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;Type&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
-            <span class="s">&#39;UserCreatedBy&#39;</span><span class="p">:</span><span class="s">&#39;User&#39;</span><span class="p">,</span>
-            <span class="s">&#39;DateCreated&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Name&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;UserCreatedBy&#39;</span><span class="p">:</span><span class="s">&#39;UserCompact&#39;</span><span class="p">,</span>
+            <span class="s">&#39;DateCreated&#39;</span><span class="p">:</span> <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ModifiedOn&#39;</span><span class="p">:</span> <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
             <span class="s">&#39;Status&#39;</span><span class="p">:</span><span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;StatusSummary&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
             <span class="s">&#39;Application&#39;</span><span class="p">:</span><span class="s">&#39;Application&#39;</span><span class="p">,</span>
-            <span class="s">&#39;References&#39;</span><span class="p">:</span><span class="s">&#39;list&lt;AppSessionLaunchObject&gt;&#39;</span>
+            <span class="s">&#39;References&#39;</span><span class="p">:</span><span class="s">&#39;list&lt;AppSessionLaunchObject&gt;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Properties&#39;</span><span class="p">:</span><span class="s">&#39;PropertyList&#39;</span><span class="p">,</span>
+            <span class="s">&#39;AuthorizationCode&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;OriginatingUri&#39;</span><span class="p">:</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>
         <span class="p">}</span>
-        
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;App session by &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">UserCreatedBy</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; - Id: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; - status: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span>
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">__serializeReferences__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">):</span>
+            
+    <span class="k">def</span> <span class="nf">__deserializeReferences__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Convert References (actually, the Content of each AppSessionLaunchObject) from dicts to objects,</span>
+<span class="sd">        if the type is a primary BaseSpace item (eg., Project)</span>
+<span class="sd">        </span>
+<span class="sd">        :param api: A BaseSpaceAPI instance</span>
+<span class="sd">        :returns: Self, with each Reference&#39;s Content converted from dict to an object if the type is a major BaseSpace item (eg., a Project)</span>
+<span class="sd">        &#39;&#39;&#39;</span>        
         <span class="n">ref</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">References</span><span class="p">:</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">__serializeObject__</span><span class="p">(</span><span class="n">api</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">__deserializeObject__</span><span class="p">(</span><span class="n">api</span><span class="p">)</span>
             <span class="n">ref</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">References</span> <span class="o">=</span>  <span class="n">ref</span>
-        <span class="k">return</span> <span class="bp">self</span>
-    
-    <span class="k">def</span> <span class="nf">canWorkOn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;running&#39;</span><span class="p">]</span>
-    
-<div class="viewcode-block" id="AppSession.setStatus"><a class="viewcode-back" href="../../../Available modules.html#BaseSpacePy.model.AppSession.AppSession.setStatus">[docs]</a>    <span class="k">def</span> <span class="nf">setStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">api</span><span class="p">,</span><span class="n">Status</span><span class="p">,</span><span class="n">Summary</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Sets the status of the AppSession (note: once set to &#39;completed&#39; or &#39;aborted&#39; no more work can be done to the instance)</span>
-<span class="sd">        </span>
-<span class="sd">        :param api: An instance of BaseSpaceAPI</span>
-<span class="sd">        :param Status: The status value, must be completed, aborted, working, or suspended</span>
-<span class="sd">        :param Summary: The status summary</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;complete&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;aborted&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;The status of AppSession=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; is &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span> <span class="o">+</span> <span class="s">&quot;,</span><span class="se">\</span>
-<span class="s">             no further status changes are allowed.&quot;</span><span class="p">)</span>
-        
-        <span class="c"># To prevent the AppResult object from being in an inconsistent state</span>
-        <span class="c"># and having two identical objects floating around, we update the current object</span>
-        <span class="c"># and discard the returned object</span>
-        <span class="n">newSession</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">setAppSessionState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span> <span class="n">Status</span><span class="p">,</span> <span class="n">Summary</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Status</span>         <span class="o">=</span> <span class="n">newSession</span><span class="o">.</span><span class="n">Status</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">StatusSummary</span>  <span class="o">=</span> <span class="n">newSession</span><span class="o">.</span><span class="n">StatusSummary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">References</span> <span class="o">=</span> <span class="n">ref</span>
         <span class="k">return</span> <span class="bp">self</span>
  
-             
-<span class="c"># deprecated</span>
-<span class="c">#    def getLaunchType(self):</span>
-<span class="c">#        &#39;&#39;&#39;</span>
-<span class="c">#        Returns a list [&lt;launch type name&gt;, list of objects] where &lt;launch type name&gt; is one of Projects, Samples, Analyses </span>
-<span class="c">#        &#39;&#39;&#39;</span>
-<span class="c">#        try: </span>
-<span class="c">#            self.Projects</span>
-<span class="c">#            return [&#39;Projects&#39;, self.Projects]</span>
-<span class="c">#        except: e=1</span>
-<span class="c">#        try: </span>
-<span class="c">#            self.Samples</span>
-<span class="c">#            return [&#39;Samples&#39;, self.Samples]</span>
-<span class="c">#        except: e=1</span>
-<span class="c">#        try: </span>
-<span class="c">#            self.Analyses</span>
-<span class="c">#            return [&#39;Analyses&#39;, self.Analyses]</span>
-<span class="c">#        except: e=1</span>
-            
-        <span class="bp">self</span><span class="o">.</span><span class="n">UserUserCreatedBy</span> <span class="o">=</span> <span class="bp">None</span> <span class="c">#  The user that triggered your application</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Id</span>                <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Status</span>            <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">StatusSummary</span>     <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Href</span>              <span class="o">=</span> <span class="bp">None</span> <span class="c">#  The URI of BaseSpace</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">DateCreated</span>       <span class="o">=</span> <span class="bp">None</span> <span class="c">#  The datetime the user acted in BaseSpace</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">References</span>        <span class="o">=</span> <span class="bp">None</span></div></div>
-</pre></div>
+</pre></div></div>
 
           </div>
         </div>
@@ -171,7 +115,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="../../../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../../../index.html">BaseSpacePy 0.1.3 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">BaseSpacePy 0.2 documentation</a> &raquo;</li>
           <li><a href="../../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>

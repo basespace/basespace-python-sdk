@@ -82,12 +82,13 @@ Now you can get started quickly with code such as:
 CHANGELOG
 =========================================
 
-v 0.1.3
+v 0.2
 -----------------------------------------
 - Added support for large-file (multipart) upload and download.
 - Added methods to get a Run's Files or Samples
 - Added support for a config file to store credentials
 - Made consistent all queryParameter arguments to accept objects (not dicts)
+- Added unit tests for all methods (except Billing and some MultipartFileTransfer methods)
 
 v 0.1.2
 -----------------------------------------

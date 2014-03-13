@@ -1,78 +1,83 @@
 \indexentry{BaseSpaceAPI (class in BaseSpacePy.api.BaseSpaceAPI)|hyperpage}{3}
 \indexentry{appResultFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
 \indexentry{createAppResult() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
-\indexentry{createProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
-\indexentry{fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{3}
+\indexentry{createProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
+\indexentry{fileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
 \indexentry{fileS3metadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
 \indexentry{fileUrl() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
 \indexentry{filterVariantSet() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
-\indexentry{getAccess() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
-\indexentry{getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{4}
+\indexentry{getAccess() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
+\indexentry{getAccessibleRunsByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
 \indexentry{getAppResultById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
 \indexentry{getAppResultFiles() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
-\indexentry{getAppResultPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
-\indexentry{getAppResultsByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
-\indexentry{getAppSession() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
-\indexentry{getAppSessionById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
-\indexentry{getAppSessionInputsById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
-\indexentry{getAppSessionPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
+\indexentry{getAppResultFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{5}
+\indexentry{getAppResultPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
+\indexentry{getAppResultsByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
+\indexentry{getAppSession() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
+\indexentry{getAppSessionById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
+\indexentry{getAppSessionInputsById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
+\indexentry{getAppSessionPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
 \indexentry{getAppSessionPropertyByName() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getAvailableGenomes() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getCoverageMetaInfo() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getFileById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getFilePropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{6}
-\indexentry{getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getProjectPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getRunById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getRunFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getRunPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getRunSamplesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
-\indexentry{getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{getSamplePropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{getUserById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{getVariantMetadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{getVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{getWebVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
-\indexentry{multipartFileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
-\indexentry{multipartFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
-\indexentry{obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
-\indexentry{setAppSessionState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
-\indexentry{Project (class in BaseSpacePy.model.Project)|hyperpage}{10}
-\indexentry{createAppResult() (BaseSpacePy.model.Project.Project method)|hyperpage}{10}
-\indexentry{getAccessStr() (BaseSpacePy.model.Project.Project method)|hyperpage}{10}
-\indexentry{getAppResults() (BaseSpacePy.model.Project.Project method)|hyperpage}{10}
-\indexentry{getSamples() (BaseSpacePy.model.Project.Project method)|hyperpage}{10}
-\indexentry{isInit() (BaseSpacePy.model.Project.Project method)|hyperpage}{10}
-\indexentry{AppSession (class in BaseSpacePy.model.AppSession)|hyperpage}{10}
-\indexentry{setStatus() (BaseSpacePy.model.AppSession.AppSession method)|hyperpage}{10}
-\indexentry{AppResult (class in BaseSpacePy.model.AppResult)|hyperpage}{11}
-\indexentry{getAccessStr() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{11}
-\indexentry{getFiles() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{11}
-\indexentry{getReferencedSamples() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{11}
-\indexentry{getReferencedSamplesIds() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{11}
-\indexentry{isInit() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{11}
-\indexentry{uploadFile() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{11}
-\indexentry{Sample (class in BaseSpacePy.model.Sample)|hyperpage}{11}
-\indexentry{getAccessStr() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{11}
-\indexentry{getFiles() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{11}
-\indexentry{getReferencedAppResults() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{11}
-\indexentry{isInit() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{12}
-\indexentry{File (class in BaseSpacePy.model.File)|hyperpage}{12}
-\indexentry{downloadFile() (BaseSpacePy.model.File.File method)|hyperpage}{12}
-\indexentry{filterVariant() (BaseSpacePy.model.File.File method)|hyperpage}{12}
-\indexentry{getCoverageMeta() (BaseSpacePy.model.File.File method)|hyperpage}{12}
-\indexentry{getFileUrl() (BaseSpacePy.model.File.File method)|hyperpage}{12}
-\indexentry{getIntervalCoverage() (BaseSpacePy.model.File.File method)|hyperpage}{12}
-\indexentry{getVariantMeta() (BaseSpacePy.model.File.File method)|hyperpage}{13}
-\indexentry{isInit() (BaseSpacePy.model.File.File method)|hyperpage}{13}
-\indexentry{isValidFileOption() (BaseSpacePy.model.File.File method)|hyperpage}{13}
-\indexentry{Run (class in BaseSpacePy.model.Run)|hyperpage}{13}
-\indexentry{getFiles() (BaseSpacePy.model.Run.Run method)|hyperpage}{13}
-\indexentry{getSamples() (BaseSpacePy.model.Run.Run method)|hyperpage}{13}
-\indexentry{isInit() (BaseSpacePy.model.Run.Run method)|hyperpage}{13}
-\indexentry{QueryParameters (class in BaseSpacePy.model.QueryParameters)|hyperpage}{13}
+\indexentry{getAvailableGenomes() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
+\indexentry{getCoverageMetaInfo() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
+\indexentry{getFileById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
+\indexentry{getFilePropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
+\indexentry{getFilesBySample() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{7}
+\indexentry{getGenomeById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getIntervalCoverage() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getProjectById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getProjectByUser() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getProjectPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getRunById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getRunFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{8}
+\indexentry{getRunPropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
+\indexentry{getRunSamplesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
+\indexentry{getSampleById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
+\indexentry{getSampleFilesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
+\indexentry{getSamplePropertiesById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
+\indexentry{getSamplesByProject() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{9}
+\indexentry{getUserById() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{10}
+\indexentry{getVariantMetadata() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{10}
+\indexentry{getVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{10}
+\indexentry{getWebVerificationCode() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{10}
+\indexentry{multipartFileDownload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{10}
+\indexentry{multipartFileUpload() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{11}
+\indexentry{obtainAccessToken() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{11}
+\indexentry{setAppSessionState() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{11}
+\indexentry{updatePrivileges() (BaseSpacePy.api.BaseSpaceAPI.BaseSpaceAPI method)|hyperpage}{11}
+\indexentry{Project (class in BaseSpacePy.model.Project)|hyperpage}{12}
+\indexentry{createAppResult() (BaseSpacePy.model.Project.Project method)|hyperpage}{12}
+\indexentry{getAccessStr() (BaseSpacePy.model.Project.Project method)|hyperpage}{12}
+\indexentry{getAppResults() (BaseSpacePy.model.Project.Project method)|hyperpage}{12}
+\indexentry{getSamples() (BaseSpacePy.model.Project.Project method)|hyperpage}{12}
+\indexentry{isInit() (BaseSpacePy.model.Project.Project method)|hyperpage}{12}
+\indexentry{AppSession (class in BaseSpacePy.model.AppSession)|hyperpage}{13}
+\indexentry{AppResult (class in BaseSpacePy.model.AppResult)|hyperpage}{13}
+\indexentry{getAccessStr() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{13}
+\indexentry{getFiles() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{13}
+\indexentry{getReferencedSamples() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{13}
+\indexentry{getReferencedSamplesIds() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{13}
+\indexentry{isInit() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{13}
+\indexentry{uploadFile() (BaseSpacePy.model.AppResult.AppResult method)|hyperpage}{13}
+\indexentry{Sample (class in BaseSpacePy.model.Sample)|hyperpage}{13}
+\indexentry{getAccessStr() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{13}
+\indexentry{getFiles() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{14}
+\indexentry{getReferencedAppResults() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{14}
+\indexentry{isInit() (BaseSpacePy.model.Sample.Sample method)|hyperpage}{14}
+\indexentry{File (class in BaseSpacePy.model.File)|hyperpage}{14}
+\indexentry{downloadFile() (BaseSpacePy.model.File.File method)|hyperpage}{14}
+\indexentry{filterVariant() (BaseSpacePy.model.File.File method)|hyperpage}{14}
+\indexentry{getCoverageMeta() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{getFileS3metadata() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{getFileUrl() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{getIntervalCoverage() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{getVariantMeta() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{isInit() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{isValidFileOption() (BaseSpacePy.model.File.File method)|hyperpage}{15}
+\indexentry{Run (class in BaseSpacePy.model.Run)|hyperpage}{16}
+\indexentry{getAccessStr() (BaseSpacePy.model.Run.Run method)|hyperpage}{16}
+\indexentry{getFiles() (BaseSpacePy.model.Run.Run method)|hyperpage}{16}
+\indexentry{getSamples() (BaseSpacePy.model.Run.Run method)|hyperpage}{16}
+\indexentry{isInit() (BaseSpacePy.model.Run.Run method)|hyperpage}{16}
+\indexentry{QueryParameters (class in BaseSpacePy.model.QueryParameters)|hyperpage}{16}
+\indexentry{validate() (BaseSpacePy.model.QueryParameters.QueryParameters method)|hyperpage}{16}

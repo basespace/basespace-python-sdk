@@ -43,7 +43,8 @@ class Sample(object):
         Tests if the Sample instance has been initialized.
         
         :raises ModelNotInitializedException: if the Id variable is not set
-        :return True on success
+        :returns: True on success
+        
         '''
         err = 'The Sample object has not been initialized yet'
         try:

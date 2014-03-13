@@ -232,7 +232,8 @@ class BaseSpaceAPI(BaseAPI):
         Returns the Properties of an AppSession
         
         :param Id: An AppSession Id
-        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering            
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: A PropertyList instance            
         '''                
         queryParams = self._validateQueryParameters(queryPars)            
         resourcePath = '/appsessions/{Id}/properties'
@@ -248,7 +249,8 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The AppSessionId
         :param name: Name of the multi-value property to retrieve
-        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering        
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: A multi-value propertylist instance such as MultiValuePropertyAppResultsList (depending on the Property Type)        
         '''
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/appsessions/{Id}/properties/{Name}/items'
@@ -358,6 +360,7 @@ class BaseSpaceAPI(BaseAPI):
         :param scope: The scope that access is requested for (e.g. 'browse project 123')
         :param redirectURL: The redirect URL
         :param state: (Optional) A state parameter that will passed through to the redirect response
+        :returns: a url 
         '''        
         data = {'client_id': self.key, 'redirect_uri': redirectURL, 'scope': scope, 'response_type': 'code', "state": state}
         return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
@@ -395,7 +398,8 @@ class BaseSpaceAPI(BaseAPI):
         Creates a project with the specified name and returns a project object. 
         If a project with this name already exists, the existing project is returned.
         
-        :param Name: Name of the project        
+        :param Name: Name of the project
+        :returns: a Project instance of the newly created project        
         '''        
         resourcePath            = '/projects/'        
         method                  = 'POST'
@@ -412,6 +416,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns the User object corresponding to User Id
         
         :param Id: The Id of the user
+        :returns: a User instance
         '''        
         resourcePath = '/users/{Id}'        
         method = 'GET'
@@ -426,6 +431,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: an AppResult instance
         '''        
         queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appresults/{Id}'
@@ -441,6 +447,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a PropertyList instance
         '''                    
         queryParams = self._validateQueryParameters(queryPars)        
         resourcePath = '/appresults/{Id}/properties'
@@ -455,7 +462,8 @@ class BaseSpaceAPI(BaseAPI):
         Returns a list of File object for an AppResult
         
         :param Id: The id of the AppResult
-        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of File instances 
         '''
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/appresults/{Id}/files'
@@ -472,7 +480,8 @@ class BaseSpaceAPI(BaseAPI):
         Returns a list of File object for an AppResult
         
         :param Id: The id of the AppResult
-        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering 
+        :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of File instances 
         '''
         return self.getAppResultFilesById(Id, queryPars)
 
@@ -482,6 +491,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a Project instance
         '''
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/projects/{Id}'
@@ -497,6 +507,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a ProjectList instance
         '''
         queryParams = self._validateQueryParameters(queryPars)       
         resourcePath = '/projects/{Id}/properties'
@@ -511,6 +522,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns a list available projects for the current User.
                 
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Project instances
         '''
         queryParams = self._validateQueryParameters(queryPars)               
         resourcePath = '/users/current/projects'
@@ -524,6 +536,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns a list of accessible runs for the current User
                 
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Run instances
         '''        
         queryParams = self._validateQueryParameters(queryPars)               
         resourcePath = '/users/current/runs'
@@ -538,6 +551,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a Run instance
         '''        
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/runs/{Id}'        
@@ -552,6 +566,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a PropertyList instance
         '''        
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/runs/{Id}/properties'        
@@ -566,6 +581,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Run instances
         '''        
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/runs/{Id}/files'        
@@ -580,6 +596,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Sample instances
         '''        
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/runs/{Id}/samples'        
@@ -595,6 +612,7 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The project id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :param statuses: An (optional) list of AppResult statuses to filter by, eg., 'complete'
+        :returns: a list of AppResult instances
         '''
         queryParams = self._validateQueryParameters(queryPars) 
         if statuses is None:
@@ -613,6 +631,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of Sample instances
         '''
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/projects/{Id}/samples'
@@ -628,6 +647,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The id of the sample
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a Sample instance
         '''
         queryParams = self._validateQueryParameters(queryPars)        
         resourcePath = '/samples/{Id}'        
@@ -642,6 +662,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The id of the sample
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a PropertyList instance
         '''
         queryParams = self._validateQueryParameters(queryPars)                        
         resourcePath = '/samples/{Id}/properties'        
@@ -656,6 +677,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: A Sample id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of File instances
         '''
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/samples/{Id}/files'        
@@ -672,6 +694,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: A Sample id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of File instances
         '''
         return self.getSampleFilesById(Id, queryPars)        
     
@@ -681,6 +704,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The id of the file
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a File instance
         '''
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/files/{Id}'        
@@ -696,6 +720,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The id of the file
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a PropertyList instance
         '''        
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/files/{Id}/properties'        
@@ -710,6 +735,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns an instance of Genome with the specified Id
         
         :param Id: The genome id
+        :returns: a GenomeV1 instance
         '''
         # Parse inputs
         resourcePath = '/genomes/{Id}'
@@ -725,6 +751,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns a list of all available genomes
         
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
+        :returns: a list of GenomeV1 instances
         '''        
         queryParams = self._validateQueryParameters(queryPars)                
         resourcePath = '/genomes'        
@@ -741,7 +768,7 @@ class BaseSpaceAPI(BaseAPI):
         :param Chrom: chromosome name
         :param StartPos: get coverage starting at this position
         :param EndPos: get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate        
-        :returns: a Coverage object
+        :returns: a Coverage instance
         '''        
         resourcePath = '/coverage/{Id}/{Chrom}'        
         method = 'GET'
@@ -761,7 +788,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: the Id of a Bam file
         :param Chrom: chromosome name
-        :returns: a CoverageMetaData object
+        :returns: a CoverageMetaData instance
         '''
         resourcePath = '/coverage/{Id}/{Chrom}/meta'        
         method = 'GET'
@@ -782,7 +809,7 @@ class BaseSpaceAPI(BaseAPI):
         :param EndPos: The start position of the sequence of interest
         :param Format: (optional) Format for results, possible values: 'vcf' (not implemented yet), 'json'(default, which actually returns an object)
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :returns: a list of Variant objects, when Format is json; a string, when Format is vcf
+        :returns: a list of Variant instances, when Format is json; a string, when Format is vcf
         '''
         queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/variantset/{Id}/variants/{Chrom}'
@@ -804,7 +831,7 @@ class BaseSpaceAPI(BaseAPI):
         
         :param Id: The Id of the VCF file
         :param Format: (optional) The return-value format, set to 'json' (default) to return return an object (not actually json format), or 'vcf' (not implemented yet) to return a string in VCF format.
-        :returns: A VariantHeader object
+        :returns: A VariantHeader instance
         '''
         resourcePath = '/variantset/{Id}'        
         method = 'GET'
@@ -874,7 +901,8 @@ class BaseSpaceAPI(BaseAPI):
         :param localPath: The local path to the file to be uploaded, including file name.
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
-        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files    
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
+        :returns: a newly created File instance    
         '''
         multipart_min_file_size = 25000000 # bytes
         if os.path.getsize(localPath) > multipart_min_file_size:
@@ -891,7 +919,8 @@ class BaseSpaceAPI(BaseAPI):
         :param localPath: The local path to the file to be uploaded, including file name.
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
-        :param contentType: The content-type of the file.         
+        :param contentType: The content-type of the file.
+        :returns: a newly created File instance       
         '''        
         method                       = 'POST'
         resourcePath                 = '/appresults/{Id}/files'
@@ -914,7 +943,7 @@ class BaseSpaceAPI(BaseAPI):
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
         :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
-        :returns: Newly created File object      
+        :returns: A newly created File instance      
         '''
         resourcePath = '/appresults/{Id}/files'        
         method                       = 'POST'
@@ -954,7 +983,7 @@ class BaseSpaceAPI(BaseAPI):
         Marks a multipart upload file as complete  
         
         :param Id: the File Id
-        :returns: a File object with UploadStatus attribute updated to 'complete'
+        :returns: a File instance with UploadStatus attribute updated to 'complete'
         '''
         resourcePath                 = '/files/{Id}'        
         method                       = 'POST'
@@ -969,7 +998,6 @@ class BaseSpaceAPI(BaseAPI):
     def multipartFileUpload(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
-        Returns a File object (that is updated after the upload has completed). 
         
         :param Id: The AppResult ID
         :param localPath: The local path of the file to upload, including file name; local path will not be stored in BaseSpace (use directory argument for this)
@@ -979,6 +1007,7 @@ class BaseSpaceAPI(BaseAPI):
         :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
         :param processCount: (optional) The number of processes to be used, default 10
         :param partSize: (optional) The size in MB of individual upload parts (must be >5 Mb and <=25 Mb), default 25
+        :returns: a File instance, which has been updated after the upload has completed.
         '''
         # First create file object in BaseSpace, then create multipart upload object and start upload
         if partSize <= 5 or partSize > 25:
@@ -996,7 +1025,6 @@ class BaseSpaceAPI(BaseAPI):
         (to disable this, set createBsPath=False).
         
         If the file is large, multi-part download will be used. 
-        Returns file object when complete; raises exception if download fails.
         
         Byte-range requests are supported for only small byte ranges (single-part downloads).
         Byte-range requests are restricted to a single request of 'start' and 'end' bytes, without support for
@@ -1005,7 +1033,9 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: The file id
         :param localDir: The local directory to place the file in    
         :param byteRange: (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
-        :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default: False)                
+        :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default: False)
+        :raises ByteRangeException: if the provided byte range is invalid
+        :returns: a File instance                
         '''
         multipart_min_file_size = 5000000 # bytes
         if byteRange:
@@ -1046,6 +1076,9 @@ class BaseSpaceAPI(BaseAPI):
         :param byteRange: (Optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
         :param standaloneRangeFile: (Optional) if True store only byte-range data in standalone file
         :param lock: (Optional) Multiprocessing lock to prevent multiple processes from writing to same output file concurrently - only needed when using multipart download
+        :raises Exception: if REST API call to BaseSpace server fails
+        :raises DownloadFailedException: if downloaded file size doesn't match the size in BaseSpace
+        :returns: None
         '''
         if byteRange is None:
             byteRange = []
@@ -1098,8 +1131,7 @@ class BaseSpaceAPI(BaseAPI):
 
     def multipartFileDownload(self, Id, localDir, processCount=10, partSize=25, createBsDir=False, tempDir=""):
         '''
-        Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
-        Returns a file object, exception raised on download failure.
+        Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)        
         
         :param Id: The ID of the File to download 
         :param localDir: The local path in which to store the downloaded file
@@ -1107,10 +1139,10 @@ class BaseSpaceAPI(BaseAPI):
         :param partSize: (optional) The size in MB of individual file parts to download, default 25
         :param createBsDir: (optional) create BaseSpace File's directory in local_dir, default False        
         :param tempDir: (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by 'cat'ing chunks into large file
+        :returns: a File instance 
         '''         
-        myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)
-        bsFile = myMpd.download()
-        return bsFile        
+        myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)        
+        return myMpd.download()        
 
     def fileUrl(self, Id):
         '''
@@ -1119,6 +1151,8 @@ class BaseSpaceAPI(BaseAPI):
         Returns URL of file (on S3)
         
         :param Id: The file id
+        :raises Exception: if REST API call to BaseSpace server fails
+        :returns: a URL
         '''
         resourcePath = '/files/{Id}/content'
         resourcePath = resourcePath.replace('{format}', 'json')
@@ -1138,6 +1172,7 @@ class BaseSpaceAPI(BaseAPI):
         Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file
                 
         :param Id: The file id
+        :raises Exception: if REST API call to BaseSpace server fails
         :returns: Dict with s3 url ('url' key) and etag ('etag' key)
         '''
         ret = {}

@@ -48,7 +48,8 @@ class Run(object):
         Tests if the Run instance has been initialized.
         
         :raises ModelNotInitializedException: if the Id variable is not set
-        :return True on success
+        :returns: True on success
+        
         '''
         err = 'The Run object has not been initialized yet'
         try:

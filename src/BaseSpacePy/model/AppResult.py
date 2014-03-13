@@ -33,7 +33,8 @@ class AppResult(object):
         Tests if the AppResult instance has been initialized.
         
         :raises ModelNotInitializedException: if the Id variable is not set
-        :return True on success
+        :returns: True on success
+        
         '''
         err = 'The AppResult object has not been initialized yet'
         try:

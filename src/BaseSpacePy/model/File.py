@@ -33,7 +33,8 @@ class File(object):
         Tests if the File instance has been initialized.
         
         :raises ModelNotInitializedException: if the Id variable is not set
-        :return True on success
+        :returns: True on success
+        
         '''
         err = 'The File object has not been initialized yet'
         try:
