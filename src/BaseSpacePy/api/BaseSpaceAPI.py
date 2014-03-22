@@ -50,7 +50,8 @@ class BaseSpaceAPI(BaseAPI):
             
         self.appSessionId   = cred['appSessionId']
         self.key            = cred['clientKey']
-        self.secret         = cred['clientSecret']        
+        self.secret         = cred['clientSecret']
+        self.apiServer      = cred['apiServer']        
         self.version        = cred['apiVersion']        
         if 'profile' in cred:
             self.profile    = cred['profile']
@@ -202,7 +203,7 @@ class BaseSpaceAPI(BaseAPI):
             Id = self.appSessionId
         if not Id:
             raise AppSessionException("An AppSession Id is required")
-        resourcePath = self.apiClient.apiServer + '/appsessions/{AppSessionId}'        
+        resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'        
         resourcePath = resourcePath.replace('{AppSessionId}', Id)        
         response = cStringIO.StringIO()
         c = pycurl.Curl()
@@ -223,7 +224,7 @@ class BaseSpaceAPI(BaseAPI):
         '''        
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                    
-        tempApi = APIClient(AccessToken='', apiServer=self.apiClient.apiServer)
+        tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion)
         res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)            
         return res.Response.__deserializeReferences__(self)
 
@@ -312,7 +313,7 @@ class BaseSpaceAPI(BaseAPI):
         :param type: BaseSpace item name
         :returns: for types Project, Sample, and AppResult, an object is returned; for other types, the input dict is returned.
         '''
-        tempApi = APIClient(AccessToken='', apiServer=self.apiClient.apiServer)
+        tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion)
         if type.lower()=='project':
             return tempApi.deserialize(dct, Project.Project)
         if type.lower()=='sample':
@@ -351,7 +352,7 @@ class BaseSpaceAPI(BaseAPI):
         :returns: dictionary of server response
         '''
         data = [('client_id', self.key), ('scope', scope),('response_type', 'device_code')]
-        return self.__makeCurlRequest__(data, self.apiClient.apiServer + deviceURL)
+        return self.__makeCurlRequest__(data, self.apiClient.apiServerAndVersion + deviceURL)
 
     def getWebVerificationCode(self, scope, redirectURL, state=''):
         '''
@@ -378,7 +379,7 @@ class BaseSpaceAPI(BaseAPI):
         if grantType=='authorization_code' and redirect_uri is None:
             raise OAuthException('A Redirect URI is requred for web apps to obtain access tokens')
         data = [('client_id', self.key), ('client_secret', self.secret), ('code', code), ('grant_type', grantType), ('redirect_uri', redirect_uri)]
-        resp_dict = self.__makeCurlRequest__(data, self.apiClient.apiServer + tokenURL)
+        resp_dict = self.__makeCurlRequest__(data, self.apiClient.apiServerAndVersion + tokenURL)
         return str(resp_dict['access_token'])
 
     def updatePrivileges(self, code, grantType='device', redirect_uri=None):

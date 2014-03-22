@@ -717,9 +717,10 @@ class TestAPIAppResultMethods(TestCase):
         proj = self.api.createProject(tconst['create_project_name'])   
         ar = self.api.createAppResult(proj.Id, name="test create appresult creds ssn", 
             desc="test create appresult creds ssn", appSessionId="")
-        url = urlparse(self.api.apiClient.apiServer)
-        newApiServer = url.scheme + "://" + url.netloc
-        new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
+        #url = urlparse(self.api.apiClient.apiServer)
+        #newApiServer = url.scheme + "://" + url.netloc
+        #new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
+        new_api = BaseSpaceAPI(self.api.key, self.api.secret, self.api.apiServer,
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
         ar2 = new_api.createAppResult(proj.Id, name="test create appresult creds ssn 2", 
             desc="test create appresult creds ssn 2")
@@ -959,9 +960,10 @@ class TestProjectMethods(TestCase):
         proj = self.api.createProject(tconst['create_project_name'])   
         ar = proj.createAppResult(self.api, name="test create appresult creds ssn, project obj", 
             desc="test create appresult creds ssn, project obj", appSessionId="")
-        url = urlparse(self.api.apiClient.apiServer)
-        newApiServer = url.scheme + "://" + url.netloc
-        new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
+        #url = urlparse(self.api.apiClient.apiServer)
+        #newApiServer = url.scheme + "://" + url.netloc        
+        #new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
+        new_api = BaseSpaceAPI(self.api.key, self.api.secret, self.api.apiServer,                               
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
         ar2 = proj.createAppResult(new_api, name="test create appresult creds ssn, project obj 2", 
             desc="test create appresult creds ssn, proejct obj 2")
@@ -1618,7 +1620,7 @@ class TestAPICredentialsMethods(TestCase):
         self.assertEqual(creds['clientKey'], self.api.key)
         self.assertEqual('profile' in creds, True)
         self.assertEqual(creds['clientSecret'], self.api.secret)
-        self.assertEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServer)
+        self.assertEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServerAndVersion)
         self.assertEqual(creds['apiVersion'], self.api.version)
         self.assertEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertEqual(creds['accessToken'], self.api.getAccessToken())
@@ -1630,7 +1632,7 @@ class TestAPICredentialsMethods(TestCase):
         self.assertNotEqual(creds['clientKey'], self.api.key)
         self.assertNotEqual('profile' in creds, True)
         self.assertNotEqual(creds['clientSecret'], self.api.secret)
-        self.assertNotEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServer)
+        self.assertNotEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServerAndVersion)
         self.assertNotEqual(creds['apiVersion'], self.api.version)
         self.assertNotEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertNotEqual(creds['accessToken'], self.api.getAccessToken())
@@ -1847,21 +1849,38 @@ class TestAPIOAuthMethods(TestCase):
         with self.assertRaises(Exception):
             self.api.updatePrivileges('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')            
 
+class TestBaseSpaceAPIMethods(TestCase):
+    '''
+    Tests BaseSpace API constructor and attributes; all methods tested in other testcases
+    '''
+    def setUp(self):
+        self.api = BaseSpaceAPI(profile='unit_tests')        
+        
+    def test__init__(self):
+        creds = self.api._getLocalCredentials(profile='unit_tests')
+        self.assertEqual(creds['appSessionId'], self.api.appSessionId)
+        self.assertEqual(creds['clientKey'], self.api.key)
+        self.assertEqual(creds['clientSecret'], self.api.secret)
+        self.assertEqual(creds['apiServer'], self.api.apiServer)
+        self.assertEqual(creds['apiVersion'], self.api.version)
+        self.assertEqual(creds['name'], self.api.profile)
+        self.assertEqual(creds['apiServer'].replace('api.',''), self.api.weburl)
+
 class TestBaseAPIMethods(TestCase):
     '''
     Tests Base API methods
     '''
     def setUp(self):
         api = BaseSpaceAPI(profile='unit_tests')                                                    
-        self.bapi = BaseAPI(api.getAccessToken(), api.apiClient.apiServer)
+        self.bapi = BaseAPI(api.getAccessToken(), api.apiClient.apiServerAndVersion)
         
-    def testConstructor(self):
+    def test__init__(self):
         accessToken = "123"
-        apiServer = "http://api.tv"
+        apiServerAndVersion = "http://api.tv"
         timeout = 50
-        bapi = BaseAPI(accessToken, apiServer, timeout)
+        bapi = BaseAPI(accessToken, apiServerAndVersion, timeout)
         self.assertEqual(bapi.apiClient.apiKey, accessToken)
-        self.assertEqual(bapi.apiClient.apiServer, apiServer)
+        self.assertEqual(bapi.apiClient.apiServerAndVersion, apiServerAndVersion)
         self.assertEqual(bapi.apiClient.timeout, timeout)
 
     def test__singleRequest__(self):
@@ -1961,7 +1980,7 @@ class TestBaseAPIMethods(TestCase):
     def test__listRequest__ErrorResponseException(self):
         # Unauthorized - use nonsense acccess token
         api = BaseSpaceAPI(profile='unit_tests')                                                    
-        bapi = BaseAPI(AccessToken="123123123123123123", apiServer=api.apiClient.apiServer)
+        bapi = BaseAPI(AccessToken="123123123123123123", apiServerAndVersion=api.apiClient.apiServerAndVersion)
 
         resourcePath = '/users/current/uns'        
         method = 'GET'        
@@ -1983,7 +2002,7 @@ class TestBaseAPIMethods(TestCase):
         api = BaseSpaceAPI(profile='unit_tests')
         scope = 'browse project ' + tconst['project_id']
         postData = [('client_id', api.key), ('scope', scope),('response_type', 'device_code')]
-        resp = self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServer + deviceURL)        
+        resp = self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServerAndVersion + deviceURL)        
         self.assertTrue('device_code' in resp)
 
     @skip("Not sure how to test this, requires no response from api server")
@@ -1996,7 +2015,7 @@ class TestBaseAPIMethods(TestCase):
         scope = 'browse project ' + tconst['project_id']
         postData = [('client_id', 'gibberish'), ('scope', scope),('response_type', 'device_code')]
         with self.assertRaises(ServerResponseException):
-            self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServer + deviceURL)        
+            self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServerAndVersion + deviceURL)        
 
     def testGetTimeout(self):
         self.assertEqual(self.bapi.getTimeout(), 10)
@@ -2012,14 +2031,6 @@ class TestBaseAPIMethods(TestCase):
     def testSetAccessToken(self):
         self.bapi.setAccessToken("abc")
         self.assertEqual(self.bapi.getAccessToken(), "abc")
-        
-    def testGetServerUri(self):
-        api = BaseSpaceAPI(profile='unit_tests')
-        self.assertEqual(self.bapi.getServerUri(), api.apiClient.apiServer)                                                           
-        
-    def testSetServerUri(self):
-        self.bapi.setServerUri("http://test.tv")
-        self.assertEqual(self.bapi.getServerUri(), "http://test.tv")    
 
 class TestAPIClientMethods(TestCase):
     '''
@@ -2027,15 +2038,15 @@ class TestAPIClientMethods(TestCase):
     '''
     def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        self.apiClient = APIClient(self.api.apiClient.apiKey, self.api.apiClient.apiServer)                                                    
+        self.apiClient = APIClient(self.api.apiClient.apiKey, self.api.apiClient.apiServerAndVersion)                                                    
     
     def test__init__(self):
         accessToken = "abc"
-        apiServer = "http://basesinspaces.tv"
+        apiServerAndVersion = "http://basesinspaces.tv"
         timeout = 20
-        apiClient = APIClient(AccessToken=accessToken, apiServer=apiServer, timeout=timeout)
+        apiClient = APIClient(AccessToken=accessToken, apiServerAndVersion=apiServerAndVersion, timeout=timeout)
         self.assertEqual(accessToken, apiClient.apiKey)                                                    
-        self.assertEqual(apiServer, apiClient.apiServer)
+        self.assertEqual(apiServerAndVersion, apiClient.apiServerAndVersion)
         self.assertEqual(timeout, apiClient.timeout)
 
     def test__forcePostCall__(self):
@@ -2055,7 +2066,7 @@ class TestAPIClientMethods(TestCase):
         # normally added by callAPI()
         headerParams['Authorization'] = 'Bearer ' + self.apiClient.apiKey                                    
 
-        jsonResp = self.apiClient.__forcePostCall__(resourcePath=self.apiClient.apiServer + resourcePath, postData=queryParams, headers=headerParams)    
+        jsonResp = self.apiClient.__forcePostCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, postData=queryParams, headers=headerParams)    
         dictResp = json.loads(jsonResp)
         self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
         self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))        
@@ -2080,7 +2091,7 @@ class TestAPIClientMethods(TestCase):
         resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
         headerParams                 = {'Content-MD5': md5}
         transFile                    = tconst['file_small_upload']
-        putResp = self.apiClient.__putCall__(resourcePath=self.apiClient.apiServer + resourcePath, headers=headerParams, transFile=transFile)
+        putResp = self.apiClient.__putCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, headers=headerParams, transFile=transFile)
         #print "RESPONSE is: " + putResp        
         jsonResp =  putResp.split()[-1] # normally done in callAPI()
         dictResp = json.loads(jsonResp)
@@ -2419,7 +2430,8 @@ cred_genome_util_lists = TestSuite([
 oauth = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPIOAuthMethods), ])
 
-baseapi_apiclient = TestSuite([
+basespaceapi_baseapi_apiclient = TestSuite([
+    TestLoader().loadTestsFromTestCase(TestBaseSpaceAPIMethods),
     TestLoader().loadTestsFromTestCase(TestBaseAPIMethods),
     TestLoader().loadTestsFromTestCase(TestAPIClientMethods), ])
 
@@ -2438,13 +2450,13 @@ tests.extend([
                appsessions, 
                cred_genome_util_lists,
                cov_variant, 
-               baseapi_apiclient,
+               basespaceapi_baseapi_apiclient,
                billing_qppp,
             ])
 #tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
 tests.append(large_file_transfers) # these tests may take tens of minutes to complete
 
 # to test individual test cases: 
-#tests.append( TestLoader().loadTestsFromTestCase(TestAPIClientMethods) )
+#tests.append( TestLoader().loadTestsFromTestCase(TestBaseSpaceAPIMethods) )
 
 TextTestRunner(verbosity=2).run( TestSuite(tests) )

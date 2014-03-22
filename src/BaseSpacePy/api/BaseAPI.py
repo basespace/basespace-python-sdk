@@ -18,13 +18,13 @@ class BaseAPI(object):
     '''
     Parent class for BaseSpaceAPI and BillingAPI classes
     '''
-    def __init__(self, AccessToken, apiServer, timeout=10):
+    def __init__(self, AccessToken, apiServerAndVersion, timeout=10):
         '''
         :param AccessToken: the current access token
-        :param apiServer: the api server URL with api version
+        :param apiServerAndVersion: the api server URL with api version
         :param timeout: (optional) the timeout in seconds for each request made, default 10 
         '''
-        self.apiClient = APIClient(AccessToken, apiServer, timeout=timeout)
+        self.apiClient = APIClient(AccessToken, apiServerAndVersion, timeout=timeout)
 
     def __singleRequest__(self, myModel, resourcePath, method, queryParams, headerParams, postData=None, verbose=False, forcePost=False):
         '''
@@ -149,17 +149,3 @@ class BaseAPI(object):
         :param token: an access token
         '''
         self.apiClient.apiKey = token            
-
-    def getServerUri(self):
-        '''
-        Returns the server uri used by this instance
-        '''
-        return self.apiClient.apiServer
-
-    def setServerUri(self, apiServer):
-        '''
-        Sets the server uri used by this instance
-        
-        :param apiServer: the api server url with version
-        '''
-        self.apiClient.apiServer = apiServer 

@@ -17,16 +17,16 @@ from BaseSpacePy.api.BaseSpaceException import RestMethodException, ServerRespon
 
 
 class APIClient:
-    def __init__(self, AccessToken, apiServer, timeout=10):
+    def __init__(self, AccessToken, apiServerAndVersion, timeout=10):
         '''
         Initialize the API instance
         
         :param AccessToken: an access token
-        :param apiServer: the URL of the BaseSpace api server with api version
+        :param apiServerAndVersion: the URL of the BaseSpace api server with api version
         :param timeout: (optional) the timeout in seconds for each request made, default 10
         '''
         self.apiKey = AccessToken
-        self.apiServer = apiServer
+        self.apiServerAndVersion = apiServerAndVersion
         self.timeout = timeout
 
     def __forcePostCall__(self, resourcePath, postData, headers):
@@ -86,7 +86,7 @@ class APIClient:
         :raises ServerResponseException: for errors in parsing json response from server, and for urlerrors from the opening url
         :returns: Server response deserialized to a python object (dict)
         '''
-        url = self.apiServer + resourcePath
+        url = self.apiServerAndVersion + resourcePath
         headers = {}
         if headerParams:
             for param, value in headerParams.iteritems():
