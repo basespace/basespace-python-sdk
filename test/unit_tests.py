@@ -1766,7 +1766,7 @@ class TestQueryParametersMethods(TestCase):
             queryp.validate()
     
     def testValidateIllegalValueForKnownQpKeyException(self):
-        queryp = qp({'Extensions': 'abc'})        
+        queryp = qp({'SortBy': 'abc'})        
         with self.assertRaises(IllegalParameterException):
             queryp.validate()
 

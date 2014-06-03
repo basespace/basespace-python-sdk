@@ -3,8 +3,8 @@ from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException, Unkn
 
 legal = {'Statuses': [],
          'SortBy': ['Id', 'Name', 'DateCreated', 'Path', 'Position'],
-         'Format': ['txt', 'json', 'vcf'], 
-         'Extensions': ['bam', 'vcf'],
+         'Extensions': [],
+         #'Extensions': ['bam', 'vcf'],
          'Offset': [],
          'Limit': [],
          'SortDir': ['Asc', 'Desc'], 
@@ -12,6 +12,7 @@ legal = {'Statuses': [],
          'StartPos':[], 
          'EndPos':[], 
          'Format':[]
+         #'Format': ['txt', 'json', 'vcf'], 
          }
 
 class QueryParameters(object):
