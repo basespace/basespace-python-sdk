@@ -50,7 +50,6 @@ if clientKey:
 else:
     myAPI = BaseSpaceAPI(profile='DEFAULT')
     
-    
 # First, let's grab the genome with id=4
 myGenome    = myAPI.getGenomeById('4')
 print "\nThe Genome is " + str(myGenome)
@@ -68,7 +67,7 @@ user        = myAPI.getUserById('current')
 print "\nThe current user is \n" + str(user)
 
 # Now list the projects for this user
-myProjects   = myAPI.getProjectByUser('current')
+myProjects   = myAPI.getProjectByUser()
 print "\nThe projects for this user are \n" + str(myProjects)
 
 # We can also achieve this by making a call using the 'user instance'
