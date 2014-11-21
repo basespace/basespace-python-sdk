@@ -61,7 +61,7 @@ GETTING STARTED
 =========================================
 For most API calls, you will need credentials from an app. To create an app, go to the [BaseSpace developer portal](https://developer.basespace.illumina.com/) and create one. Naviagate to the Credentials tab of your app in the developer portal.
 
-You can 1) store your credentials in a config file or 2) provide them as arguments to methods. To use a config file, create a file in you home directory named '.basespacepy.cfg'. Make this file readable and writeable by only you ('chmod 600 ~/.basespacepy.cfg'). Then add the following content to the file, and add your app's credentials (appSessionId is not required for many methods):
+You can 1) store your credentials in a config file or 2) provide them as arguments to methods. To use a config file, create a file in your home directory named '.basespacepy.cfg'. Make this file readable and writeable by only you ('chmod 600 ~/.basespacepy.cfg'). Then add the following content to the file, and add your app's credentials (appSessionId is not required for many methods):
 
 	[DEFAULT]
 	name = my new app
