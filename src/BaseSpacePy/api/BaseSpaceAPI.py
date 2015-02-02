@@ -3,7 +3,6 @@ from pprint import pprint
 import urllib2
 import shutil
 import urllib
-import pycurl
 import httplib
 import cStringIO
 import json
@@ -199,6 +198,7 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used 
         :returns: An AppSession instance                
         '''
+        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
         if Id is None:
             Id = self.appSessionId
         if not Id:
@@ -206,13 +206,17 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'        
         resourcePath = resourcePath.replace('{AppSessionId}', Id)        
         response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, resourcePath)
-        c.setopt(pycurl.USERPWD, self.key + ":" + self.secret)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        resp_dict = json.loads(response.getvalue())        
+        # import pycurl
+        # c = pycurl.Curl()
+        # c.setopt(pycurl.URL, resourcePath)
+        # c.setopt(pycurl.USERPWD, self.key + ":" + self.secret)
+        # c.setopt(c.WRITEFUNCTION, response.write)
+        # c.perform()
+        # c.close()
+        # resp_dict = json.loads(response.getvalue())        
+        import requests
+        response = requests.get(resourcePath, auth=(self.key, self.secret))
+        resp_dict = json.loads(response.text)
         return self.__deserializeAppSessionResponse__(resp_dict) 
 
     def __deserializeAppSessionResponse__(self, response):
@@ -411,7 +415,17 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(ProjectResponse.ProjectResponse, 
             resourcePath, method, queryParams, headerParams, postData=postData,
             verbose=0)
-                
+
+    def launchApp(self, appId, configJson):
+        resourcePath            = '/applications/%s/appsessions' % appId
+        method                  = 'POST'
+        queryParams             = {}
+        headerParams            = { 'Content-Type' : "application/json" }
+        postData                = configJson
+        return self.__singleRequest__(AppLaunchResponse.AppLaunchResponse, 
+            resourcePath, method, queryParams, headerParams, postData=postData,
+            verbose=0)
+
     def getUserById(self, Id):
         '''
         Returns the User object corresponding to User Id

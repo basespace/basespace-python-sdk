@@ -4,7 +4,6 @@ import os
 import re
 import urllib
 import urllib2
-import pycurl
 import io
 import cStringIO
 import json
@@ -38,6 +37,8 @@ class APIClient:
         :param headers: a dictionary of header key/values to include in call
         :returns: server response (a string containing json)
         '''
+        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
+        import pycurl
         postData = [(p,postData[p]) for p in postData]
         headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
         post =  urllib.urlencode(postData)
