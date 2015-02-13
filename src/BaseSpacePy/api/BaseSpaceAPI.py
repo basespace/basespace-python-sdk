@@ -190,7 +190,7 @@ class BaseSpaceAPI(BaseAPI):
         '''            
         return self.getAppSession(Id=Id)
 
-    def getAppSession(self, Id=None):
+    def getAppSessionOld(self, Id=None):
         '''
         Get metadata about an AppSession.         
         Note that the client key and secret must match those of the AppSession's Application.    
@@ -218,6 +218,18 @@ class BaseSpaceAPI(BaseAPI):
         response = requests.get(resourcePath, auth=(self.key, self.secret))
         resp_dict = json.loads(response.text)
         return self.__deserializeAppSessionResponse__(resp_dict) 
+
+    def getAppSession(self, Id=None, queryPars=None):
+        if Id is None:
+            Id = self.appSessionId
+        if not Id:
+            raise AppSessionException("An AppSession Id is required")
+        resourcePath = '/appsessions/{AppSessionId}'        
+        resourcePath = resourcePath.replace('{AppSessionId}', Id)        
+        method = 'GET'
+        headerParams = {}
+        queryParams = {}
+        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
     def __deserializeAppSessionResponse__(self, response):
         '''
@@ -440,6 +452,20 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
            
+    def getAppResultFromAppSessionId(self, Id):
+        '''
+        Returns an AppResult object from an AppSession Id. 
+        Requires that there is exactly one AppResult, so the app must have finished
+
+        :param Id: The Id of the AppSession
+        :returns: An AppResult instance
+        '''
+        ars = self.getAppSessionPropertyByName(Id, 'Output.AppResults')
+        if len(ars.Items) != 1:
+            raise AppSessionException("App session: %s did not have exactly one AppResult" % Id)
+        appresult = ars.Items[0]
+        return appresult
+
     def getAppResultById(self, Id, queryPars=None):
         '''
         Returns an AppResult object corresponding to Id
@@ -499,6 +525,29 @@ class BaseSpaceAPI(BaseAPI):
         :returns: a list of File instances 
         '''
         return self.getAppResultFilesById(Id, queryPars)
+
+    def downloadAppResultFilesByExtension(self, Id, extension, localDir, queryPars=None):
+        '''
+        Convenience method to dowload all the files in an AppSession's AppResult that match a file extension
+        Uses fileDownload without in its simplest form - may need to be refined later.
+
+        :param Id: The AppSession Id
+        :param pattern: The regexp pattern to look for in the generated files
+        :param localDir: The local directory where files will be downloaded to
+        :param queryPars: the additional query parameters to pass into the appresult call (primarily to remove limits)
+        :returns a list of File instances
+        '''
+        appResult = self.getAppResultFromAppSessionId(Id)
+        appResultId = appResult.Content.Id
+        appResultFiles = self.getAppResultFiles(appResultId, queryPars)
+        allDownloads = []
+        for appResultFile in appResultFiles:
+            fileName = appResultFile.Name
+            if fileName.endswith(extension):
+                fileId = appResultFile.Id
+                download = self.fileDownload(fileId, localDir)
+                allDownloads.append(download)
+        return allDownloads
 
     def getProjectById(self, Id, queryPars=None):
         '''
@@ -1235,3 +1284,21 @@ class BaseSpaceAPI(BaseAPI):
         except AttributeError:                        
             raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         return queryPars.getParameterDict()        
+
+    def _dictionaryToProperties(rawProperties):
+        pass
+
+    def setResourceProperties(self, resourceType, resourceId, rawProperties):
+        '''
+        Pushes a set of properties into a BaseSpace resource:
+
+        https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties
+
+        :param resourceType: resource type for the property
+        :param resourceId: identifier for the resource
+        '''
+        PERMITTED_RESOURCE_TYPES = set([ "sample", "appresult", "run", "appsession", "project" ])
+        if resourceType not in PERMITTED_RESOURCE_TYPES:
+            raise UnknownParameterException(resourceType, PERMITTED_RESOURCE_TYPES)
+        resourcePath = '/%s/%s/properties' % (resourceType, resourceId)
+        

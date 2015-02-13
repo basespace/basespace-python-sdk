@@ -1,13 +1,4 @@
 
-# class AppLaunchResponse(object):
-
-#     def __init__(self):
-#         self.swaggerTypes = {
-#             'ResponseStatus': 'ResponseStatus',
-#             'Response': 'AppLaunch',
-#             'Notifications': 'list<Str>'
-#         }
-
 class AppLaunchResponse(object):
     '''
     Represents a BaseSpace AppLaunch object.
