@@ -27,6 +27,11 @@ tokenURL                   = '/oauthv2/token'
 deviceURL                  = "/oauthv2/deviceauthorization"
 webAuthorize               = '/oauth/authorize'
 
+# other constants
+# resource types permitted by the generic properties API:
+# https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties
+PROPERTY_RESOURCE_TYPES = set([ "samples", "appresults", "runs", "appsessions", "projects" ])
+
 
 class BaseSpaceAPI(BaseAPI):
     '''
@@ -452,17 +457,25 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
            
-    def getAppResultFromAppSessionId(self, Id):
+    def getAppResultFromAppSessionId(self, Id, appResultName=""):
         '''
         Returns an AppResult object from an AppSession Id. 
-        Requires that there is exactly one AppResult, so the app must have finished
+        if appResultName is supplied, look for an appresult with this name
+        otherwise, expect there to be exactly one appresult
 
         :param Id: The Id of the AppSession
+        :param appResultName: The name of the appresult to return
         :returns: An AppResult instance
         '''
         ars = self.getAppSessionPropertyByName(Id, 'Output.AppResults')
         if len(ars.Items) != 1:
-            raise AppSessionException("App session: %s did not have exactly one AppResult" % Id)
+            if appResultName:
+                for ar in ars.Items:
+                    if ar.Content.Name == appResultName:
+                        return ar
+                raise AppSessionException("App session: %s had more than on appresult without the specified %s" % (Id, appResultName))
+            else:
+                raise AppSessionException("App session: %s did not have exactly one AppResult" % Id)
         appresult = ars.Items[0]
         return appresult
 
@@ -526,7 +539,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         return self.getAppResultFilesById(Id, queryPars)
 
-    def downloadAppResultFilesByExtension(self, Id, extension, localDir, queryPars=None):
+    def downloadAppResultFilesByExtension(self, Id, extension, localDir, appResultName="", queryPars=None):
         '''
         Convenience method to dowload all the files in an AppSession's AppResult that match a file extension
         Uses fileDownload without in its simplest form - may need to be refined later.
@@ -537,7 +550,7 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: the additional query parameters to pass into the appresult call (primarily to remove limits)
         :returns a list of File instances
         '''
-        appResult = self.getAppResultFromAppSessionId(Id)
+        appResult = self.getAppResultFromAppSessionId(Id, appResultName)
         appResultId = appResult.Content.Id
         appResultFiles = self.getAppResultFiles(appResultId, queryPars)
         allDownloads = []
@@ -1101,6 +1114,7 @@ class BaseSpaceAPI(BaseAPI):
         :raises ByteRangeException: if the provided byte range is invalid
         :returns: a File instance                
         '''
+        max_retries = 5
         multipart_min_file_size = 5000000 # bytes
         if byteRange:
             try:
@@ -1120,7 +1134,16 @@ class BaseSpaceAPI(BaseAPI):
                 localDest = os.path.join(localDir, os.path.dirname(bsFile.Path))            
                 if not os.path.exists(localDest):
                     os.makedirs(localDest)            
-            self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
+            attempt = 0
+            while attempt < max_retries:
+                try:
+                    self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
+                    break
+                except Exception as e:
+                    logging.warn("download failed, retry attempt: %s" % (attempt+1))
+                    attempt += 1
+            if attempt == max_retries:
+                raise ServerResponseException("Max retries exceeded")
             return bsFile
         else:                        
             return self.multipartFileDownload(Id, localDir, createBsDir=createBsDir)
@@ -1285,10 +1308,38 @@ class BaseSpaceAPI(BaseAPI):
             raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         return queryPars.getParameterDict()        
 
-    def _dictionaryToProperties(rawProperties):
-        pass
+    def __dictionaryToProperties__(self, rawProperties, namespace):
+        '''
+        Turns a dictionary of properties into the right format to upload to BaseSpace
 
-    def setResourceProperties(self, resourceType, resourceId, rawProperties):
+        :param rawProperties: a key/value mapping of properties
+        :param namespace: a string to be used as a prefix to all property names
+
+        This only supports unnested properties at the moment, so therefore no lists or maps inside properties
+        The BaseSpace backend does support these, but inferring their structure is complicated
+        '''
+        LEGAL_KEY_TYPES = [str, int, float, bool]
+        propList = []
+        for key, value in rawProperties.iteritems():
+            if type(value) not in LEGAL_KEY_TYPES:
+                raise IllegalParameterException(type(value), LEGAL_KEY_TYPES)
+            propName = "%s.%s" % (namespace, key)
+            propType = "String"
+            propDescription = ""
+            # every property in BaseSpace is a string
+            propValue = str(value)
+            thisProp = {
+                "Type" : propType,
+                "Name" : propName,
+                "Description" : propDescription,
+                "Content" : propValue
+            }
+            propList.append(thisProp)
+        return {
+            "Properties" : propList
+        }
+
+    def setResourceProperties(self, resourceType, resourceId, rawProperties, namespace="apiset"):
         '''
         Pushes a set of properties into a BaseSpace resource:
 
@@ -1296,9 +1347,44 @@ class BaseSpaceAPI(BaseAPI):
 
         :param resourceType: resource type for the property
         :param resourceId: identifier for the resource
+        :param rawProperties: a key/value dictionary (no nesting!) of properties to set
+        :param namespace: the prefix to be used for property names
         '''
-        PERMITTED_RESOURCE_TYPES = set([ "sample", "appresult", "run", "appsession", "project" ])
-        if resourceType not in PERMITTED_RESOURCE_TYPES:
-            raise UnknownParameterException(resourceType, PERMITTED_RESOURCE_TYPES)
+        if resourceType not in PROPERTY_RESOURCE_TYPES:
+            raise IllegalParameterException(resourceType, PROPERTY_RESOURCE_TYPES)
         resourcePath = '/%s/%s/properties' % (resourceType, resourceId)
+        method = 'POST'
+        postData = self.__dictionaryToProperties__(rawProperties, namespace)
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, 
+                                queryParams, headerParams, postData=postData, verbose=0)
+
+
+    def getResourceProperties(self, resourceType, resourceId):
+        '''
+        Gets the properties for an arbitrary resource:
+
+        https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties   
         
+        :param resourceType: resource type for the property
+
+        Because of this generic treatment of properties (which is fairly new in BaseSpace)
+        we could probably factor away these SDK methods:
+            getAppSessionPropertiesById()
+            getAppResultPropertiesById()
+            getProjectPropertiesById()
+            getRunPropertiesById()
+            getSamplePropertiesById()
+
+        but not this one, because files are not generic yet:
+            getFilePropertiesById()
+
+        '''
+        if resourceType not in PROPERTY_RESOURCE_TYPES:
+            raise UnknownParameterException(resourceType, PROPERTY_RESOURCE_TYPES)
+        resourcePath = '/%s/%s/properties' % (resourceType, resourceId)
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
