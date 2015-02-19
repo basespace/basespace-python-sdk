@@ -22,7 +22,7 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 # Dependencies:
 # 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com; there should also be a 'DEFALT' profile in the config file
 # 2. Import the following data from Public Data on cloud-hoth.illumina.com:
-#    from Public Dataset 'B. cereus': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
+#    from Public Dataset 'MiSeq B. cereus demo data': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
 #
 # Note that large file upload download tests may take minutes each to complete, and oauth tests will open web browsers.
 
