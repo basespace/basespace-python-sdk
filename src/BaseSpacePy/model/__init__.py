@@ -29,7 +29,6 @@ __all__= [
  'AppResult',
  'AppSessionLaunchObject',
  'Application',
- 'AppLaunch',
  'Purchase',
  'PurchaseResponse',
  'Product',

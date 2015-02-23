@@ -12,6 +12,7 @@ from tempfile import mkdtemp
 import socket
 import ConfigParser
 import urlparse
+import logging
 #import requests
 
 from BaseSpacePy.api.APIClient import APIClient
