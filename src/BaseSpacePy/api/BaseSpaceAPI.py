@@ -12,7 +12,7 @@ from tempfile import mkdtemp
 import socket
 import ConfigParser
 import urlparse
-#import requests
+import logging
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
@@ -986,7 +986,26 @@ class BaseSpaceAPI(BaseAPI):
             return self.multipartFileUpload(Id, localPath, fileName, directory, contentType)
         else:
             return self.__singlepartFileUpload__(Id, localPath, fileName, directory, contentType)        
-        
+
+    def sampleFileUpload(self, Id, localPath, fileName, directory, contentType):
+        '''
+        Uploads a file associated with a Sample to BaseSpace and returns the corresponding file object.
+        Small files are uploaded with a single-part upload method, while larger files (< 25 MB) are uploaded
+        with multipart upload.
+
+        :param Id: Sample id.
+        :param localPath: The local path to the file to be uploaded, including file name.
+        :param fileName: The desired filename in the Sample folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
+        :returns: a newly created File instance
+        '''
+        multipart_min_file_size = 25000000 # bytes
+        if os.path.getsize(localPath) > multipart_min_file_size:
+            return self.multipartFileUploadSample(Id, localPath, fileName, directory, contentType)
+        else:
+            return self.__singlepartFileUploadSample__(Id, localPath, fileName, directory, contentType)
+
     def __singlepartFileUpload__(self, Id, localPath, fileName, directory, contentType):
         '''
         Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
@@ -1011,6 +1030,29 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
             queryParams, headerParams, postData=postData, verbose=0)
             
+    def __singlepartFileUploadSample__(self, Id, localPath, fileName, directory, contentType):
+        '''
+        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
+        Intended for small files -- reads whole file into memory prior to upload.
+
+        :param Id: AppResult id.
+        :param localPath: The local path to the file to be uploaded, including file name.
+        :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file.
+        :returns: a newly created File instance
+        '''
+        method                       = 'POST'
+        resourcePath                 = '/samples/{Id}/files'
+        resourcePath                 = resourcePath.replace('{Id}', Id)
+        queryParams                  = {}
+        queryParams['name']          = fileName
+        queryParams['directory']     = directory
+        headerParams                 = {}
+        headerParams['Content-Type'] = contentType
+        postData                     = open(localPath).read()
+        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
+            queryParams, headerParams, postData=postData, verbose=0)
 
     def __initiateMultipartFileUpload__(self, Id, fileName, directory, contentType):
         '''
@@ -1037,6 +1079,31 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method,\
                                   queryParams, headerParams, postData=postData, verbose=0, forcePost=1)                    
                
+    def __initiateMultipartFileUploadSample__(self, Id, fileName, directory, contentType):
+        '''
+        Initiates multipart upload of a file to an AppResult in BaseSpace (does not actually upload file).
+
+        :param Id: Sample id number.
+        :param fileName: The desired filename in the Sample folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
+        :returns: A newly created File instance
+        '''
+        resourcePath = '/samples/{Id}/files'
+        method                       = 'POST'
+        resourcePath                 = resourcePath.replace('{Id}', Id)
+        queryParams                  = {}
+        queryParams['name']          = fileName
+        queryParams['directory']     = directory
+        headerParams                 = {}
+        headerParams['Content-Type'] = contentType
+
+        queryParams['multipart']     = 'true'
+        postData                     = None
+        # Set force post as this need to use POST though no data is being streamed
+        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method,\
+                                  queryParams, headerParams, postData=postData, verbose=0, forcePost=1)
+
     def __uploadMultipartUnit__(self, Id, partNumber, md5, data):
         '''
         Uploads file part for multipart upload
@@ -1095,6 +1162,29 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
         return myMpu.upload()                
 
+    def multipartFileUploadSample(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
+        '''
+        Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
+
+        :param Id: The Sample ID number
+        :param localPath: The local path of the file to upload, including file name; local path will not be stored in BaseSpace (use directory argument for this)
+        :param fileName: The desired filename on the server
+        :param directory: The desired directory name on the server (empty string will place it in the root directory)
+        :param contentType: The content type of the file
+        :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
+        :param processCount: (optional) The number of processes to be used, default 10
+        :param partSize: (optional) The size in MB of individual upload parts (must be >5 Mb and <=25 Mb), default 25
+        :returns: a File instance, which has been updated after the upload has completed.
+        '''
+        # First create file object in BaseSpace, then create multipart upload object and start upload
+        if partSize <= 5 or partSize > 25:
+            raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
+        if tempDir is None:
+            tempDir = mkdtemp()
+        bsFile = self.__initiateMultipartFileUploadSample__(Id, fileName, directory, contentType)
+        myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)
+        return myMpu.upload()
+
     def fileDownload(self, Id, localDir, byteRange=None, createBsDir=False):
         '''
         Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
@@ -1140,7 +1230,7 @@ class BaseSpaceAPI(BaseAPI):
                     self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
                     break
                 except Exception as e:
-                    logging.warn("download failed, retry attempt: %s" % (attempt+1))
+                    logging.warn("download failed (%s), retry attempt: %s" % (str(e), attempt+1))
                     attempt += 1
             if attempt == max_retries:
                 raise ServerResponseException("Max retries exceeded")

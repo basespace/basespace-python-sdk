@@ -37,21 +37,25 @@ class APIClient:
         :param headers: a dictionary of header key/values to include in call
         :returns: server response (a string containing json)
         '''
+        import requests
         # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
-        import pycurl
-        postData = [(p,postData[p]) for p in postData]
-        headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
-        post =  urllib.urlencode(postData)
-        response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL,resourcePath + '?' + post)
-        c.setopt(pycurl.HTTPHEADER, headerPrep)
-        c.setopt(pycurl.POST, 1)
-        c.setopt(pycurl.POSTFIELDS, post)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        return response.getvalue()
+        # import pycurl
+        # postData = [(p,postData[p]) for p in postData]
+        # headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
+        # response = cStringIO.StringIO()
+        # c = pycurl.Curl()
+        # c.setopt(pycurl.URL,resourcePath + '?' + post)
+        # c.setopt(pycurl.HTTPHEADER, headerPrep)
+        # c.setopt(pycurl.POST, 1)
+        # c.setopt(pycurl.POSTFIELDS, post)
+        # c.setopt(c.WRITEFUNCTION, response.write)
+        # c.perform()
+        # c.close()
+        # return response.getvalue()
+        encodedPost =  urllib.urlencode(postData)
+        resourcePath = "%s?%s" % (resourcePath, encodedPost)
+        response = requests.post(resourcePath, data=json.dumps(postData), headers=headers)
+        return response.text
 
     def __putCall__(self, resourcePath, headers, transFile):
         '''
