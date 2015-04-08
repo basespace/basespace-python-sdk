@@ -198,7 +198,9 @@ class APIClient:
                     try:
                         model_name = instance._dynamicType[value['Type']]                
                     except KeyError:
-                        warn("Warning - unrecognized dynamic type")                                                                                    
+                        pass
+                        # suppress this warning, which is caused by a bug in BaseSpace
+                        #warn("Warning - unrecognized dynamic type")                                                                                    
                     else:
                         setattr(instance, attr, self.deserialize(value, model_name))
                 elif 'list<' in attrType:
@@ -212,7 +214,9 @@ class APIClient:
                             try:
                                 new_type = instance._dynamicType[subValue['Type']]                                
                             except KeyError:
-                                warn("Warning - unrecognized (list of) dynamic types")                                
+                                pass 
+                                # suppress this warning, which is caused by a bug in BaseSpace
+                                #warn("Warning - unrecognized (list of) dynamic types")                                
                             else:
                                 subValues.append(self.deserialize(subValue, new_type)) 
                         setattr(instance, attr, subValues)
