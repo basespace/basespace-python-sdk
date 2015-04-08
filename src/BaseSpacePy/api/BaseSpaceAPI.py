@@ -1226,6 +1226,7 @@ class BaseSpaceAPI(BaseAPI):
                     os.makedirs(localDest)            
             attempt = 0
             while attempt < max_retries:
+                logging.debug("starting download attempt: %s" % attempt)
                 try:
                     self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
                     break
@@ -1414,7 +1415,7 @@ class BaseSpaceAPI(BaseAPI):
             if type(value) not in LEGAL_KEY_TYPES:
                 raise IllegalParameterException(type(value), LEGAL_KEY_TYPES)
             propName = "%s.%s" % (namespace, key)
-            propType = "String"
+            propType = "string"
             propDescription = ""
             # every property in BaseSpace is a string
             propValue = str(value)
