@@ -4,7 +4,6 @@ import os
 import re
 import urllib
 import urllib2
-import pycurl
 import io
 import cStringIO
 import json
@@ -38,19 +37,25 @@ class APIClient:
         :param headers: a dictionary of header key/values to include in call
         :returns: server response (a string containing json)
         '''
-        postData = [(p,postData[p]) for p in postData]
-        headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
-        post =  urllib.urlencode(postData)
-        response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL,resourcePath + '?' + post)
-        c.setopt(pycurl.HTTPHEADER, headerPrep)
-        c.setopt(pycurl.POST, 1)
-        c.setopt(pycurl.POSTFIELDS, post)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        return response.getvalue()
+        import requests
+        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
+        # import pycurl
+        # postData = [(p,postData[p]) for p in postData]
+        # headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
+        # response = cStringIO.StringIO()
+        # c = pycurl.Curl()
+        # c.setopt(pycurl.URL,resourcePath + '?' + post)
+        # c.setopt(pycurl.HTTPHEADER, headerPrep)
+        # c.setopt(pycurl.POST, 1)
+        # c.setopt(pycurl.POSTFIELDS, post)
+        # c.setopt(c.WRITEFUNCTION, response.write)
+        # c.perform()
+        # c.close()
+        # return response.getvalue()
+        encodedPost =  urllib.urlencode(postData)
+        resourcePath = "%s?%s" % (resourcePath, encodedPost)
+        response = requests.post(resourcePath, data=json.dumps(postData), headers=headers)
+        return response.text
 
     def __putCall__(self, resourcePath, headers, transFile):
         '''
@@ -193,7 +198,9 @@ class APIClient:
                     try:
                         model_name = instance._dynamicType[value['Type']]                
                     except KeyError:
-                        warn("Warning - unrecognized dynamic type: " + value['Type'])                                                                                    
+                        pass
+                        # suppress this warning, which is caused by a bug in BaseSpace
+                        #warn("Warning - unrecognized dynamic type")                                                                                    
                     else:
                         setattr(instance, attr, self.deserialize(value, model_name))
                 elif 'list<' in attrType:
@@ -207,7 +214,9 @@ class APIClient:
                             try:
                                 new_type = instance._dynamicType[subValue['Type']]                                
                             except KeyError:
-                                warn("Warning - unrecognized (list of) dynamic types: " + subValue['Type'])                                
+                                pass 
+                                # suppress this warning, which is caused by a bug in BaseSpace
+                                #warn("Warning - unrecognized (list of) dynamic types")                                
                             else:
                                 subValues.append(self.deserialize(subValue, new_type)) 
                         setattr(instance, attr, subValues)

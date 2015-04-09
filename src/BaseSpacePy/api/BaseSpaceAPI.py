@@ -3,7 +3,6 @@ from pprint import pprint
 import urllib2
 import shutil
 import urllib
-import pycurl
 import httplib
 import cStringIO
 import json
@@ -13,7 +12,7 @@ from tempfile import mkdtemp
 import socket
 import ConfigParser
 import urlparse
-#import requests
+import logging
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
@@ -27,6 +26,11 @@ from BaseSpacePy.model import *
 tokenURL                   = '/oauthv2/token'
 deviceURL                  = "/oauthv2/deviceauthorization"
 webAuthorize               = '/oauth/authorize'
+
+# other constants
+# resource types permitted by the generic properties API:
+# https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties
+PROPERTY_RESOURCE_TYPES = set([ "samples", "appresults", "runs", "appsessions", "projects" ])
 
 
 class BaseSpaceAPI(BaseAPI):
@@ -191,7 +195,7 @@ class BaseSpaceAPI(BaseAPI):
         '''            
         return self.getAppSession(Id=Id)
 
-    def getAppSession(self, Id=None):
+    def getAppSessionOld(self, Id=None):
         '''
         Get metadata about an AppSession.         
         Note that the client key and secret must match those of the AppSession's Application.    
@@ -199,6 +203,7 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used 
         :returns: An AppSession instance                
         '''
+        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
         if Id is None:
             Id = self.appSessionId
         if not Id:
@@ -206,14 +211,30 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'        
         resourcePath = resourcePath.replace('{AppSessionId}', Id)        
         response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, resourcePath)
-        c.setopt(pycurl.USERPWD, self.key + ":" + self.secret)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        resp_dict = json.loads(response.getvalue())        
+        # import pycurl
+        # c = pycurl.Curl()
+        # c.setopt(pycurl.URL, resourcePath)
+        # c.setopt(pycurl.USERPWD, self.key + ":" + self.secret)
+        # c.setopt(c.WRITEFUNCTION, response.write)
+        # c.perform()
+        # c.close()
+        # resp_dict = json.loads(response.getvalue())        
+        import requests
+        response = requests.get(resourcePath, auth=(self.key, self.secret))
+        resp_dict = json.loads(response.text)
         return self.__deserializeAppSessionResponse__(resp_dict) 
+
+    def getAppSession(self, Id=None, queryPars=None):
+        if Id is None:
+            Id = self.appSessionId
+        if not Id:
+            raise AppSessionException("An AppSession Id is required")
+        resourcePath = '/appsessions/{AppSessionId}'        
+        resourcePath = resourcePath.replace('{AppSessionId}', Id)        
+        method = 'GET'
+        headerParams = {}
+        queryParams = {}
+        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams, verbose=0)
 
     def __deserializeAppSessionResponse__(self, response):
         '''
@@ -411,7 +432,17 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(ProjectResponse.ProjectResponse, 
             resourcePath, method, queryParams, headerParams, postData=postData,
             verbose=0)
-                
+
+    def launchApp(self, appId, configJson):
+        resourcePath            = '/applications/%s/appsessions' % appId
+        method                  = 'POST'
+        queryParams             = {}
+        headerParams            = { 'Content-Type' : "application/json" }
+        postData                = configJson
+        return self.__singleRequest__(AppLaunchResponse.AppLaunchResponse, 
+            resourcePath, method, queryParams, headerParams, postData=postData,
+            verbose=0)
+
     def getUserById(self, Id):
         '''
         Returns the User object corresponding to User Id
@@ -426,6 +457,28 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
            
+    def getAppResultFromAppSessionId(self, Id, appResultName=""):
+        '''
+        Returns an AppResult object from an AppSession Id. 
+        if appResultName is supplied, look for an appresult with this name
+        otherwise, expect there to be exactly one appresult
+
+        :param Id: The Id of the AppSession
+        :param appResultName: The name of the appresult to return
+        :returns: An AppResult instance
+        '''
+        ars = self.getAppSessionPropertyByName(Id, 'Output.AppResults')
+        if len(ars.Items) != 1:
+            if appResultName:
+                for ar in ars.Items:
+                    if ar.Content.Name == appResultName:
+                        return ar
+                raise AppSessionException("App session: %s had more than on appresult without the specified %s" % (Id, appResultName))
+            else:
+                raise AppSessionException("App session: %s did not have exactly one AppResult" % Id)
+        appresult = ars.Items[0]
+        return appresult
+
     def getAppResultById(self, Id, queryPars=None):
         '''
         Returns an AppResult object corresponding to Id
@@ -485,6 +538,29 @@ class BaseSpaceAPI(BaseAPI):
         :returns: a list of File instances 
         '''
         return self.getAppResultFilesById(Id, queryPars)
+
+    def downloadAppResultFilesByExtension(self, Id, extension, localDir, appResultName="", queryPars=None):
+        '''
+        Convenience method to dowload all the files in an AppSession's AppResult that match a file extension
+        Uses fileDownload without in its simplest form - may need to be refined later.
+
+        :param Id: The AppSession Id
+        :param pattern: The regexp pattern to look for in the generated files
+        :param localDir: The local directory where files will be downloaded to
+        :param queryPars: the additional query parameters to pass into the appresult call (primarily to remove limits)
+        :returns a list of File instances
+        '''
+        appResult = self.getAppResultFromAppSessionId(Id, appResultName)
+        appResultId = appResult.Content.Id
+        appResultFiles = self.getAppResultFiles(appResultId, queryPars)
+        allDownloads = []
+        for appResultFile in appResultFiles:
+            fileName = appResultFile.Name
+            if fileName.endswith(extension):
+                fileId = appResultFile.Id
+                download = self.fileDownload(fileId, localDir)
+                allDownloads.append(download)
+        return allDownloads
 
     def getProjectById(self, Id, queryPars=None):
         '''
@@ -910,7 +986,26 @@ class BaseSpaceAPI(BaseAPI):
             return self.multipartFileUpload(Id, localPath, fileName, directory, contentType)
         else:
             return self.__singlepartFileUpload__(Id, localPath, fileName, directory, contentType)        
-        
+
+    def sampleFileUpload(self, Id, localPath, fileName, directory, contentType):
+        '''
+        Uploads a file associated with a Sample to BaseSpace and returns the corresponding file object.
+        Small files are uploaded with a single-part upload method, while larger files (< 25 MB) are uploaded
+        with multipart upload.
+
+        :param Id: Sample id.
+        :param localPath: The local path to the file to be uploaded, including file name.
+        :param fileName: The desired filename in the Sample folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
+        :returns: a newly created File instance
+        '''
+        multipart_min_file_size = 25000000 # bytes
+        if os.path.getsize(localPath) > multipart_min_file_size:
+            return self.multipartFileUploadSample(Id, localPath, fileName, directory, contentType)
+        else:
+            return self.__singlepartFileUploadSample__(Id, localPath, fileName, directory, contentType)
+
     def __singlepartFileUpload__(self, Id, localPath, fileName, directory, contentType):
         '''
         Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
@@ -935,6 +1030,29 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
             queryParams, headerParams, postData=postData, verbose=0)
             
+    def __singlepartFileUploadSample__(self, Id, localPath, fileName, directory, contentType):
+        '''
+        Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
+        Intended for small files -- reads whole file into memory prior to upload.
+
+        :param Id: AppResult id.
+        :param localPath: The local path to the file to be uploaded, including file name.
+        :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file.
+        :returns: a newly created File instance
+        '''
+        method                       = 'POST'
+        resourcePath                 = '/samples/{Id}/files'
+        resourcePath                 = resourcePath.replace('{Id}', Id)
+        queryParams                  = {}
+        queryParams['name']          = fileName
+        queryParams['directory']     = directory
+        headerParams                 = {}
+        headerParams['Content-Type'] = contentType
+        postData                     = open(localPath).read()
+        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
+            queryParams, headerParams, postData=postData, verbose=0)
 
     def __initiateMultipartFileUpload__(self, Id, fileName, directory, contentType):
         '''
@@ -961,6 +1079,31 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method,\
                                   queryParams, headerParams, postData=postData, verbose=0, forcePost=1)                    
                
+    def __initiateMultipartFileUploadSample__(self, Id, fileName, directory, contentType):
+        '''
+        Initiates multipart upload of a file to an AppResult in BaseSpace (does not actually upload file).
+
+        :param Id: Sample id number.
+        :param fileName: The desired filename in the Sample folder on the BaseSpace server.
+        :param directory: The directory the file should be placed in on the BaseSpace server.
+        :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
+        :returns: A newly created File instance
+        '''
+        resourcePath = '/samples/{Id}/files'
+        method                       = 'POST'
+        resourcePath                 = resourcePath.replace('{Id}', Id)
+        queryParams                  = {}
+        queryParams['name']          = fileName
+        queryParams['directory']     = directory
+        headerParams                 = {}
+        headerParams['Content-Type'] = contentType
+
+        queryParams['multipart']     = 'true'
+        postData                     = None
+        # Set force post as this need to use POST though no data is being streamed
+        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method,\
+                                  queryParams, headerParams, postData=postData, verbose=0, forcePost=1)
+
     def __uploadMultipartUnit__(self, Id, partNumber, md5, data):
         '''
         Uploads file part for multipart upload
@@ -1019,6 +1162,29 @@ class BaseSpaceAPI(BaseAPI):
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
         return myMpu.upload()                
 
+    def multipartFileUploadSample(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
+        '''
+        Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
+
+        :param Id: The Sample ID number
+        :param localPath: The local path of the file to upload, including file name; local path will not be stored in BaseSpace (use directory argument for this)
+        :param fileName: The desired filename on the server
+        :param directory: The desired directory name on the server (empty string will place it in the root directory)
+        :param contentType: The content type of the file
+        :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
+        :param processCount: (optional) The number of processes to be used, default 10
+        :param partSize: (optional) The size in MB of individual upload parts (must be >5 Mb and <=25 Mb), default 25
+        :returns: a File instance, which has been updated after the upload has completed.
+        '''
+        # First create file object in BaseSpace, then create multipart upload object and start upload
+        if partSize <= 5 or partSize > 25:
+            raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
+        if tempDir is None:
+            tempDir = mkdtemp()
+        bsFile = self.__initiateMultipartFileUploadSample__(Id, fileName, directory, contentType)
+        myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)
+        return myMpu.upload()
+
     def fileDownload(self, Id, localDir, byteRange=None, createBsDir=False):
         '''
         Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
@@ -1038,6 +1204,7 @@ class BaseSpaceAPI(BaseAPI):
         :raises ByteRangeException: if the provided byte range is invalid
         :returns: a File instance                
         '''
+        max_retries = 5
         multipart_min_file_size = 5000000 # bytes
         if byteRange:
             try:
@@ -1057,7 +1224,17 @@ class BaseSpaceAPI(BaseAPI):
                 localDest = os.path.join(localDir, os.path.dirname(bsFile.Path))            
                 if not os.path.exists(localDest):
                     os.makedirs(localDest)            
-            self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
+            attempt = 0
+            while attempt < max_retries:
+                logging.debug("starting download attempt: %s" % attempt)
+                try:
+                    self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
+                    break
+                except Exception as e:
+                    logging.warn("download failed (%s), retry attempt: %s" % (str(e), attempt+1))
+                    attempt += 1
+            if attempt == max_retries:
+                raise ServerResponseException("Max retries exceeded")
             return bsFile
         else:                        
             return self.multipartFileDownload(Id, localDir, createBsDir=createBsDir)
@@ -1221,3 +1398,84 @@ class BaseSpaceAPI(BaseAPI):
         except AttributeError:                        
             raise QueryParameterException("Query parameter argument must be a QueryParameter object")
         return queryPars.getParameterDict()        
+
+    def __dictionaryToProperties__(self, rawProperties, namespace):
+        '''
+        Turns a dictionary of properties into the right format to upload to BaseSpace
+
+        :param rawProperties: a key/value mapping of properties
+        :param namespace: a string to be used as a prefix to all property names
+
+        This only supports unnested properties at the moment, so therefore no lists or maps inside properties
+        The BaseSpace backend does support these, but inferring their structure is complicated
+        '''
+        LEGAL_KEY_TYPES = [str, int, float, bool]
+        propList = []
+        for key, value in rawProperties.iteritems():
+            if type(value) not in LEGAL_KEY_TYPES:
+                raise IllegalParameterException(type(value), LEGAL_KEY_TYPES)
+            propName = "%s.%s" % (namespace, key)
+            propType = "string"
+            propDescription = ""
+            # every property in BaseSpace is a string
+            propValue = str(value)
+            thisProp = {
+                "Type" : propType,
+                "Name" : propName,
+                "Description" : propDescription,
+                "Content" : propValue
+            }
+            propList.append(thisProp)
+        return {
+            "Properties" : propList
+        }
+
+    def setResourceProperties(self, resourceType, resourceId, rawProperties, namespace="apiset"):
+        '''
+        Pushes a set of properties into a BaseSpace resource:
+
+        https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties
+
+        :param resourceType: resource type for the property
+        :param resourceId: identifier for the resource
+        :param rawProperties: a key/value dictionary (no nesting!) of properties to set
+        :param namespace: the prefix to be used for property names
+        '''
+        if resourceType not in PROPERTY_RESOURCE_TYPES:
+            raise IllegalParameterException(resourceType, PROPERTY_RESOURCE_TYPES)
+        resourcePath = '/%s/%s/properties' % (resourceType, resourceId)
+        method = 'POST'
+        postData = self.__dictionaryToProperties__(rawProperties, namespace)
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, 
+                                queryParams, headerParams, postData=postData, verbose=0)
+
+
+    def getResourceProperties(self, resourceType, resourceId):
+        '''
+        Gets the properties for an arbitrary resource:
+
+        https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties   
+        
+        :param resourceType: resource type for the property
+
+        Because of this generic treatment of properties (which is fairly new in BaseSpace)
+        we could probably factor away these SDK methods:
+            getAppSessionPropertiesById()
+            getAppResultPropertiesById()
+            getProjectPropertiesById()
+            getRunPropertiesById()
+            getSamplePropertiesById()
+
+        but not this one, because files are not generic yet:
+            getFilePropertiesById()
+
+        '''
+        if resourceType not in PROPERTY_RESOURCE_TYPES:
+            raise UnknownParameterException(resourceType, PROPERTY_RESOURCE_TYPES)
+        resourcePath = '/%s/%s/properties' % (resourceType, resourceId)
+        method = 'GET'
+        queryParams = {}
+        headerParams = {}
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)

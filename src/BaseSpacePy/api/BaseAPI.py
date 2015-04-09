@@ -3,7 +3,6 @@ from pprint import pprint
 import urllib2
 import shutil
 import urllib
-import pycurl
 import httplib
 import cStringIO
 import json
@@ -54,13 +53,19 @@ class BaseAPI(object):
             pprint(response)
         if not response: 
             raise ServerResponseException('No response returned')                
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
-        elif response['ResponseStatus'].has_key('Message'):
-            raise ServerResponseException(str(response['ResponseStatus']['Message']))
+        if response.has_key('ResponseStatus'):
+            if response['ResponseStatus'].has_key('ErrorCode'):
+                raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
+            elif response['ResponseStatus'].has_key('Message'):
+                raise ServerResponseException(str(response['ResponseStatus']['Message']))
+        elif response.has_key('ErrorCode'):
+            raise ServerResponseException(response["MessageFormatted"])
                  
         responseObject = self.apiClient.deserialize(response, myModel)
-        return responseObject.Response
+        if hasattr(responseObject, "Response"):
+            return responseObject.Response
+        else:
+            return responseObject
 
     def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams, verbose=False):
         '''
@@ -105,6 +110,8 @@ class BaseAPI(object):
         :raises ServerResponseException: if server returns an error or has no response
         :returns: dictionary of api server response
         '''
+        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
+        import pycurl
         post = urllib.urlencode(data)
         response = cStringIO.StringIO()
         c = pycurl.Curl()

@@ -10,6 +10,7 @@ __all__= [
  'ProjectResponse',
  'CoverageMetaResponse',
  'Coverage',
+ 'AppLaunchResponse',
  'AppResultResponse',
  'UserResponse',
  'QueryParameters',

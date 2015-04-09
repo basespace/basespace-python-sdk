@@ -43,7 +43,7 @@ class ByteRangeException(Exception):
     
 class MultiProcessingTaskFailedException(Exception):
     def __init__(self, value):
-        self.parameter = 'Multiprocessing task failed failed: ' + value
+        self.parameter = 'Multiprocessing task failed: ' + value
     def __str__(self):
         return repr(self.parameter)
 

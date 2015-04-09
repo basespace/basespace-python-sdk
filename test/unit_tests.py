@@ -39,7 +39,8 @@ tconst = {
            'file_large_upload_size': 57995799,
            'file_small_upload_content_type' : 'text/plain',
            'file_large_upload_content_type' : 'application/octet-stream',
-           'file_small_upload_md5' : 'ff88b8bdbb86f219d19a22a3a0795429',
+           'file_small_upload_md5' : '2145401ac1bb1ca2ba1b3a382c9c67d0',
+           #'file_small_upload_md5' : 'ff88b8bdbb86f219d19a22a3a0795429',
            'file_large_upload_md5' : '9267236a2d870da1d4cb73868bb51b35',
            'create_project_name': 'Python SDK Unit Test Data',
            # for runs, genomes, projects, samples, appresults
@@ -1998,6 +1999,7 @@ class TestBaseAPIMethods(TestCase):
         with self.assertRaises(ServerResponseException):
             self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
 
+    @skip("Don't need to test curl itself if we can achieve the functionality we need without direct curls")
     def test__makeCurlRequest__(self):
         api = BaseSpaceAPI(profile='unit_tests')
         scope = 'browse project ' + tconst['project_id']
@@ -2009,6 +2011,7 @@ class TestBaseAPIMethods(TestCase):
     def test__makeCurlRequest__NoneResponseException(self):
         pass
 
+    @skip("Don't need to test curl itself if we can achieve the functionality we need without direct curls")
     def test__makeCurlRequest__ServerErrorException(self):
         # gibberish client id causes server error
         api = BaseSpaceAPI(profile='unit_tests')
@@ -2439,7 +2442,6 @@ billing_qppp = TestSuite([
     TestLoader().loadTestsFromTestCase(TestBillingAPIMethods),                          
     TestLoader().loadTestsFromTestCase(TestQueryParameterPurchasedProductMethods), ])
                           
-
 tests = []
 
 # to test all test cases:
@@ -2459,4 +2461,6 @@ tests.append(large_file_transfers) # these tests may take tens of minutes to com
 # to test individual test cases: 
 #tests.append( TestLoader().loadTestsFromTestCase(TestBaseSpaceAPIMethods) )
 
-TextTestRunner(verbosity=2).run( TestSuite(tests) )
+
+if __name__ == "__main__":
+    TextTestRunner(verbosity=2).run( TestSuite(tests) )
