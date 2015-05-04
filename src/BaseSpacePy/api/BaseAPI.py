@@ -46,7 +46,9 @@ class BaseAPI(object):
             print '    # Path: ' + str(resourcePath)
             print '    # QPars: ' + str(queryParams)
             print '    # Hdrs: ' + str(headerParams)
-            print '    # forcePost: ' + str(forcePost)             
+            print '    # forcePost: ' + str(forcePost)
+            print '    # postData: '
+            pprint(postData)
         response = self.apiClient.callAPI(resourcePath, method, queryParams, postData, headerParams, forcePost=forcePost)
         if verbose: 
             print '    # Response: '            
