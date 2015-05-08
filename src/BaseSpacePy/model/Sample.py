@@ -92,3 +92,19 @@ class Sample(object):
         if queryPars is None:
             queryPars = qp()
         return api.getSampleFilesById(self.Id, queryPars=queryPars)
+
+    def uploadFile(self, api, localPath, fileName, directory, contentType):
+        '''
+        WARNING! This method uses an API call that is currently not available (but will be made public in
+                 future releases) and, for that reason, it may not work.
+
+        Uploads a local file to the BaseSpace Sample
+        
+        :param api: An instance of BaseSpaceAPI
+        :param localPath: The local path of the file (including file name)
+        :param fileName: The file name to use on the server
+        :param directory: The remote directory to upload the file to on the server
+        :param contentType: The content-type of the file
+        '''
+        self.isInit()
+        return api.sampleFileUpload(self.Id,localPath, fileName, directory, contentType)

@@ -20,9 +20,15 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
 
 # Dependencies:
-# 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com; there should also be a 'DEFALT' profile in the config file
-# 2. Import the following data from Public Data on cloud-hoth.illumina.com:
-#    from Public Dataset 'MiSeq B. cereus demo data': Project name 'BaseSpaceDemo' (Id 596596), and Run name 'BacillusCereus' (Id 555555)
+# ============
+# 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com;
+#    (there should also be a 'DEFALT' profile in the config file)
+# 2. Import the following data from Public Dataset 'MiSeq B. cereus demo data' on cloud-hoth.illumina.com:
+#    2.a.  Project name 'BaseSpaceDemo' (Id 596596), and
+#    2.b.  Run name 'BacillusCereus' (Id 555555)
+# 3. Download the following fastq file from BaseSpaceDemo's samples section: 
+#    < https://cloud-hoth.illumina.com/sample/855866/files/tree/BC-12_S12_L001_R2_001.fastq.gz?id=9896135 >
+#    and place it into the 'data' directory of this repository. It's 56MB in size.
 #
 # Note that large file upload download tests may take minutes each to complete, and oauth tests will open web browsers.
 
@@ -43,11 +49,16 @@ tconst = {
            #'file_small_upload_md5' : 'ff88b8bdbb86f219d19a22a3a0795429',
            'file_large_upload_md5' : '9267236a2d870da1d4cb73868bb51b35',
            'create_project_name': 'Python SDK Unit Test Data',
+           'create_sample_name': 'Python SDK Unit Test Data',
            # for runs, genomes, projects, samples, appresults
-           'run_id': '555555',           
+           'run_id': '555555',
            'genome_id': '1',
            'project_id': '596596',
-           'sample_id': '855855',           
+           'sample_id': '855855',
+           'read_length': 140,
+           'raw_count': '446158',
+           # zcat data/BC-12_S12_L001_R2_001.fastq.gz | grep "@:89:A0172" | grep "N" | wc -l
+           'PF_count': '446158',
            'appresult_id': '1213212',
            'appresult_referenced_sample_id': '855855',
            #'appsession_id': '1305304', TEMP           
@@ -132,7 +143,8 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
         testDir = "testSinglePartSmallFileUploadDirectory"
         fileName = os.path.basename(tconst['file_small_upload'])
         myFile = self.api.__singlepartFileUpload__(
-            Id=self.ar.Id, 
+            resourceType = 'appresults',
+            resourceId = self.ar.Id,
             localPath=tconst['file_small_upload'], 
             fileName=fileName, 
             directory=testDir, 
@@ -167,7 +179,8 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
     def test__initiateMultipartFileUpload__(self):
         testDir = "test__initiateMultipartFileUpload__"
         file = self.api.__initiateMultipartFileUpload__(
-            Id = self.ar.Id,
+            resourceType = 'appresults',
+            resourceId = self.ar.Id,
             fileName = os.path.basename(tconst['file_small_upload']),            
             directory = testDir,
             contentType=tconst['file_small_upload_content_type'])
@@ -176,7 +189,8 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
     def test__uploadMultipartUnit__(self):
         testDir = "test__uploadMultipartUnit__"
         file = self.api.__initiateMultipartFileUpload__(
-            Id = self.ar.Id,
+            resourceType = 'appresults',
+            resourceId = self.ar.Id,
             fileName = os.path.basename(tconst['file_small_upload']),            
             directory = testDir,
             contentType=tconst['file_small_upload_content_type'])
@@ -194,7 +208,8 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
     def test__finalizeMultipartFileUpload__(self):
         testDir = "test__finalizeMultipartFileUpload__"
         file = self.api.__initiateMultipartFileUpload__(
-            Id = self.ar.Id,
+            resourceType = 'appresults',
+            resourceId = self.ar.Id,
             fileName = os.path.basename(tconst['file_small_upload']),            
             directory = testDir,
             contentType=tconst['file_small_upload_content_type'])
@@ -212,7 +227,8 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
     def testMultiPartFileUpload_SmallPartSizeException(self):
         with self.assertRaises(UploadPartSizeException):
             myFile = self.api.multipartFileUpload(
-                Id=self.ar.Id,
+                resourceType = 'appresults',
+                resourceId = self.ar.Id,
                 localPath=tconst['file_large_upload'], 
                 fileName=os.path.basename(tconst['file_large_upload']), 
                 directory="",                          
@@ -223,7 +239,8 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
     def testMultiPartFileUpload_LargePartSizeException(self):
         with self.assertRaises(UploadPartSizeException):
             myFile = self.api.multipartFileUpload(
-                Id=self.ar.Id,
+                resourceType = 'appresults',
+                resourceId = self.ar.Id,
                 localPath=tconst['file_large_upload'], 
                 fileName=os.path.basename(tconst['file_large_upload']), 
                 directory="",                          
@@ -268,8 +285,8 @@ class TestAPIFileUploadMethods_LargeFiles(TestCase):
         Create a new 'unit test' project, or get it if exists, to upload to data to.
         Then create a new app result in this project, getting a new app session id
         '''        
-        cls.api = BaseSpaceAPI(profile='unit_tests')        
-        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.api = BaseSpaceAPI(profile='unit_tests')
+        cls.proj = cls.api.createProject(tconst['create_project_name'])
         cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
  
 #    @skip('large upload')
@@ -296,7 +313,8 @@ class TestAPIFileUploadMethods_LargeFiles(TestCase):
         testDir = "testMultipartUploadDir"
         fileName = os.path.basename(tconst['file_large_upload']) 
         myFile = self.api.multipartFileUpload(
-            Id=self.ar.Id,
+            resourceType = 'appresults',
+            resourceId = self.ar.Id,
             localPath=tconst['file_large_upload'], 
             fileName=fileName, 
             directory=testDir,                          
@@ -869,11 +887,38 @@ class TestSampleMethods(TestCase):
         self.assertTrue(hasattr(files[0], "Id"))
         self.assertEqual(len(files), 1)
 
+    def testUploadFile(self):
+        '''
+        Create a new 'unit test' project, or get it if exists, to upload to data to.
+        Then create a new sample in this project, getting a new appsession id
+        Then...upload a file to the new sample
+        '''
+        proj = self.api.createProject(tconst['create_project_name'])
+        s = proj.createSample(self.api, "SRA123456", "SRA Import", 3,
+                              tconst['create_sample_name'], [tconst['read_length']],
+                              tconst['raw_count'], tconst['PF_count'], appSessionId="")
+        testDir = "testLargeUploadSampleDirectory"
+        fileName = os.path.basename(tconst['file_large_upload'])
+        myFile = s.uploadFile(
+            api=self.api, 
+            localPath=tconst['file_large_upload'], 
+            fileName=fileName, 
+            directory=testDir, 
+            contentType=tconst['file_large_upload_content_type'])
+        self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
+        self.assertEqual(myFile.Size, tconst['file_large_upload_size'])
+        self.assertEqual(myFile.UploadStatus, 'complete')
+        # test fresh File object
+        newFile = self.api.getFileById(myFile.Id)
+        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
+        self.assertEqual(newFile.Size, tconst['file_large_upload_size'])
+        self.assertEqual(newFile.UploadStatus, 'complete')
+
 class TestAPISampleMethods(TestCase):
     '''
     Tests API Sample object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
               
     def testGetSamplesByProject(self):
@@ -914,8 +959,8 @@ class TestAPISampleMethods(TestCase):
 class TestProjectMethods(TestCase):
     '''
     Tests Project object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.project = self.api.getProjectById(tconst['project_id'])
         
@@ -925,7 +970,7 @@ class TestProjectMethods(TestCase):
     def testIsInitException(self):
         project = Project.Project()
         with self.assertRaises(ModelNotInitializedException):
-            project.isInit()                                      
+            project.isInit()
 
     def testGetAccessString(self):
         self.assertEqual(self.project.getAccessStr(), 'write project ' + self.project.Id)
@@ -979,7 +1024,25 @@ class TestProjectMethods(TestCase):
         ar = proj.createAppResult(self.api, name="test create appresult new ssn, project obj", 
             desc="test create appresult new ssn, project obj", samples=[], appSessionId="")
         self.assertTrue(hasattr(ar, 'Id'))        
-        
+
+    def testCreateSample(self):
+        '''
+        Create a new 'unit test' project, or get it if exists.
+        Create a new sample that creates a new app ssn,
+        then create a new api obj with the new ssn,
+        then create a sample in the new ssn
+        '''
+        proj = self.api.createProject(tconst['create_project_name'])   
+        s = proj.createSample(self.api, "SRA123456", "SRA Import", 1,
+                              tconst['create_sample_name'], [tconst['read_length']],
+                              tconst['raw_count'], tconst['PF_count'], appSessionId="")
+        new_api = BaseSpaceAPI(self.api.key, self.api.secret, self.api.apiServer,
+            self.api.version, s.AppSession.Id, self.api.getAccessToken())
+        s2 = proj.createSample(self.api, "SRA123456_2", "2nd SRA Import", 2,
+                              tconst['create_sample_name'], [tconst['read_length']],
+                              tconst['raw_count'], tconst['PF_count'], appSessionId="")
+        self.assertTrue(hasattr(s2, 'Id'))
+
 class TestAPIProjectMethods(TestCase):
     '''
     Tests API Project object methods
@@ -2080,7 +2143,8 @@ class TestAPIClientMethods(TestCase):
         proj = self.api.createProject(tconst['create_project_name'])                        
         ar = proj.createAppResult(self.api, "test__putCall__", "test__putCall__", appSessionId="")
         file = self.api.__initiateMultipartFileUpload__(
-            Id = ar.Id,
+            resourceType = 'appresults',
+            resourceId = ar.Id,
             fileName = os.path.basename(tconst['file_small_upload']),            
             directory = testDir,
             contentType = tconst['file_small_upload_content_type'])
@@ -2175,7 +2239,8 @@ class TestAPIClientMethods(TestCase):
         proj = self.api.createProject(tconst['create_project_name'])                        
         ar = proj.createAppResult(self.api, "testCallAPI_PUT", "testCallAPI_PUT", appSessionId="")
         file = self.api.__initiateMultipartFileUpload__(
-            Id = ar.Id,
+            resourceType = 'appresults',
+            resourceId = ar.Id,
             fileName = os.path.basename(tconst['file_small_upload']),            
             directory = testDir,
             contentType = tconst['file_small_upload_content_type'])
@@ -2439,28 +2504,29 @@ basespaceapi_baseapi_apiclient = TestSuite([
     TestLoader().loadTestsFromTestCase(TestAPIClientMethods), ])
 
 billing_qppp = TestSuite([
-    TestLoader().loadTestsFromTestCase(TestBillingAPIMethods),                          
+    TestLoader().loadTestsFromTestCase(TestBillingAPIMethods),
     TestLoader().loadTestsFromTestCase(TestQueryParameterPurchasedProductMethods), ])
-                          
-tests = []
-
-# to test all test cases:
-tests.extend([ 
-               small_file_transfers, 
-               runs_users_files, 
-               samples_appresults_projects,
-               appsessions, 
-               cred_genome_util_lists,
-               cov_variant, 
-               basespaceapi_baseapi_apiclient,
-               billing_qppp,
-            ])
-#tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
-tests.append(large_file_transfers) # these tests may take tens of minutes to complete
-
-# to test individual test cases: 
-#tests.append( TestLoader().loadTestsFromTestCase(TestBaseSpaceAPIMethods) )
 
 
 if __name__ == "__main__":
+    tests = []
+
+    if(len(sys.argv) == 1):
+        # to test all test cases:
+        tests.extend([ 
+              small_file_transfers, 
+              runs_users_files, 
+              samples_appresults_projects,
+              appsessions, 
+              cred_genome_util_lists,
+              cov_variant, 
+              basespaceapi_baseapi_apiclient,
+              billing_qppp,
+        ])
+        #tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
+        tests.append(large_file_transfers) # these tests may take tens of minutes to complete
+    else:
+        # to test individual test cases: 
+        for t in sys.argv[1:]:
+            tests.append( TestLoader().loadTestsFromTestCase( eval(t) ) )
     TextTestRunner(verbosity=2).run( TestSuite(tests) )

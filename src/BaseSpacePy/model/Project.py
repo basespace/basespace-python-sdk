@@ -59,7 +59,7 @@ class Project(object):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :param statuses: An optional list of statuses, eg. 'complete'
         '''
-        self.isInit()        
+        self.isInit()
         return api.getAppResultsByProject(self.Id, queryPars=queryPars, statuses=statuses)
         
     def getSamples(self, api, queryPars=None):
@@ -69,7 +69,7 @@ class Project(object):
         :param api: An instance of BaseSpaceAPI
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         '''
-        self.isInit()        
+        self.isInit()
         return api.getSamplesByProject(self.Id, queryPars=queryPars)
     
     def createAppResult(self, api, name, desc, samples=None, appSessionId=None):
@@ -82,5 +82,25 @@ class Project(object):
         :param samples: (Optional) A list of one or more Samples Ids that the AppResult is related to
         :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
         '''
-        self.isInit()        
+        self.isInit()
         return api.createAppResult(self.Id, name, desc, samples=samples, appSessionId=appSessionId)
+
+    def createSample(self, api, name, experimentName, sampleNumber, sampleTitle, readLengths, countRaw, countPF, reference=None, appSessionId=None):
+        '''
+        WARNING! This method uses an API call that is currently not available (but will be made public in
+                 future releases) and, for that reason, it may not work.
+
+        Return a newly created samlpe object
+        
+        :param api: An instance of BaseSpaceAPI
+        :param name: The name of the sample
+        :param experimentName: The name of the run from which this sample was taken
+        :param sampleNumber: The sample number of this sample within the project
+        :param sampleTitle: The Id of the Sample from the samplesheet, this is specified by the user at the flow cell level
+        :param readLengths: List of lengths for each Read, measured in number of bases
+        :param countRaw: The number of Reads for this Sample
+        :param countPF: The number of Reads that have passed filters
+        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
+        '''
+        self.isInit()
+        return api.createSample(self.Id, name, experimentName, sampleNumber, sampleTitle, readLengths, countRaw, countPF, reference=reference, appSessionId=appSessionId)
