@@ -1027,15 +1027,15 @@ class BaseSpaceAPI(BaseAPI):
             
         postData['Name'] = name
         postData['ExperimentName'] = experimentName
-        postData['SampleNumber'] = str(sampleNumber)
+        postData['SampleNumber'] = sampleNumber
         postData['SampleId'] = sampleTitle
-        postData['NumberReadsRaw'] = str(countRaw)
-        postData['NumberReadsPF'] = str(countPF)
-        postData['Read1'] = str(readLengths[0])
-        postData['IsPairEnd'] = False
+        postData['NumReadsRaw'] = countRaw
+        postData['NumReadsPF'] = countPF
+        postData['Read1'] = readLengths[0]
+        postData['IsPairedEnd'] = False
         if len(readLengths) > 1:
-            postData['Read2']  = str(readLengths[1])
-            postData['IsPairEnd'] = True
+            postData['Read2']  = readLengths[1]
+            postData['IsPairedEnd'] = True
         if reference:
             postData['HrefGenome']  = self.version + '/genomes/' + reference
 
