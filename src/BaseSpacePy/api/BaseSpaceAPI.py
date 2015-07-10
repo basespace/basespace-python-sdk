@@ -37,7 +37,7 @@ class BaseSpaceAPI(BaseAPI):
     '''
     The main API class used for all communication with the REST server
     '''
-    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', timeout=10, profile='DEFAULT'):
+    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', timeout=10, verbose=0, profile='DEFAULT'):
         '''
         The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):        
         
@@ -56,18 +56,18 @@ class BaseSpaceAPI(BaseAPI):
         self.appSessionId   = cred['appSessionId']
         self.key            = cred['clientKey']
         self.secret         = cred['clientSecret']
-        self.apiServer      = cred['apiServer']        
-        self.version        = cred['apiVersion']        
+        self.apiServer      = cred['apiServer']
+        self.version        = cred['apiVersion']
         if 'profile' in cred:
             self.profile    = cred['profile']
         # TODO this replacement won't work for all environments
         self.weburl         = cred['apiServer'].replace('api.','')
         
-        apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])        
-        super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, timeout)
+        apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
+        super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, timeout, verbose)
 
     def _setCredentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
-        '''            
+        '''
         Returns credentials from constructor, config file, or default (for optional args), in this priority order
         for each credential.
         If clientKey was provided only in config file, include 'name' (in return dict) with profile name.
@@ -235,7 +235,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         headerParams = {}
         queryParams = {}
-        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams)
 
     def __deserializeAppSessionResponse__(self, response):
         '''
@@ -263,7 +263,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}',Id)
         method = 'GET'        
         headerParams = {}                
-        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams)
 
     def getAppSessionPropertyByName(self, Id, name, queryPars=None):
         '''
@@ -281,7 +281,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Name}', name)        
         method = 'GET'        
         headerParams = {}
-        return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams)
                     
     def getAppSessionInputsById(self, Id, queryPars=None):
         '''
@@ -320,8 +320,7 @@ class BaseSpaceAPI(BaseAPI):
             raise AppSessionException("AppSession state must be one of: " + str(statusAllowed))
         postData['status'] = Status.lower()
         postData['statussummary'] = Summary
-        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method,\
-                                      queryParams, headerParams, postData=postData, verbose=0)
+        return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams, postData=postData)
 
     def __deserializeObject__(self, dct, type):
         '''
@@ -430,9 +429,8 @@ class BaseSpaceAPI(BaseAPI):
         headerParams            = {}
         postData                = {}
         postData['Name']        = Name        
-        return self.__singleRequest__(ProjectResponse.ProjectResponse, 
-            resourcePath, method, queryParams, headerParams, postData=postData,
-            verbose=0)
+        return self.__singleRequest__(ProjectResponse.ProjectResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData)
 
     def launchApp(self, appId, configJson):
         resourcePath            = '/applications/%s/appsessions' % appId
@@ -441,8 +439,7 @@ class BaseSpaceAPI(BaseAPI):
         headerParams            = { 'Content-Type' : "application/json" }
         postData                = configJson
         return self.__singleRequest__(AppLaunchResponse.AppLaunchResponse, 
-            resourcePath, method, queryParams, headerParams, postData=postData,
-            verbose=0)
+                                      resourcePath, method, queryParams, headerParams, postData=postData)
 
     def getUserById(self, Id):
         '''
@@ -526,7 +523,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'        
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
-        return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)        
+        return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams)
 
     def getAppResultFiles(self, Id, queryPars=None):
         '''
@@ -666,7 +663,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}         
-        return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams)
 
     def getRunSamplesById(self, Id, queryPars=None):
         '''        
@@ -681,7 +678,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}         
-        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams)
   
     def getAppResultsByProject(self, Id, queryPars=None, statuses=None):
         '''
@@ -701,7 +698,7 @@ class BaseSpaceAPI(BaseAPI):
             queryParams['Statuses'] = ",".join(statuses)
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
-        return self.__listRequest__(AppResult.AppResult,resourcePath, method, queryParams, headerParams,verbose=0)
+        return self.__listRequest__(AppResult.AppResult,resourcePath, method, queryParams, headerParams)
 
     def getSamplesByProject(self, Id, queryPars=None):
         '''
@@ -717,7 +714,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'        
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
-        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams,verbose=0)
+        return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams)
 
     def getSampleById(self, Id, queryPars=None):
         '''
@@ -732,7 +729,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)        
         headerParams = {}
-        return self.__singleRequest__(SampleResponse.SampleResponse, resourcePath, method, queryParams, headerParams, verbose=0)
+        return self.__singleRequest__(SampleResponse.SampleResponse, resourcePath, method, queryParams, headerParams)
     
     def getSamplePropertiesById(self, Id, queryPars=None):
         '''
@@ -742,12 +739,13 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a PropertyList instance
         '''
-        queryParams = self._validateQueryParameters(queryPars)                        
-        resourcePath = '/samples/{Id}/properties'        
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/samples/{Id}/properties'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
-        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams, verbose=0)    
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,
+                                      resourcePath, method, queryParams, headerParams)
 
     def getSampleFilesById(self, Id, queryPars=None):
         '''
@@ -757,12 +755,13 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of File instances
         '''
-        queryParams = self._validateQueryParameters(queryPars)                
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/samples/{Id}/files'        
         method = 'GET'        
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
-        return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams,verbose=0)        
+        return self.__listRequest__(File.File,
+                                    resourcePath, method, queryParams, headerParams)
 
     def getFilesBySample(self, Id, queryPars=None):
         '''
@@ -789,8 +788,8 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}
-        return self.__singleRequest__(FileResponse.FileResponse,resourcePath, method,\
-                                      queryParams, headerParams,verbose=0)
+        return self.__singleRequest__(FileResponse.FileResponse,
+                                      resourcePath, method, queryParams, headerParams)
         
     def getFilePropertiesById(self, Id, queryPars=None):
         '''
@@ -805,8 +804,8 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)            
         headerParams = {}
-        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method,\
-                                      queryParams, headerParams,verbose=0)
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,
+                                      resourcePath, method, queryParams, headerParams)
 
     def getGenomeById(self, Id, ):
         '''
@@ -822,7 +821,8 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(GenomeResponse.GenomeResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(GenomeResponse.GenomeResponse,
+                                      resourcePath, method, queryParams, headerParams)
 
     def getAvailableGenomes(self, queryPars=None):
         '''
@@ -831,12 +831,13 @@ class BaseSpaceAPI(BaseAPI):
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of GenomeV1 instances
         '''        
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/genomes'        
-        method = 'GET'        
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/genomes'
+        method = 'GET'
         headerParams = {}
-        return self.__listRequest__(GenomeV1.GenomeV1,resourcePath, method, queryParams, headerParams,verbose=0)
-                
+        return self.__listRequest__(GenomeV1.GenomeV1,
+                                    resourcePath, method, queryParams, headerParams)
+
     def getIntervalCoverage(self, Id, Chrom, StartPos, EndPos):
         '''
         Returns metadata about an alignment, including max coverage and cov granularity.
@@ -847,8 +848,8 @@ class BaseSpaceAPI(BaseAPI):
         :param StartPos: get coverage starting at this position
         :param EndPos: get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate        
         :returns: a Coverage instance
-        '''        
-        resourcePath = '/coverage/{Id}/{Chrom}'        
+        '''
+        resourcePath = '/coverage/{Id}/{Chrom}'
         method = 'GET'
         queryParams = {}
         headerParams = {}
@@ -856,8 +857,8 @@ class BaseSpaceAPI(BaseAPI):
         queryParams['EndPos'] = EndPos
         resourcePath = resourcePath.replace('{Chrom}', Chrom)
         resourcePath = resourcePath.replace('{Id}', Id)
-        return self.__singleRequest__(CoverageResponse.CoverageResponse, resourcePath, method,\
-                                      queryParams, headerParams,verbose=0)
+        return self.__singleRequest__(CoverageResponse.CoverageResponse,
+                                      resourcePath, method, queryParams, headerParams)
 
     def getCoverageMetaInfo(self, Id, Chrom):
         '''
@@ -868,14 +869,14 @@ class BaseSpaceAPI(BaseAPI):
         :param Chrom: chromosome name
         :returns: a CoverageMetaData instance
         '''
-        resourcePath = '/coverage/{Id}/{Chrom}/meta'        
+        resourcePath = '/coverage/{Id}/{Chrom}/meta'
         method = 'GET'
         queryParams = {}
         headerParams = {}
         resourcePath = resourcePath.replace('{Chrom}', Chrom)
         resourcePath = resourcePath.replace('{Id}', Id)        
-        return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse, resourcePath, method,\
-                                      queryParams, headerParams,verbose=0)
+        return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse,
+                                      resourcePath, method, queryParams, headerParams)
 
     def filterVariantSet(self,Id, Chrom, StartPos, EndPos, Format='json', queryPars=None):
         '''
@@ -901,7 +902,7 @@ class BaseSpaceAPI(BaseAPI):
         if Format == 'vcf':
             raise NotImplementedError("Returning native VCF format isn't yet supported by BaseSpacePy")
         else:
-            return self.__listRequest__(Variant.Variant, resourcePath, method, queryParams, headerParams, verbose=0)
+            return self.__listRequest__(Variant.Variant, resourcePath, method, queryParams, headerParams)
 
     def getVariantMetadata(self, Id, Format='json'):
         '''        
@@ -920,8 +921,8 @@ class BaseSpaceAPI(BaseAPI):
         if Format == 'vcf':
             raise NotImplementedError("Returning native VCF format isn't yet supported by BaseSpacePy")
         else:
-            return self.__singleRequest__(VariantsHeaderResponse.VariantsHeaderResponse, resourcePath, method,\
-                                          queryParams, headerParams, verbose=0)
+            return self.__singleRequest__(VariantsHeaderResponse.VariantsHeaderResponse,
+                                          resourcePath, method, queryParams, headerParams)
          
     def createAppResult(self, Id, name, desc, samples=None, appSessionId=None):
         '''
@@ -967,7 +968,8 @@ class BaseSpaceAPI(BaseAPI):
             
         postData['Name'] = name
         postData['Description'] = desc
-        return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
+        return self.__singleRequest__(AppResultResponse.AppResultResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData)
             
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType):
         '''
@@ -986,13 +988,10 @@ class BaseSpaceAPI(BaseAPI):
         if os.path.getsize(localPath) > multipart_min_file_size:
             return self.multipartFileUpload('appresults',Id, localPath, fileName, directory, contentType)
         else:
-            return self.__singlepartFileUpload__('appresults',Id, localPath, fileName, directory, contentType)        
+            return self.__singlepartFileUpload__('appresults',Id, localPath, fileName, directory, contentType)
 
     def createSample(self, Id, name, experimentName, sampleNumber, sampleTitle, readLengths, countRaw, countPF, reference=None, appSessionId=None):
         '''
-        WARNING! This method uses an API call that is currently not available (but will be made public in
-                 future releases) and, for that reason, it may not work.
-        
         Create a Sample object.
         
         :param Id: The id of the project in which the Sample is to be added
@@ -1039,13 +1038,11 @@ class BaseSpaceAPI(BaseAPI):
         if reference:
             postData['HrefGenome']  = self.version + '/genomes/' + reference
 
-        return self.__singleRequest__(SampleResponse.SampleResponse,resourcePath, method, queryParams, headerParams,postData=postData,verbose=0)
+        return self.__singleRequest__(SampleResponse.SampleResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData)
 
     def sampleFileUpload(self, Id, localPath, fileName, directory, contentType):
         '''
-        WARNING! This method uses an API call that is currently not available (but will be made public in
-                 future releases) and, for that reason, it may not work.
-
         Uploads a file associated with a Sample to BaseSpace and returns the corresponding file object.
         Small files are uploaded with a single-part upload method, while larger files (> 25 MB) are uploaded
         with multipart upload.
@@ -1061,7 +1058,7 @@ class BaseSpaceAPI(BaseAPI):
         if os.path.getsize(localPath) > multipart_min_file_size:
             return self.multipartFileUpload('samples',Id, localPath, fileName, directory, contentType)
         else:
-            return self.__singlepartFileUpload__('samples',Id, localPath, fileName, directory, contentType)        
+            return self.__singlepartFileUpload__('samples',Id, localPath, fileName, directory, contentType)
 
     def __singlepartFileUpload__(self, resourceType, resourceId, localPath, fileName, directory, contentType):
         '''
@@ -1088,8 +1085,8 @@ class BaseSpaceAPI(BaseAPI):
         headerParams                 = {}
         headerParams['Content-Type'] = contentType
         postData                     = open(localPath).read()
-        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
-            queryParams, headerParams, postData=postData, verbose=0)
+        return self.__singleRequest__(FileResponse.FileResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData)
 
     def __initiateMultipartFileUpload__(self, resourceType, resourceId, fileName, directory, contentType):
         '''
@@ -1117,8 +1114,8 @@ class BaseSpaceAPI(BaseAPI):
         queryParams['multipart']     = 'true'
         postData                     = None
         # Set force post as this need to use POST though no data is being streamed
-        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method,\
-                                  queryParams, headerParams, postData=postData, verbose=0, forcePost=1)                    
+        return self.__singleRequest__(FileResponse.FileResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData, forcePost=1)
 
     def __uploadMultipartUnit__(self, Id, partNumber, md5, data):
         '''
@@ -1152,8 +1149,8 @@ class BaseSpaceAPI(BaseAPI):
         queryParams                  = {'uploadstatus':'complete'}
         postData                     = None        
         # Set force post as this need to use POST though no data is being streamed
-        return self.__singleRequest__(FileResponse.FileResponse, resourcePath, method, \
-            queryParams, headerParams, postData=postData, verbose=0, forcePost=1)
+        return self.__singleRequest__(FileResponse.FileResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData, forcePost=1)
 
     def multipartFileUpload(self, resourceType, resourceId, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
         '''
@@ -1239,13 +1236,12 @@ class BaseSpaceAPI(BaseAPI):
         if (bsFile.Size < multipart_min_file_size) or (byteRange and (rangeSize < multipart_min_file_size)):
             # append File's directory to local dir, and create this path if it doesn't exist
             localDest = localDir
-            if createBsDir:            
-                localDest = os.path.join(localDir, os.path.dirname(bsFile.Path))            
+            if createBsDir:
+                localDest = os.path.join(localDir, os.path.dirname(bsFile.Path))
                 if not os.path.exists(localDest):
                     os.makedirs(localDest)            
             attempt = 0
             while attempt < max_retries:
-                logging.debug("starting download attempt: %s" % attempt)
                 try:
                     self.__downloadFile__(Id, localDest, bsFile.Name, byteRange, standaloneRangeFile=True)
                     break
@@ -1307,10 +1303,10 @@ class BaseSpaceAPI(BaseAPI):
         with open(filename, 'r+b', 0) as fp:
             if len(byteRange) and standaloneRangeFile == False:
                 fp.seek(byteRange[0])
-            cur = flo.read(iter_size)                
-            while cur:                             
+            cur = flo.read(iter_size)
+            while cur:
                 if lock is not None:
-                    with lock:                           
+                    with lock:
                         fp.write(cur)
                 else:
                     fp.write(cur)
@@ -1320,26 +1316,26 @@ class BaseSpaceAPI(BaseAPI):
         if len(byteRange):
             expSize = byteRange[1] - byteRange[0] + 1
             if totRead != expSize:
-                raise DownloadFailedException("Ranged download size is not as expected: %d vs %d" % (totRead, expSize))        
+                raise DownloadFailedException("Ranged download size is not as expected: %d vs %d" % (totRead, expSize))
         else:
             bsFile = self.getFileById(Id)
             if totRead != bsFile.Size:
-                raise DownloadFailedException("Downloaded file size doesn't match file size in BaseSpace: %d vs %d" % (totRead, bsFile.Size))                     
+                raise DownloadFailedException("Downloaded file size doesn't match file size in BaseSpace: %d vs %d" % (totRead, bsFile.Size))
 
     def multipartFileDownload(self, Id, localDir, processCount=10, partSize=25, createBsDir=False, tempDir=""):
         '''
-        Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)        
+        Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
         
         :param Id: The ID of the File to download 
         :param localDir: The local path in which to store the downloaded file
         :param processCount: (optional) The number of processes to be used, default 10
         :param partSize: (optional) The size in MB of individual file parts to download, default 25
-        :param createBsDir: (optional) create BaseSpace File's directory in local_dir, default False        
+        :param createBsDir: (optional) create BaseSpace File's directory in local_dir, default False
         :param tempDir: (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by 'cat'ing chunks into large file
         :returns: a File instance 
-        '''         
-        myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)        
-        return myMpd.download()        
+        '''
+        myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)
+        return myMpd.download()
 
     def fileUrl(self, Id):
         '''
@@ -1390,17 +1386,17 @@ class BaseSpaceAPI(BaseAPI):
         
         # TODO should use HEAD call here, instead do small GET range request
         # GET S3 url and record etag         
-        req = urllib2.Request(response['Response']['HrefContent'])        
-        req.add_header('Range', 'bytes=%s-%s' % (0, 1))         
+        req = urllib2.Request(response['Response']['HrefContent'])
+        req.add_header('Range', 'bytes=%s-%s' % (0, 1))
         flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking  
-        try:        
+        try:
             etag = flo.headers['etag']
         except KeyError:
             etag = ''
         # strip quotes from etag
         if etag.startswith('"') and etag.endswith('"'):
             etag = etag[1:-1]
-        ret['etag'] = etag                                                
+        ret['etag'] = etag
         return ret
     
     def _validateQueryParameters(self, queryPars):
@@ -1414,9 +1410,9 @@ class BaseSpaceAPI(BaseAPI):
             queryPars = qp()
         try:
             queryPars.validate()
-        except AttributeError:                        
+        except AttributeError:
             raise QueryParameterException("Query parameter argument must be a QueryParameter object")
-        return queryPars.getParameterDict()        
+        return queryPars.getParameterDict()
 
     def __dictionaryToProperties__(self, rawProperties, namespace):
         '''
@@ -1434,7 +1430,7 @@ class BaseSpaceAPI(BaseAPI):
             if type(value) not in LEGAL_KEY_TYPES:
                 raise IllegalParameterException(type(value), LEGAL_KEY_TYPES)
             propName = "%s.%s" % (namespace, key)
-            propType = "string"
+            propType = "String"
             propDescription = ""
             # every property in BaseSpace is a string
             propValue = str(value)
@@ -1467,8 +1463,8 @@ class BaseSpaceAPI(BaseAPI):
         postData = self.__dictionaryToProperties__(rawProperties, namespace)
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, 
-                                queryParams, headerParams, postData=postData, verbose=0)
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,
+                                      resourcePath, method, queryParams, headerParams, postData=postData)
 
 
     def getResourceProperties(self, resourceType, resourceId):
@@ -1497,4 +1493,5 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         queryParams = {}
         headerParams = {}
-        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
+        return self.__singleRequest__(PropertiesResponse.PropertiesResponse,
+                                      resourcePath, method, queryParams, headerParams)

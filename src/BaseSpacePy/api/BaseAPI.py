@@ -7,6 +7,7 @@ import httplib
 import cStringIO
 import json
 import os
+import inspect
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import *
@@ -17,15 +18,29 @@ class BaseAPI(object):
     '''
     Parent class for BaseSpaceAPI and BillingAPI classes
     '''
-    def __init__(self, AccessToken, apiServerAndVersion, timeout=10):
+
+    def __init__(self, AccessToken, apiServerAndVersion, timeout=10, verbose=False):
         '''
         :param AccessToken: the current access token
         :param apiServerAndVersion: the api server URL with api version
         :param timeout: (optional) the timeout in seconds for each request made, default 10 
+        :param verbose: (optional) prints verbose output, default False
         '''
         self.apiClient = APIClient(AccessToken, apiServerAndVersion, timeout=timeout)
+        self.verbose   = verbose
 
-    def __singleRequest__(self, myModel, resourcePath, method, queryParams, headerParams, postData=None, verbose=False, forcePost=False):
+    def __json_print__(self, label, var):
+        try:
+            prefix   = " " * len(label)
+            var_list = json.dumps(var,indent=4).split('\n')  # ,ensure_ascii=False
+            print label + var_list[0]
+            if len(var_list)>1:
+                print "\n".join( [prefix + s for s in var_list[1:]] )
+        except UnicodeDecodeError:
+            pass  # we could disable ascii-enforcing, as shown above, but 
+                  # this will massively increase the volume of logs
+
+    def __singleRequest__(self, myModel, resourcePath, method, queryParams, headerParams, postData=None, forcePost=False):
         '''
         Call a REST API and deserialize response into an object, handles errors from server.
         
@@ -37,24 +52,23 @@ class BaseAPI(object):
         :param postData: (optional) data to POST, default None
         :param version: (optional) print detailed output, default False
         :param forcePost: (optional) use a POST call with pycurl instead of urllib, default False (used only when POSTing with no post data?)
-        :param verbose: (optional) prints verbose output, default False
 
-        :raises ServerResponseException: if server returns an error or has no response        
+        :raises ServerResponseException: if server returns an error or has no response
         :returns: an instance of the Response model from the provided myModel
         '''
-        if verbose: 
-            print '    # Path: ' + str(resourcePath)
-            print '    # QPars: ' + str(queryParams)
-            print '    # Hdrs: ' + str(headerParams)
+        if self.verbose: 
+            print ""
+            print "* " + inspect.stack()[1][3] + "  (" + str(method) + ")"  # caller
+            print '    # Path:      ' + str(resourcePath)
+            print '    # QPars:     ' + str(queryParams)
+            print '    # Hdrs:      ' + str(headerParams)
             print '    # forcePost: ' + str(forcePost)
-            print '    # postData: '
-            pprint(postData)
+            self.__json_print__('    # postData:  ',postData)
         response = self.apiClient.callAPI(resourcePath, method, queryParams, postData, headerParams, forcePost=forcePost)
-        if verbose: 
-            print '    # Response: '            
-            pprint(response)
+        if self.verbose:
+            self.__json_print__('    # Response:  ',response)
         if not response: 
-            raise ServerResponseException('No response returned')                
+            raise ServerResponseException('No response returned')
         if response.has_key('ResponseStatus'):
             if response['ResponseStatus'].has_key('ErrorCode'):
                 raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
@@ -69,7 +83,7 @@ class BaseAPI(object):
         else:
             return responseObject
 
-    def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams, verbose=False):
+    def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams):
         '''
         Call a REST API that returns a list and deserialize response into a list of objects of the provided model.
         Handles errors from server.
@@ -79,19 +93,19 @@ class BaseAPI(object):
         :param method: the REST method type, eg. GET
         :param queryParams: a dictionary of query parameters
         :param headerParams: a dictionary of header parameters
-        :param verbose: (optional) prints verbose output, default False
 
         :raises ServerResponseException: if server returns an error or has no response        
         :returns: a list of instances of the provided model
-        '''                
-        if verbose: 
-            print '    # Path: ' + str(resourcePath)
-            print '    # QPars: ' + str(queryParams)
-            print '    # Hdrs: ' + str(headerParams)
+        '''
+        if self.verbose: 
+            print ""
+            print "* " + inspect.stack()[1][3] + "  (" + str(method) + ")"  # caller
+            print '    # Path:      ' + str(resourcePath)
+            print '    # QPars:     ' + str(queryParams)
+            print '    # Hdrs:      ' + str(headerParams)
         response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if verbose:
-            print '    # Response: '             
-            pprint(response)
+        if self.verbose:
+            self.__json_print__('    # Response:  ',response)
         if not response: 
             raise ServerResponseException('No response returned')
         if response['ResponseStatus'].has_key('ErrorCode'):
