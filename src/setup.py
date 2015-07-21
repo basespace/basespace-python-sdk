@@ -23,7 +23,7 @@ setup(name='BaseSpacePy',
        Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis.\
       The primary purpose of the SDK is to provide an easy-to-use Python environment enabling\
        developers to authenticate a user, retrieve data, and upload data/results from their own analysis to BaseSpace.",
-      author_email='',
+      author_email='mkallberg@illumina.com',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
 )
 
