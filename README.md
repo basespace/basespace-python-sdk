@@ -12,8 +12,9 @@ AUTHORS
 =========================================
 
 Morten Kallberg
-
 Eric Smith
+Peter Saffrey
+Mauricio Varea
 
 
 REQUIREMENTS
