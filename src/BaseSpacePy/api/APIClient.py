@@ -16,7 +16,7 @@ from BaseSpacePy.api.BaseSpaceException import RestMethodException, ServerRespon
 
 
 class APIClient:
-    def __init__(self, AccessToken, apiServerAndVersion, timeout=10):
+    def __init__(self, AccessToken, apiServerAndVersion, userAgent=None, timeout=10):
         '''
         Initialize the API instance
         
@@ -26,6 +26,7 @@ class APIClient:
         '''
         self.apiKey = AccessToken
         self.apiServerAndVersion = apiServerAndVersion
+        self.userAgent = userAgent
         self.timeout = timeout
 
     def __forcePostCall__(self, resourcePath, postData, headers):
@@ -93,6 +94,8 @@ class APIClient:
         '''
         url = self.apiServerAndVersion + resourcePath
         headers = {}
+        if self.userAgent:
+            headers['User-Agent'] = self.userAgent
         if headerParams:
             for param, value in headerParams.iteritems():
                 headers[param] = value
@@ -200,7 +203,7 @@ class APIClient:
                     except KeyError:
                         pass
                         # suppress this warning, which is caused by a bug in BaseSpace
-                        #warn("Warning - unrecognized dynamic type")                                                                                    
+                        #warn("Warning - unrecognized dynamic type: " + value['Type'])                                                                                    
                     else:
                         setattr(instance, attr, self.deserialize(value, model_name))
                 elif 'list<' in attrType:
@@ -216,7 +219,7 @@ class APIClient:
                             except KeyError:
                                 pass 
                                 # suppress this warning, which is caused by a bug in BaseSpace
-                                #warn("Warning - unrecognized (list of) dynamic types")                                
+                                #warn("Warning - unrecognized (list of) dynamic types: " + subValue['Type'])                                
                             else:
                                 subValues.append(self.deserialize(subValue, new_type)) 
                         setattr(instance, attr, subValues)

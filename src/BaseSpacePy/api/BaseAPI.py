@@ -19,14 +19,14 @@ class BaseAPI(object):
     Parent class for BaseSpaceAPI and BillingAPI classes
     '''
 
-    def __init__(self, AccessToken, apiServerAndVersion, timeout=10, verbose=False):
+    def __init__(self, AccessToken, apiServerAndVersion, userAgent, timeout=10, verbose=False):
         '''
         :param AccessToken: the current access token
         :param apiServerAndVersion: the api server URL with api version
         :param timeout: (optional) the timeout in seconds for each request made, default 10 
         :param verbose: (optional) prints verbose output, default False
         '''
-        self.apiClient = APIClient(AccessToken, apiServerAndVersion, timeout=timeout)
+        self.apiClient = APIClient(AccessToken, apiServerAndVersion, userAgent=userAgent, timeout=timeout)
         self.verbose   = verbose
 
     def __json_print__(self, label, var):

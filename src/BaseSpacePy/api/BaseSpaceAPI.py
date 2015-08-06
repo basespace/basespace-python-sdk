@@ -37,7 +37,7 @@ class BaseSpaceAPI(BaseAPI):
     '''
     The main API class used for all communication with the REST server
     '''
-    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', timeout=10, verbose=0, profile='DEFAULT'):
+    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', userAgent=None, timeout=10, verbose=0, profile='DEFAULT'):
         '''
         The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):        
         
@@ -64,7 +64,7 @@ class BaseSpaceAPI(BaseAPI):
         self.weburl         = cred['apiServer'].replace('api.','')
         
         apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
-        super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, timeout, verbose)
+        super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, userAgent, timeout, verbose)
 
     def _setCredentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
         '''
@@ -246,7 +246,7 @@ class BaseSpaceAPI(BaseAPI):
         '''        
         if response['ResponseStatus'].has_key('ErrorCode'):
             raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                    
-        tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion)
+        tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion, userAgent=self.apiClient.userAgent)
         res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)            
         return res.Response.__deserializeReferences__(self)
 
@@ -334,7 +334,7 @@ class BaseSpaceAPI(BaseAPI):
         :param type: BaseSpace item name
         :returns: for types Project, Sample, and AppResult, an object is returned; for other types, the input dict is returned.
         '''
-        tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion)
+        tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion, userAgent=self.apiClient.userAgent)
         if type.lower()=='project':
             return tempApi.deserialize(dct, Project.Project)
         if type.lower()=='sample':
