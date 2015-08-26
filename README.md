@@ -11,7 +11,7 @@ If you haven't already done so, you may wish to familiarize yourself with the ge
 AUTHORS
 =========================================
 
-Morten Kallberg
+Morten Kallberg (mkallberg@illumina.com)
 
 Eric Smith
 
