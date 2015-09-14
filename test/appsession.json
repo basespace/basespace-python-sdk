@@ -1,0 +1,431 @@
+{
+    "Response": {
+        "OriginatingUri": "https://basespace.illumina.com",
+        "References": [
+            {
+                "Rel": "Input",
+                "Type": "Sample",
+                "Href": "v1pre3/samples/21815305",
+                "HrefContent": "v1pre3/samples/21815305",
+                "Content": {
+                    "Id": "21815305",
+                    "Href": "v1pre3/samples/21815305",
+                    "IsMerged": false,
+                    "UserOwnedBy": {
+                        "Id": "68074",
+                        "Href": "v1pre3/users/68074",
+                        "Name": "Stewart MacArthur",
+                        "GravatarUrl": "https://secure.gravatar.com/avatar/b5fb3638a1f421992f9d360a3610446b.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                    },
+                    "Name": "B2_LIB14",
+                    "SampleId": "B2_LIB14",
+                    "Status": "Complete",
+                    "StatusSummary": "",
+                    "DateCreated": "2015-01-29T11:05:31.0000000",
+                    "TotalSize": 2884099731,
+                    "Read1": 125,
+                    "Read2": 125,
+                    "NumReadsPF": 16364800,
+                    "NumReadsRaw": 16859727,
+                    "TotalReadsRaw": 33719454,
+                    "TotalReadsPF": 32729600,
+                    "TotalClustersRaw": 16859727,
+                    "TotalClustersPF": 16364800,
+                    "IsPairedEnd": true
+                }
+            },
+            {
+                "Rel": "Using",
+                "Type": "Project",
+                "Href": "v1pre3/projects/21646627",
+                "HrefContent": "v1pre3/projects/21646627",
+                "Content": {
+                    "Id": "21646627",
+                    "UserOwnedBy": {
+                        "Id": "4768769",
+                        "Href": "v1pre3/users/4768769",
+                        "Name": "Peter Saffrey",
+                        "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                    },
+                    "Href": "v1pre3/projects/21646627",
+                    "Name": "Sloths test",
+                    "Description": "",
+                    "DateCreated": "2015-04-08T12:41:19.0000000",
+                    "DateModified": "2015-06-23T11:10:17.0000000",
+                    "HasCollaborators": true,
+                    "TotalSize": 1028010773444
+                }
+            }
+        ],
+        "AuthorizationCode": "fa83ebccf8674a52b5f9894ab5345583",
+        "HrefLogs": "v1pre3/appsessions/24780760/filesets/4700806",
+        "RunningDuration": 35505,
+        "Id": "24780760",
+        "Name": "BWA WGS v1 : B2_LIB14",
+        "Href": "v1pre3/appsessions/24780760",
+        "Application": {
+            "Id": "279279",
+            "Href": "v1pre3/applications/279279",
+            "Name": "BWA Whole Genome Sequencing v1.0",
+            "CompanyName": "Illumina, Inc.",
+            "VersionNumber": "1.0.0",
+            "HomepageUri": "http://support.illumina.com/help/BaseSpace_App_WGS_BWA_help/BWA_WGS_Help.htm",
+            "ShortDescription": "Processes whole-genome sequencing data using BWA alignment and GATK variant calling.",
+            "DateCreated": "2013-08-06T00:20:31.0000000",
+            "DatePublished": "2014-01-14T00:00:00.0000000",
+            "PublishStatus": "Published",
+            "IsBillingActivated": false,
+            "Category": "Instance",
+            "Classifications": [
+                "Resequencing",
+                "VariantAnalysis"
+            ]
+        },
+        "UserCreatedBy": {
+            "Id": "4768769",
+            "Href": "v1pre3/users/4768769",
+            "Name": "Peter Saffrey",
+            "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+        },
+        "Status": "Complete",
+        "StatusSummary": " Application Complete",
+        "DateCreated": "2015-04-13T15:58:40.0000000",
+        "ModifiedOn": "2015-04-14T01:50:25.0000000",
+        "DateCompleted": "2015-04-14T01:50:27.0000000",
+        "TotalSize": 4661754219,
+        "Properties": {
+            "Items": [
+                {
+                    "Type": "string",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.AnnotationSource",
+                    "Name": "Input.AnnotationSource",
+                    "Description": "Annotation",
+                    "Content": "RefSeq"
+                },
+                {
+                    "Type": "string",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.app-session-name",
+                    "Name": "Input.app-session-name",
+                    "Description": "Analysis Name",
+                    "Content": "BWA Whole Genome Sequencing v1.0 [LocalDateTime]"
+                },
+                {
+                    "Type": "string[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.FlagPCRDuplicates-id",
+                    "Name": "Input.FlagPCRDuplicates-id",
+                    "Description": "",
+                    "Items": [],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Input.FlagPCRDuplicates-id/items",
+                    "ItemsDisplayedCount": 0,
+                    "ItemsTotalCount": 0
+                },
+                {
+                    "Type": "string",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.genome-id",
+                    "Name": "Input.genome-id",
+                    "Description": "Reference Genome",
+                    "Content": "Human"
+                },
+                {
+                    "Type": "string",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.GQX-id",
+                    "Name": "Input.GQX-id",
+                    "Description": "Min GQX for Variants",
+                    "Content": "30"
+                },
+                {
+                    "Type": "project",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.project-id",
+                    "Name": "Input.project-id",
+                    "Description": "Save Results To",
+                    "Content": {
+                        "Id": "21646627",
+                        "UserOwnedBy": {
+                            "Id": "4768769",
+                            "Href": "v1pre3/users/4768769",
+                            "Name": "Peter Saffrey",
+                            "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                        },
+                        "Href": "v1pre3/projects/21646627",
+                        "Name": "Sloths test",
+                        "Description": "",
+                        "DateCreated": "2015-04-08T12:41:19.0000000",
+                        "DateModified": "2015-06-23T11:10:17.0000000",
+                        "HasCollaborators": true,
+                        "TotalSize": 1028010773444
+                    }
+                },
+                {
+                    "Type": "map[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.project-id.attributes",
+                    "Name": "Input.project-id.attributes",
+                    "Description": "Save Results To Attributes",
+                    "Items": [
+                        [
+                            {
+                                "Key": "FieldId",
+                                "Values": [
+                                    "project-id"
+                                ]
+                            },
+                            {
+                                "Key": "ResourceType",
+                                "Values": [
+                                    "project"
+                                ]
+                            },
+                            {
+                                "Key": "ResourceId",
+                                "Values": [
+                                    "21646627"
+                                ]
+                            },
+                            {
+                                "Key": "ResourceHref",
+                                "Values": [
+                                    "v1pre3/projects/21646627"
+                                ]
+                            }
+                        ]
+                    ],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Input.project-id.attributes/items",
+                    "ItemsDisplayedCount": 1,
+                    "ItemsTotalCount": 1
+                },
+                {
+                    "Type": "project[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.Projects",
+                    "Name": "Input.Projects",
+                    "Description": "",
+                    "Items": [
+                        {
+                            "Id": "21646627",
+                            "UserOwnedBy": {
+                                "Id": "4768769",
+                                "Href": "v1pre3/users/4768769",
+                                "Name": "Peter Saffrey",
+                                "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                            },
+                            "Href": "v1pre3/projects/21646627",
+                            "Name": "Sloths test",
+                            "Description": "",
+                            "DateCreated": "2015-04-08T12:41:19.0000000",
+                            "DateModified": "2015-06-23T11:10:17.0000000",
+                            "HasCollaborators": true,
+                            "TotalSize": 1028010773444
+                        }
+                    ],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Input.Projects/items",
+                    "ItemsDisplayedCount": 1,
+                    "ItemsTotalCount": 1
+                },
+                {
+                    "Type": "sample",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.sample-id",
+                    "Name": "Input.sample-id",
+                    "Description": "Sample",
+                    "Content": {
+                        "Id": "21815305",
+                        "Href": "v1pre3/samples/21815305",
+                        "IsMerged": false,
+                        "UserOwnedBy": {
+                            "Id": "68074",
+                            "Href": "v1pre3/users/68074",
+                            "Name": "Stewart MacArthur",
+                            "GravatarUrl": "https://secure.gravatar.com/avatar/b5fb3638a1f421992f9d360a3610446b.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                        },
+                        "Name": "B2_LIB14",
+                        "SampleId": "B2_LIB14",
+                        "Status": "Complete",
+                        "StatusSummary": "",
+                        "DateCreated": "2015-01-29T11:05:31.0000000",
+                        "TotalSize": 2884099731,
+                        "Read1": 125,
+                        "Read2": 125,
+                        "NumReadsPF": 16364800,
+                        "NumReadsRaw": 16859727,
+                        "TotalReadsRaw": 33719454,
+                        "TotalReadsPF": 32729600,
+                        "TotalClustersRaw": 16859727,
+                        "TotalClustersPF": 16364800,
+                        "IsPairedEnd": true
+                    }
+                },
+                {
+                    "Type": "map[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.sample-id.attributes",
+                    "Name": "Input.sample-id.attributes",
+                    "Description": "Sample Attributes",
+                    "Items": [
+                        [
+                            {
+                                "Key": "FieldId",
+                                "Values": [
+                                    "sample-id"
+                                ]
+                            },
+                            {
+                                "Key": "ResourceType",
+                                "Values": [
+                                    "sample"
+                                ]
+                            },
+                            {
+                                "Key": "ResourceId",
+                                "Values": [
+                                    "21815305"
+                                ]
+                            },
+                            {
+                                "Key": "ResourceHref",
+                                "Values": [
+                                    "v1pre3/samples/21815305"
+                                ]
+                            }
+                        ]
+                    ],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Input.sample-id.attributes/items",
+                    "ItemsDisplayedCount": 1,
+                    "ItemsTotalCount": 1
+                },
+                {
+                    "Type": "sample[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.Samples",
+                    "Name": "Input.Samples",
+                    "Description": "",
+                    "Items": [
+                        {
+                            "Id": "21815305",
+                            "Href": "v1pre3/samples/21815305",
+                            "IsMerged": false,
+                            "UserOwnedBy": {
+                                "Id": "68074",
+                                "Href": "v1pre3/users/68074",
+                                "Name": "Stewart MacArthur",
+                                "GravatarUrl": "https://secure.gravatar.com/avatar/b5fb3638a1f421992f9d360a3610446b.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                            },
+                            "Name": "B2_LIB14",
+                            "SampleId": "B2_LIB14",
+                            "Status": "Complete",
+                            "StatusSummary": "",
+                            "DateCreated": "2015-01-29T11:05:31.0000000",
+                            "TotalSize": 2884099731,
+                            "Read1": 125,
+                            "Read2": 125,
+                            "NumReadsPF": 16364800,
+                            "NumReadsRaw": 16859727,
+                            "TotalReadsRaw": 33719454,
+                            "TotalReadsPF": 32729600,
+                            "TotalClustersRaw": 16859727,
+                            "TotalClustersPF": 16364800,
+                            "IsPairedEnd": true
+                        }
+                    ],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Input.Samples/items",
+                    "ItemsDisplayedCount": 1,
+                    "ItemsTotalCount": 1
+                },
+                {
+                    "Type": "string",
+                    "Href": "v1pre3/appsessions/24780760/properties/Input.StrandBias-id",
+                    "Name": "Input.StrandBias-id",
+                    "Description": "Max Strand Bias for Variants",
+                    "Content": "10"
+                },
+                {
+                    "Type": "appresult[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Output.AppResults",
+                    "Name": "Output.AppResults",
+                    "Description": "",
+                    "Items": [
+                        {
+                            "Id": "22548939",
+                            "Href": "v1pre3/appresults/22548939",
+                            "UserOwnedBy": {
+                                "Id": "4768769",
+                                "Href": "v1pre3/users/4768769",
+                                "Name": "Peter Saffrey",
+                                "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                            },
+                            "Name": "B2_LIB14",
+                            "Status": "Complete",
+                            "StatusSummary": " Application Complete",
+                            "DateCreated": "2015-04-14T01:46:15.0000000",
+                            "TotalSize": 4661754219,
+                            "AppSession": {
+                                "Id": "24780760",
+                                "Name": "BWA WGS v1 : B2_LIB14",
+                                "Href": "v1pre3/appsessions/24780760",
+                                "Application": {
+                                    "Id": "279279",
+                                    "Href": "v1pre3/applications/279279",
+                                    "Name": "BWA Whole Genome Sequencing v1.0",
+                                    "CompanyName": "Illumina, Inc.",
+                                    "VersionNumber": "1.0.0",
+                                    "HomepageUri": "http://support.illumina.com/help/BaseSpace_App_WGS_BWA_help/BWA_WGS_Help.htm",
+                                    "ShortDescription": "Processes whole-genome sequencing data using BWA alignment and GATK variant calling.",
+                                    "DateCreated": "2013-08-06T00:20:31.0000000",
+                                    "DatePublished": "2014-01-14T00:00:00.0000000",
+                                    "PublishStatus": "Published",
+                                    "IsBillingActivated": false,
+                                    "Category": "Instance",
+                                    "Classifications": [
+                                        "Resequencing",
+                                        "VariantAnalysis"
+                                    ]
+                                },
+                                "UserCreatedBy": {
+                                    "Id": "4768769",
+                                    "Href": "v1pre3/users/4768769",
+                                    "Name": "Peter Saffrey",
+                                    "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                                },
+                                "Status": "Complete",
+                                "StatusSummary": " Application Complete",
+                                "DateCreated": "2015-04-13T15:58:40.0000000",
+                                "ModifiedOn": "2015-04-14T01:50:25.0000000",
+                                "DateCompleted": "2015-04-14T01:50:27.0000000",
+                                "TotalSize": 4661754219
+                            }
+                        }
+                    ],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Output.AppResults/items",
+                    "ItemsDisplayedCount": 1,
+                    "ItemsTotalCount": 1
+                },
+                {
+                    "Type": "project[]",
+                    "Href": "v1pre3/appsessions/24780760/properties/Output.Projects",
+                    "Name": "Output.Projects",
+                    "Description": "",
+                    "Items": [
+                        {
+                            "Id": "21646627",
+                            "UserOwnedBy": {
+                                "Id": "4768769",
+                                "Href": "v1pre3/users/4768769",
+                                "Name": "Peter Saffrey",
+                                "GravatarUrl": "https://secure.gravatar.com/avatar/a79cc925dee5716f4d089c1af7b9c0a7.jpg?s=20&d=https%3a%2f%2fbasespace.illumina.com%2fpublic%2fimages%2fDefaultCustomerGravatar.png&r=PG"
+                            },
+                            "Href": "v1pre3/projects/21646627",
+                            "Name": "Sloths test",
+                            "Description": "",
+                            "DateCreated": "2015-04-08T12:41:19.0000000",
+                            "DateModified": "2015-06-23T11:10:17.0000000",
+                            "HasCollaborators": true,
+                            "TotalSize": 1028010773444
+                        }
+                    ],
+                    "HrefItems": "v1pre3/appsessions/24780760/properties/Output.Projects/items",
+                    "ItemsDisplayedCount": 1,
+                    "ItemsTotalCount": 1
+                }
+            ],
+            "DisplayedCount": 14,
+            "TotalCount": 14,
+            "Href": "v1pre3/appsessions/24780760/properties"
+        }
+    },
+    "ResponseStatus": {},
+    "Notifications": []
+}
