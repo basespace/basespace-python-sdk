@@ -37,7 +37,7 @@ class BaseSpaceAPI(BaseAPI):
     '''
     The main API class used for all communication with the REST server
     '''
-    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version=None, appSessionId='', AccessToken='', userAgent=None, timeout=10, verbose=0, profile='DEFAULT'):
+    def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version='v1pre3', appSessionId='', AccessToken='', userAgent=None, timeout=10, verbose=0, profile='default'):
         '''
         The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):        
         
@@ -84,27 +84,12 @@ class BaseSpaceAPI(BaseAPI):
         '''
         lcl_cred = self._getLocalCredentials(profile)
         cred = {}
+        # set profile name
+        if 'name' in lcl_cred:
+            cred['profile'] = lcl_cred['name']
+        else:
+            cred['profile'] = profile
         # required credentials
-        if clientKey is not None:
-            cred['clientKey'] = clientKey
-        else:
-            try:
-                cred['clientKey'] = lcl_cred['clientKey']
-            except KeyError:        
-                raise CredentialsException('Client Key not available - please provide in BaseSpaceAPI constructor or config file')
-            else:
-                # set profile name
-                if 'name' in lcl_cred:
-                    cred['profile'] = lcl_cred['name']
-                else:
-                    cred['profile'] = profile
-        if clientSecret is not None:
-            cred['clientSecret'] = clientSecret
-        else:
-            try:
-                cred['clientSecret'] = lcl_cred['clientSecret']
-            except KeyError:        
-                raise CredentialsException('Client Secret not available - please provide in BaseSpaceAPI constructor or config file')
         if apiServer is not None:
             cred['apiServer'] = apiServer
         else:
@@ -118,8 +103,31 @@ class BaseSpaceAPI(BaseAPI):
             try:
                 cred['apiVersion'] = lcl_cred['apiVersion']
             except KeyError:        
-                raise CredentialsException('API version available - please provide in BaseSpaceAPI constructor or config file')        
-        # Optional credentials 
+                raise CredentialsException('API version not available - please provide in BaseSpaceAPI constructor or config file')
+        if accessToken:
+            cred['accessToken'] = accessToken
+        elif 'accessToken' in lcl_cred:
+            try:
+                cred['accessToken'] = lcl_cred['accessToken']
+            except KeyError:
+                raise CredentialsException('Access token not available - please provide in BaseSpaceAPI constructor or config file')
+        else:
+            cred['accessToken'] = accessToken
+        # Optional credentials
+        if clientKey is not None:
+            cred['clientKey'] = clientKey
+        else:
+            try:
+                cred['clientKey'] = lcl_cred['clientKey']
+            except KeyError:
+                cred['clientKey'] = clientKey
+        if clientSecret is not None:
+            cred['clientSecret'] = clientSecret
+        else:
+            try:
+                cred['clientSecret'] = lcl_cred['clientSecret']
+            except KeyError:
+                cred['clientSecret'] = clientSecret
         if appSessionId:
             cred['appSessionId'] = appSessionId
         elif 'apiVersion' in lcl_cred:
@@ -129,59 +137,45 @@ class BaseSpaceAPI(BaseAPI):
                 cred['appSessionId'] = appSessionId
         else:
             cred['appSessionId'] = appSessionId
-        
-        if accessToken:
-            cred['accessToken'] = accessToken
-        elif 'accessToken' in lcl_cred:            
-            try:
-                cred['accessToken'] = lcl_cred['accessToken']
-            except KeyError:
-                cred['accessToken'] = accessToken
-        else:
-            cred['accessToken'] = accessToken
-        
+
         return cred            
 
     def _getLocalCredentials(self, profile):
         '''
-        Returns credentials from local config file (~/.basespacepy.cfg)
+        Returns credentials from local config file (~/.basespace/<configname>.cfg)
         If some or all credentials are missing, they aren't included the in the returned dict
         
-        :param profile: Profile name from local config file 
+        :param profile: Profile name to use to find local config file
         :returns: A dictionary with credentials from local config file 
         '''
-        config_file = os.path.expanduser('~/.basespacepy.cfg')
+        config_file = os.path.join(os.path.expanduser('~/.basespace'), "%s.cfg" % profile)
+        section_name = "DEFAULT"
         cred = {}        
         config = ConfigParser.SafeConfigParser()
         if config.read(config_file):
-            if not config.has_section(profile) and profile.lower() != 'default':                
-                raise CredentialsException("Profile name '%s' not present in config file %s" % (profile, config_file))
+            cred['name'] = profile
             try:
-                cred['name'] = config.get(profile, "name")
+                cred['clientKey'] = config.get(section_name, "clientKey")
             except ConfigParser.NoOptionError:
                 pass
             try:
-                cred['clientKey'] = config.get(profile, "clientKey")
+                cred['clientSecret'] = config.get(section_name, "clientSecret")
             except ConfigParser.NoOptionError:
                 pass
             try:
-                cred['clientSecret'] = config.get(profile, "clientSecret")
+                cred['apiServer'] = config.get(section_name, "apiServer")
             except ConfigParser.NoOptionError:
                 pass
             try:
-                cred['apiServer'] = config.get(profile, "apiServer")
-            except ConfigParser.NoOptionError:
-                pass
-            try:
-                cred['apiVersion'] = config.get(profile, "apiVersion")
+                cred['apiVersion'] = config.get(section_name, "apiVersion")
             except ConfigParser.NoOptionError:
                 pass
             try: 
-                cred['appSessionId'] = config.get(profile, "appSessionId")
+                cred['appSessionId'] = config.get(section_name, "appSessionId")
             except ConfigParser.NoOptionError:
                 pass
             try:
-                cred['accessToken'] = config.get(profile, "accessToken")
+                cred['accessToken'] = config.get(section_name, "accessToken")
             except ConfigParser.NoOptionError:
                 pass            
         return cred
