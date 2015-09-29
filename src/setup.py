@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
+
 try:
     from setuptools import setup
 except ImportError:
@@ -30,7 +32,9 @@ The primary purpose of the SDK is to provide an easy-to-use Python environment e
 to authenticate a user, retrieve data, and upload data/results from their own analysis to BaseSpace.""",
       author_email='',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
-      requires=['pycurl','dateutil']
+      package_dir={'BaseSpacePy' : os.path.join(os.path.dirname(__file__),'BaseSpacePy')},
+      requires=['pycurl','dateutil'],
+      zip_safe=False,
 )
 
 
