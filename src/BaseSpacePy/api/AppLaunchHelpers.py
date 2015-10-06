@@ -364,7 +364,7 @@ class LaunchSpecification(object):
         if required_vars - supplied_var_names:
             raise LaunchSpecificationException(
                 "Compulsory variable(s) missing! (%s)" % str(required_vars - supplied_var_names))
-        if supplied_var_names - (self.get_variable_requirements() | {"LaunchName"}):
+        if supplied_var_names - (self.get_variable_requirements() | set("LaunchName")):
             print "warning! unused variable(s) specified: (%s)" % str(
                 supplied_var_names - self.get_variable_requirements())
         all_vars = copy.copy(self.defaults)
