@@ -33,7 +33,7 @@ to authenticate a user, retrieve data, and upload data/results from their own an
       author_email='',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
       package_dir={'BaseSpacePy' : os.path.join(os.path.dirname(__file__),'BaseSpacePy')},
-      requires=['pycurl','dateutil'],
+      install_requires=['pycurl','python-dateutil'],
       zip_safe=False,
 )
 
