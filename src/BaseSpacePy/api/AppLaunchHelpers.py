@@ -422,6 +422,9 @@ class LaunchPayload(object):
         self._launch_spec = launch_spec
         self._args = args
         self._configoptions = configoptions
+        varnames = self._launch_spec.get_minimum_requirements()
+        if len(varnames) != len(self._args):
+            raise LaunchSpecificationException("Number of arguments does not match specification")
 
     def _find_all_entity_names(self, entity_type):
         """
