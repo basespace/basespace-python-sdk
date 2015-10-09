@@ -26,10 +26,8 @@ SESSION_AUTH_URI = "https://accounts.illumina.com/"
 DEFAULT_CONFIG_NAME = "DEFAULT"
 SESSION_TOKEN_NAME = "sessionToken"
 ACCESS_TOKEN_NAME = "accessToken"
-API_SERVER = "https://api.basespace.illumina.com/"
+DEFAULT_API_SERVER = "https://api.basespace.illumina.com/"
 API_VERSION = "v1pre3"
-OAUTH_URI = "%s%s/oauthv2/deviceauthorization" % (API_SERVER, API_VERSION)
-TOKEN_URI = "%s%s/oauthv2/token" % (API_SERVER, API_VERSION)
 WAIT_TIME = 5.0
 
 # these are the details for the BaseSpaceCLI app
@@ -79,10 +77,12 @@ def parse_config(config_path):
         config.read(config_path)
     return config
 
-def construct_default_config(config):
-    config.set(DEFAULT_CONFIG_NAME, "apiServer", API_SERVER)
+def construct_default_config(config, api_server):
+    config.set(DEFAULT_CONFIG_NAME, "apiServer", api_server)
 
-def set_oauth_details(config_path):
+def set_oauth_details(config_path, api_server):
+    OAUTH_URI = "%s%s/oauthv2/deviceauthorization" % (api_server, API_VERSION)
+    TOKEN_URI = "%s%s/oauthv2/token" % (api_server, API_VERSION)
     s = requests.session()
     # make the initial request
     auth_payload = {
@@ -120,7 +120,7 @@ def set_oauth_details(config_path):
             access_token = r.json()["access_token"]
             break
     config = parse_config(config_path)
-    construct_default_config(config)
+    construct_default_config(config, api_server)
     if not access_token:
         raise Exception("problem obtaining token!")
     config.set(DEFAULT_CONFIG_NAME, ACCESS_TOKEN_NAME, access_token)
@@ -136,6 +136,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--configname', type=str, dest="configname", default="default", help='name of config')
     parser.add_argument('-s', '--sessiontoken', default=False, action="store_true",
                         help='do session auth, instead of regular auth')
+    parser.add_argument('-a', '--api-server', default=DEFAULT_API_SERVER, help="choose backend api server")
 
     args = parser.parse_args()
 
@@ -151,7 +152,7 @@ if __name__ == "__main__":
             if os.path.exists(config_path):
                 print "config path already exists; not overwriting (%s)" % config_path
                 sys.exit(1)
-            set_oauth_details(config_path)
+            set_oauth_details(config_path, args.api_server)
         except Exception as e:
             print "authentication failed!"
             raise
