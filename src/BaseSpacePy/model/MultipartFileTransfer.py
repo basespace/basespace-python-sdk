@@ -342,11 +342,11 @@ class MultipartUpload(object):
         self.exe.add_workers(self.process_count)
         self.task_total = fileCount - self.start_chunk + 1                                                
 
-        LOGGER.info("Total File Size %s" % Utils.readable_bytes(total_size))
-        LOGGER.info("Using File Part Size %d MB" % self.part_size)
-        LOGGER.info("Processes %d" % self.process_count)
-        LOGGER.info("File Chunk Count %d" % self.task_total)
-        LOGGER.info("Start Chunk %d" % self.start_chunk)    
+        LOGGER.debug("Total File Size %s" % Utils.readable_bytes(total_size))
+        LOGGER.debug("Using File Part Size %d MB" % self.part_size)
+        LOGGER.debug("Processes %d" % self.process_count)
+        LOGGER.debug("File Chunk Count %d" % self.task_total)
+        LOGGER.debug("Start Chunk %d" % self.start_chunk)
 
     def _start_workers(self):
         '''
@@ -435,11 +435,11 @@ class MultipartDownload(object):
         self.exe.add_workers(self.process_count)        
         self.task_total = self.file_count - self.start_chunk + 1                                                
                                  
-        LOGGER.info("Total File Size %s" % Utils.readable_bytes(total_bytes))
-        LOGGER.info("Using File Part Size %s MB" % str(self.part_size))
-        LOGGER.info("Processes %d" % self.process_count)
-        LOGGER.info("File Chunk Count %d" % self.file_count)
-        LOGGER.info("Start Chunk %d" % self.start_chunk)
+        LOGGER.debug("Total File Size %s" % Utils.readable_bytes(total_bytes))
+        LOGGER.debug("Using File Part Size %s MB" % str(self.part_size))
+        LOGGER.debug("Processes %d" % self.process_count)
+        LOGGER.debug("File Chunk Count %d" % self.file_count)
+        LOGGER.debug("Start Chunk %d" % self.start_chunk)
                             
     def _start_workers(self):
         '''
