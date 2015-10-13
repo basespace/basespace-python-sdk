@@ -79,10 +79,13 @@ class BaseSpaceAPI(BaseAPI):
         :param version: the version of the BaseSpace API
         :param appSessionId: the AppSession Id
         :param AccessToken: an access token        
-        :param profile: name of profile in config file        
+        :param profile: name of the config file
         :returns: dictionary with credentials from constructor, config file, or default (for optional args), in this priority order.
         '''
         lcl_cred = self._getLocalCredentials(profile)
+        my_path = os.path.dirname(os.path.abspath(__file__))
+        authenticate = os.path.abspath(os.path.join(my_path, "..", "..", "..", "bin", "authenticate.py"))
+        authenticate_cmd = "%s --config %s" % (authenticate, profile)
         cred = {}
         # set profile name
         if 'name' in lcl_cred:
@@ -90,55 +93,28 @@ class BaseSpaceAPI(BaseAPI):
         else:
             cred['profile'] = profile
         # required credentials
-        if apiServer is not None:
-            cred['apiServer'] = apiServer
-        else:
-            try:
-                cred['apiServer'] = lcl_cred['apiServer']
-            except KeyError:        
-                raise CredentialsException('API Server URL not available - please provide in BaseSpaceAPI constructor or config file')
-        if apiVersion is not None:
-            cred['apiVersion'] = apiVersion
-        else:
-            try:
-                cred['apiVersion'] = lcl_cred['apiVersion']
-            except KeyError:        
-                raise CredentialsException('API version not available - please provide in BaseSpaceAPI constructor or config file')
-        if accessToken:
-            cred['accessToken'] = accessToken
-        elif 'accessToken' in lcl_cred:
-            try:
-                cred['accessToken'] = lcl_cred['accessToken']
-            except KeyError:
-                raise CredentialsException('Access token not available - please provide in BaseSpaceAPI constructor or config file')
-        else:
-            cred['accessToken'] = accessToken
+        REQUIRED = ["accessToken", "apiServer", "apiVersion"]
+        for conf_item in REQUIRED:
+            local_value = locals()[conf_item]
+            if local_value:
+               cred[conf_item] = local_value
+            else:
+                try:
+                    cred[conf_item] = lcl_cred[conf_item]
+                except KeyError:
+                    raise CredentialsException("%s not found or config %s missing. Try running %s" % (conf_item, profile, authenticate_cmd))
         # Optional credentials
-        if clientKey is not None:
-            cred['clientKey'] = clientKey
-        else:
-            try:
-                cred['clientKey'] = lcl_cred['clientKey']
-            except KeyError:
-                cred['clientKey'] = clientKey
-        if clientSecret is not None:
-            cred['clientSecret'] = clientSecret
-        else:
-            try:
-                cred['clientSecret'] = lcl_cred['clientSecret']
-            except KeyError:
-                cred['clientSecret'] = clientSecret
-        if appSessionId:
-            cred['appSessionId'] = appSessionId
-        elif 'apiVersion' in lcl_cred:
-            try:
-                cred['appSessionId'] = lcl_cred['appSessionId']
-            except KeyError:
-                cred['appSessionId'] = appSessionId
-        else:
-            cred['appSessionId'] = appSessionId
-
-        return cred            
+        OPTIONAL = ["clientKey", "clientSecret", "appSessionId"]
+        for conf_item in OPTIONAL:
+            local_value = locals()[conf_item]
+            if local_value:
+                cred[conf_item] = local_value
+            else:
+                try:
+                    cred[conf_item] = lcl_cred[conf_item]
+                except KeyError:
+                    cred[conf_item] = local_value
+        return cred
 
     def _getLocalCredentials(self, profile):
         '''

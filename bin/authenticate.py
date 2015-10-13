@@ -117,12 +117,14 @@ def set_oauth_details(config_path, api_server):
             sys.stdout.flush()
             time.sleep(WAIT_TIME)
         else:
+            sys.stdout.write("\n")
             access_token = r.json()["access_token"]
             break
     config = parse_config(config_path)
     construct_default_config(config, api_server)
     if not access_token:
         raise Exception("problem obtaining token!")
+    print "Success!"
     config.set(DEFAULT_CONFIG_NAME, ACCESS_TOKEN_NAME, access_token)
     with open(config_path, "w") as fh:
         config.write(fh)
