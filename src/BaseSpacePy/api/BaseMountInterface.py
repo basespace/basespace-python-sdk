@@ -25,6 +25,7 @@ class BaseMountInterface(object):
         self.path = path
         self.id = None
         self.type = None
+        self.access_token = None
         self.name = os.path.basename(path)
         if not self.__validate_basemount__():
             raise BaseMountInterfaceException("Path: %s does not seem to be a BaseMount path" % self.path)
@@ -60,12 +61,29 @@ class BaseMountInterface(object):
         if self.type == "file":
             metadata_path = self.path.replace("Files", "Files.metadata")
             id_file = os.path.join(metadata_path, ".id")
+            config_file = os.path.join(os.path.dirname(self.path), ".basemount", "Config.cfg")
         else:
             id_file = os.path.join(self.path, ".id")
+            config_file = os.path.join(self.path, ".basemount", "Config.cfg")
+        if os.path.isfile(config_file):
+            # get the access token if we can
+            self.access_token = self._get_access_token_from_config(config_file)
         self.id = open(id_file).read().strip()
 
     def __str__(self):
         return "%s : (%s) : (%s)" % (self.path, self.id, self.type)
+
+    def _get_access_token_from_config(self, config_path):
+        from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
+        config = SafeConfigParser()
+        config.read(config_path)
+        try:
+            return config.get("DEFAULT", "accessToken")
+        except NoOptionError, NoSectionError:
+            raise BaseMountInterfaceException("malformed BaseMount config: %s" % config_path)
+
+
+
 
     def get_meta_data(self):
         try:

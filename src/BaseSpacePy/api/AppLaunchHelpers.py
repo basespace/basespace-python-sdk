@@ -400,6 +400,7 @@ class LaunchSpecification(object):
         description = ["%s (%s)" % (varname, self.get_property_type(varname)) for varname in minimum_requirements]
         return " ".join(description)
 
+
 class LaunchPayload(object):
     """
     Helper class to faciliate users making the user_supplied_vars dictionary
@@ -411,7 +412,7 @@ class LaunchPayload(object):
 
     LAUNCH_NAME = "LaunchName"
 
-    def __init__(self, launch_spec, args, configoptions):
+    def __init__(self, launch_spec, args, configoptions, access_token):
         """
         :param launch_spec (LaunchSpecification)
         :param args (list) list or arguments to the app launch. These could be BaseSpace IDs or BaseMount paths
@@ -422,6 +423,7 @@ class LaunchPayload(object):
         self._launch_spec = launch_spec
         self._args = args
         self._configoptions = configoptions
+        self._access_token = access_token
         varnames = self._launch_spec.get_minimum_requirements()
         if len(varnames) != len(self._args):
             raise LaunchSpecificationException("Number of arguments does not match specification")
@@ -488,6 +490,12 @@ class LaunchPayload(object):
             raise LaunchSpecificationException("Parameter looks like a path, but does not exist: %s" % varval)
         if os.path.exists(varval):
             bmi = BaseMountInterface(varval)
+            # make sure we have a BaseMount access token to compare - old versions won't have one
+            # also make sure we've been passed an access token -
+            # if we haven't, access token consistency checking has been disabled.
+            if bmi.access_token and self._access_token and bmi.access_token != self._access_token:
+                raise LaunchSpecificationException(
+                    "Access tokens between launch configuration and referenced BaseMount path do not match: %s" % varval)
             spec_type = self._launch_spec.get_property_bald_type(param_name)
             basemount_type = bmi.type
             if spec_type != basemount_type:
