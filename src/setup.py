@@ -33,6 +33,9 @@ to authenticate a user, retrieve data, and upload data/results from their own an
       author_email='',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
       package_dir={'BaseSpacePy' : os.path.join(os.path.dirname(__file__),'BaseSpacePy')},
+      # this line moves closer to a Python configuration that does not issue the SSLContext warning
+      # it fails because of missing headers when building a dependency
+      #install_requires=['pycurl','python-dateutil','pyOpenSSL>=0.13','requests','requests[security]'],
       install_requires=['pycurl','python-dateutil','requests'],
       setup_requires=['stdeb'],
       zip_safe=False,
