@@ -39,8 +39,11 @@ class APIClient:
         :returns: server response (a string containing json)
         '''
         import requests
-        # this cleans up the output at the expense of letting the user know they're in an insecure context...
-        requests.packages.urllib3.disable_warnings()
+        # this tries to clean up the output at the expense of letting the user know they're in an insecure context...
+        try:
+            requests.packages.urllib3.disable_warnings()
+        except:
+            pass
         import logging
         logging.getLogger("requests").setLevel(logging.WARNING)
         # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
