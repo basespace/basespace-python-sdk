@@ -2,6 +2,7 @@
 from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException, UnknownParameterException, IllegalParameterException, QueryParameterException
 
 legal = {'Statuses': [],
+         'Status':[],
          'SortBy': ['Id', 'Name', 'DateCreated', 'Path', 'Position'],
          'Extensions': [],
          #'Extensions': ['bam', 'vcf'],

@@ -58,10 +58,11 @@ class Project(object):
         :param api: An instance of BaseSpaceAPI
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :param statuses: An optional list of statuses, eg. 'complete'
+        :return: list of AppResult objects
         '''
         self.isInit()
         return api.getAppResultsByProject(self.Id, queryPars=queryPars, statuses=statuses)
-        
+
     def getSamples(self, api, queryPars=None):
         '''
         Returns a list of Sample objects.

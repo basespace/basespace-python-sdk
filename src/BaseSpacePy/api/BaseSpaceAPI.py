@@ -207,6 +207,13 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams)
 
+    def getAllAppSessions(self, queryPars=None):
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/users/current/appsessions'
+        method = 'GET'
+        headerParams = {}
+        return self.__listRequest__(AppSession.AppSession, resourcePath, method, queryParams, headerParams)
+
     def __deserializeAppSessionResponse__(self, response):
         '''
         Converts a AppSession response from the API server to an AppSession object.        
@@ -673,15 +680,15 @@ class BaseSpaceAPI(BaseAPI):
     def getSamplesByProject(self, Id, queryPars=None):
         '''
         Returns a list of samples associated with a project with Id
-        
+
         :param Id: The id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of Sample instances
         '''
-        queryParams = self._validateQueryParameters(queryPars)                
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/projects/{Id}/samples'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'        
+        method = 'GET'
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams)
