@@ -84,7 +84,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         lcl_cred = self._getLocalCredentials(profile)
         my_path = os.path.dirname(os.path.abspath(__file__))
-        authenticate = os.path.abspath(os.path.join(my_path, "..", "..", "..", "bin", "authenticate.py"))
+        authenticate = "bs authenticate"
         authenticate_cmd = "%s --config %s" % (authenticate, profile)
         cred = {}
         # set profile name
@@ -102,7 +102,7 @@ class BaseSpaceAPI(BaseAPI):
                 try:
                     cred[conf_item] = lcl_cred[conf_item]
                 except KeyError:
-                    raise CredentialsException("%s not found or config %s missing. Try running %s" % (conf_item, profile, authenticate_cmd))
+                    raise CredentialsException("%s not found or config %s missing. Try running \"%s\"" % (conf_item, profile, authenticate_cmd))
         # Optional credentials
         OPTIONAL = ["clientKey", "clientSecret", "appSessionId"]
         for conf_item in OPTIONAL:

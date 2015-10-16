@@ -5,6 +5,14 @@ import getpass
 import os
 import requests
 
+# this tries to clean up the output at the expense of letting the user know they're in an insecure context...
+try:
+    requests.packages.urllib3.disable_warnings()
+except:
+    pass
+import logging
+logging.getLogger("requests").setLevel(logging.WARNING)
+
 __author__ = 'psaffrey'
 
 """
@@ -38,10 +46,9 @@ class AuthenticationAPI(object):
         :param config_path: path to config file
         :return: ConfigParser object
         """
-        if not os.path.exists(self.config_path):
-            self.config = ConfigParser.SafeConfigParser()
-        else:
-            self.config = ConfigParser.SafeConfigParser()
+        self.config = ConfigParser.SafeConfigParser()
+        self.config.optionxform = str
+        if os.path.exists(self.config_path):
             self.config.read(self.config_path)
 
     def construct_default_config(self, api_server):
