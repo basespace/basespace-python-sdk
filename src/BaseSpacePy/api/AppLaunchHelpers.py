@@ -21,19 +21,10 @@ import os
 from BaseMountInterface import BaseMountInterface
 from BaseSpaceAPI import BaseSpaceAPI
 
-api = BaseSpaceAPI()
-API_VERSION = api.version
-
-SKIP_PROPERTIES = ["app-session-name"]
-
 # if these strings are in the property names, we should not try to capture default values for them.
+# these are "global" but are needed by more than one object, so it's the cleanest way for now
 BS_ENTITIES = ["sample", "project", "appresult", "file"]
 BS_ENTITY_LIST_NAMES = ["Samples", "Projects", "AppResults", "Files"]
-
-LAUNCH_HEADER = {
-    "StatusSummary": "AutoLaunch",
-    "AutoStart": True,
-}
 
 
 class AppSessionMetaData(object):
@@ -46,6 +37,9 @@ class AppSessionMetaData(object):
     """
 
     __metaclass__ = abc.ABCMeta
+
+    SKIP_PROPERTIES = ["app-session-name"]
+
 
     def __init__(self, appsession_metadata):
         """
@@ -66,7 +60,7 @@ class AppSessionMetaData(object):
             if property_name.count(".") != 1:
                 continue
             property_basename = property_name.split(".")[-1]
-            if property_basename in SKIP_PROPERTIES:
+            if property_basename in self.SKIP_PROPERTIES:
                 continue
             if property_basename in BS_ENTITY_LIST_NAMES:
                 continue
@@ -161,6 +155,11 @@ class LaunchSpecification(object):
     Class to help work with a BaseSpace app launch specification, which includes the properties and any defaults
     """
 
+    LAUNCH_HEADER = {
+        "StatusSummary": "AutoLaunch",
+        "AutoStart": True,
+    }
+
     def __init__(self, properties, defaults):
         self.properties = properties
         self.property_lookup = dict((self.clean_name(property_["Name"]), property_) for property_ in self.properties)
@@ -176,6 +175,20 @@ class LaunchSpecification(object):
         prefix, cleaned_name = parameter_name.split(".")
         assert prefix == "Input"
         return cleaned_name
+
+    def process_parameter(self, param, varname):
+        # if option is prefixed with an @, it's a file (or process substitution with <() )
+        # so we should read inputs from there
+        if param.startswith("@"):
+            assert self.is_list_property(varname), "cannot specify non-list parameter with file"
+            with open(param[1:]) as fh:
+                processed_param = [line.strip() for line in fh]
+        else:
+            if self.is_list_property(varname):
+                processed_param = param.split(",")
+            else:
+                processed_param = param
+        return processed_param
 
     def resolve_list_variables(self, var_dict):
         """
@@ -240,7 +253,7 @@ class LaunchSpecification(object):
             this_sample_attributes.append(attribute_entry)
         return this_sample_attributes
 
-    def populate_properties(self, var_dict, sample_attributes={}):
+    def populate_properties(self, var_dict, api_version, sample_attributes={}):
         """
         Uses the base properties of the object and an instantiation of those properties (var_dict)
         build a dictionary that represents the launch payload
@@ -270,14 +283,14 @@ class LaunchSpecification(object):
                 if "[]" in property_type:
                     processed_value = []
                     for one_val in property_value:
-                        wrapped_value = "%s/%ss/%s" % (API_VERSION, bald_type, one_val)
+                        wrapped_value = "%s/%ss/%s" % (api_version, bald_type, one_val)
                         processed_value.append(wrapped_value)
                         if sample_attributes and bald_type == "sample":
                             one_sample_attributes = self.make_sample_attribute_entry(one_val, wrapped_value,
                                                                                      sample_attributes)
                             all_sample_attributes["items"].append(one_sample_attributes)
                 else:
-                    processed_value = "%s/%ss/%s" % (API_VERSION, bald_type, property_value)
+                    processed_value = "%s/%ss/%s" % (api_version, bald_type, property_value)
                     if sample_attributes and bald_type == "sample":
                         one_sample_attributes = self.make_sample_attribute_entry(property_value, processed_value,
                                                                                  sample_attributes)
@@ -343,7 +356,7 @@ class LaunchSpecification(object):
         """
         return [self.is_list_property(property_name) for property_name in self.get_minimum_requirements()].count(True)
 
-    def make_launch_json(self, user_supplied_vars, launch_name, sample_attributes={}, agent_id=""):
+    def make_launch_json(self, user_supplied_vars, launch_name, api_version, sample_attributes={}, agent_id=""):
         """
         build the launch payload (a json blob as a string) based on the supplied mapping from property name to value
 
@@ -355,7 +368,7 @@ class LaunchSpecification(object):
         :param agent_id: an AgentId to be attached to the launch, if specifed
         """
         # build basic headers
-        launch_dict = copy.copy(LAUNCH_HEADER)
+        launch_dict = copy.copy(self.LAUNCH_HEADER)
         launch_dict["Name"] = launch_name
         if agent_id:
             launch_dict["AgentId"] = agent_id
@@ -370,7 +383,7 @@ class LaunchSpecification(object):
         all_vars = copy.copy(self.defaults)
         all_vars.update(user_supplied_vars)
         self.resolve_list_variables(all_vars)
-        properties_dict = self.populate_properties(all_vars, sample_attributes)
+        properties_dict = self.populate_properties(all_vars, api_version, sample_attributes)
         launch_dict["Properties"] = properties_dict
         return json.dumps(launch_dict)
 
