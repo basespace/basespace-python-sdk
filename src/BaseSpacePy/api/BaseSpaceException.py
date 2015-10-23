@@ -49,43 +49,43 @@ class MultiProcessingTaskFailedException(Exception):
 
 class UploadPartSizeException(Exception):
     def __init__(self, value):
-        self.parameter = 'Upload part size invalid: ' + value
+        self.parameter = 'Upload part size is invalid: ' + value
     def __str__(self):
         return repr(self.parameter)
 
 class CredentialsException(Exception):
     def __init__(self, value):
-        self.parameter = 'Error with BaseSpace credentials: ' + value
+        self.parameter = 'Invalid BaseSpace credentials: ' + value
     def __str__(self):
         return repr(self.parameter)
 
 class QueryParameterException(Exception):
     def __init__(self, value):
-        self.parameter = 'Error with query parameter: ' + value
+        self.parameter = 'Invalid query parameter: ' + value
     def __str__(self):
         return repr(self.parameter)
 
 class AppSessionException(Exception):
     def __init__(self, value):
-        self.parameter = 'Error with AppSession: ' + value
+        self.parameter = 'AppSession error: ' + value
     def __str__(self):
         return repr(self.parameter)
 
 class ModelNotSupportedException(Exception):
     def __init__(self, value):
-        self.parameter = 'Model not supported: ' + value
+        self.parameter = 'Unsupported model: ' + value
     def __str__(self):
         return repr(self.parameter)
 
 class OAuthException(Exception):
     def __init__(self, value):
-        self.parameter = 'Error with OAuth: ' + value
+        self.parameter = 'Could not authenticate with OAuth: ' + value
     def __str__(self):
         return repr(self.parameter)
 
 class RestMethodException(Exception):
     def __init__(self, value):
-        self.parameter = 'Error with REST API method: ' + value
+        self.parameter = 'Problem with REST API method: ' + value
     def __str__(self):
         return repr(self.parameter)
     
