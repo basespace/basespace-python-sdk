@@ -111,7 +111,6 @@ class OAuthAuthentication(AuthenticationAPI):
             r = s.post(url=OAUTH_URI,
                        data=auth_payload)
         except Exception as e:
-            print "problem communicate with oauth server: %s" % str(e)
             raise
         # show the URL to the user
         auth_url = r.json()["verification_with_code_uri"]
