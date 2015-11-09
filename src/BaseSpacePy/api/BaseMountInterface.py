@@ -28,7 +28,7 @@ class BaseMountInterface(object):
         self.access_token = None
         self.name = os.path.basename(path)
         if not self.__validate_basemount__():
-            raise BaseMountInterfaceException("Path: %s does not seem to be a BaseMount path" % self.path)
+            raise BaseMountInterfaceException("Path: %s does not seem to be a BaseMount entity path" % self.path)
         self.__resolve_details__()
 
     def __validate_basemount__(self):

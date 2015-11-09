@@ -29,6 +29,8 @@ Also partly available here is obtaining session tokens (cookies), although these
 
 DEFAULT_SCOPE = "CREATE GLOBAL,BROWSE GLOBAL,CREATE PROJECTS,READ GLOBAL"
 
+class AuthenticationException(Exception):
+    pass
 
 class AuthenticationAPI(object):
     DEFAULT_CONFIG_NAME = "DEFAULT"
@@ -111,11 +113,14 @@ class OAuthAuthentication(AuthenticationAPI):
             r = s.post(url=OAUTH_URI,
                        data=auth_payload)
         except Exception as e:
-            print "problem communicate with oauth server: %s" % str(e)
-            raise
+            raise AuthenticationException("Failed to communicate with server: %s" % str(e))
         # show the URL to the user
-        auth_url = r.json()["verification_with_code_uri"]
-        auth_code = r.json()["device_code"]
+        try:
+            payload = r.json()
+        except ValueError:
+            raise AuthenticationException("bad payload from server - perhaps you should use https instead of http?")
+        auth_url = payload["verification_with_code_uri"]
+        auth_code = payload["device_code"]
         print "please authenticate here: %s" % auth_url
         # poll the token URL until we get the token
         token_payload = {
@@ -130,6 +135,9 @@ class OAuthAuthentication(AuthenticationAPI):
             r = s.post(url=TOKEN_URI,
                        data=token_payload)
             if r.status_code == 400:
+                if r.json()["error"] == "access_denied":
+                    sys.stdout.write("\n")
+                    break
                 sys.stdout.write(".")
                 sys.stdout.flush()
                 time.sleep(self.WAIT_TIME)
