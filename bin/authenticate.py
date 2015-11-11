@@ -58,6 +58,7 @@ def set_session_details(config_path):
     password = getpass.getpass()
     s, r = basespace_session(username, password)
     config = parse_config(config_path)
+    import pdb; pdb.set_trace()
     config.set(DEFAULT_CONFIG_NAME, SESSION_TOKEN_NAME, )
     with open(config_path, "w") as fh:
         config.write(fh)

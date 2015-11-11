@@ -84,7 +84,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         lcl_cred = self._getLocalCredentials(profile)
         my_path = os.path.dirname(os.path.abspath(__file__))
-        authenticate = "bs authenticate"
+        authenticate_cmd = "bs authenticate"
         if profile != "default":
             authenticate_cmd = "%s --config %s" % (authenticate, profile)
         cred = {}
@@ -583,7 +583,19 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'        
         headerParams = {}
         return self.__listRequest__(Project.Project,resourcePath, method, queryParams, headerParams)
-       
+
+    def getUserProjectByName(self, projectName):
+        '''
+
+        :return: project matching the provided name
+        '''
+        projects = self.getProjectByUser(qp({"Name":projectName}))
+        if len(projects) == 0:
+            raise ValueError("No such project: %s" % projectName)
+        if len(projects) > 1:
+            raise ValueError("More than one matching projects: %s" % projectName)
+        return projects[0]
+
     def getAccessibleRunsByUser(self, queryPars=None):
         '''
         Returns a list of accessible runs for the current User

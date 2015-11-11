@@ -19,7 +19,6 @@ import json
 import os
 
 from BaseMountInterface import BaseMountInterface
-from BaseSpaceAPI import BaseSpaceAPI
 
 # if these strings are in the property names, we should not try to capture default values for them.
 # these are "global" but are needed by more than one object, so it's the cleanest way for now
@@ -501,6 +500,7 @@ class LaunchPayload(object):
         """
         if varval.startswith("/") and not os.path.exists(varval):
             raise LaunchSpecificationException("Parameter looks like a path, but does not exist: %s" % varval)
+        spec_type = self._launch_spec.get_property_bald_type(param_name)
         if os.path.exists(varval):
             bmi = BaseMountInterface(varval)
             # make sure we have a BaseMount access token to compare - old versions won't have one
@@ -509,7 +509,6 @@ class LaunchPayload(object):
             if bmi.access_token and self._access_token and bmi.access_token != self._access_token:
                 raise LaunchSpecificationException(
                     "Access tokens between launch configuration and referenced BaseMount path do not match: %s" % varval)
-            spec_type = self._launch_spec.get_property_bald_type(param_name)
             basemount_type = bmi.type
             if spec_type != basemount_type:
                 raise LaunchSpecificationException(
