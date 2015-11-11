@@ -86,7 +86,7 @@ class BaseSpaceAPI(BaseAPI):
         my_path = os.path.dirname(os.path.abspath(__file__))
         authenticate_cmd = "bs authenticate"
         if profile != "default":
-            authenticate_cmd = "%s --config %s" % (authenticate, profile)
+            authenticate_cmd = "%s --config %s" % (authenticate_cmd, profile)
         cred = {}
         # set profile name
         if 'name' in lcl_cred:
