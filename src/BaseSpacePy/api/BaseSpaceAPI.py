@@ -1485,3 +1485,12 @@ class BaseSpaceAPI(BaseAPI):
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,
                                       resourcePath, method, queryParams, headerParams)
+
+    def getApplications(self, queryPars=None):
+        resourcePath = '/applications'
+        method = 'GET'
+        headerParams = {}
+        if not queryPars:
+            queryPars = qp({"Limit": 1000})
+        queryParams = self._validateQueryParameters(queryPars)
+        return self.__listRequest__(Application.Application, resourcePath, method, queryParams, headerParams)

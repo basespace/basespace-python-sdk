@@ -9,5 +9,6 @@ class Application(object):
             'HrefLogo': 'str',
             'HomepageUri': 'str',
             'ShortDescription': 'str',
-            'DateCreated': 'datetime'            
+            'DateCreated': 'datetime',
+            'VersionNumber': 'str'
         }
