@@ -19,6 +19,7 @@ import json
 import os
 
 from BaseMountInterface import BaseMountInterface
+from BaseSpaceException import ServerResponseException
 
 # if these strings are in the property names, we should not try to capture default values for them.
 # these are "global" but are needed by more than one object, so it's the cleanest way for now
@@ -424,7 +425,7 @@ class LaunchPayload(object):
 
     LAUNCH_NAME = "LaunchName"
 
-    def __init__(self, launch_spec, args, configoptions, access_token):
+    def __init__(self, launch_spec, args, configoptions, api, disable_consistency_checking=True):
         """
         :param launch_spec (LaunchSpecification)
         :param args (list) list or arguments to the app launch. These could be BaseSpace IDs or BaseMount paths
@@ -435,7 +436,8 @@ class LaunchPayload(object):
         self._launch_spec = launch_spec
         self._args = args
         self._configoptions = configoptions
-        self._access_token = access_token
+        self._api = api
+        self._access_token = None if disable_consistency_checking else api.apiClient.apiKey
         varnames = self._launch_spec.get_minimum_requirements()
         if len(varnames) != len(self._args):
             raise LaunchSpecificationException("Number of arguments does not match specification")
@@ -458,6 +460,15 @@ class LaunchPayload(object):
                     if os.path.exists(entry):
                         bmi = BaseMountInterface(entry)
                         entity_names.append(bmi.name)
+                    # if this is not a BaseMount path, try to resolve an entity name using the API
+                    # note we're relying on the regular naming of the API to provide the right method name
+                    try:
+                        method_name = "get%sById" % entity_type.title()
+                        method = getattr(self._api, method_name)
+                        entity_names.append(method(entry).Name)
+                    except (AttributeError, ServerResponseException):
+                        pass
+
         return entity_names
 
     def derive_launch_name(self, app_name):

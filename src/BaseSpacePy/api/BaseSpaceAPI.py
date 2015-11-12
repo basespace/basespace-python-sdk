@@ -591,9 +591,9 @@ class BaseSpaceAPI(BaseAPI):
         '''
         projects = self.getProjectByUser(qp({"Name":projectName}))
         if len(projects) == 0:
-            raise ValueError("No such project: %s" % projectName)
+            raise ServerResponseException("No such project: %s" % projectName)
         if len(projects) > 1:
-            raise ValueError("More than one matching projects: %s" % projectName)
+            raise ServerResponseException("More than one matching projects: %s" % projectName)
         return projects[0]
 
     def getAccessibleRunsByUser(self, queryPars=None):
