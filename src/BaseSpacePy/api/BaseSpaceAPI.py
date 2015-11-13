@@ -1487,6 +1487,12 @@ class BaseSpaceAPI(BaseAPI):
                                       resourcePath, method, queryParams, headerParams)
 
     def getApplications(self, queryPars=None):
+        '''
+        Get details about all apps.
+        Note that each app will only have a single entry, even if it has many versions
+        :param queryPars: query parameters. Will default to a limit of 1000, so all are gained
+        :return: list of model.Application.Application objects
+        '''
         resourcePath = '/applications'
         method = 'GET'
         headerParams = {}
@@ -1494,3 +1500,15 @@ class BaseSpaceAPI(BaseAPI):
             queryPars = qp({"Limit": 1000})
         queryParams = self._validateQueryParameters(queryPars)
         return self.__listRequest__(Application.Application, resourcePath, method, queryParams, headerParams)
+
+    def getApplicationById(self, Id):
+        '''
+        Get a single app by ID
+        :return: App object
+        :raises: ServerResponseException if there is no such app
+        '''
+        resourcePath = '/applications/%s' % Id
+        method = 'GET'
+        headerParams = {}
+        queryParams = {}
+        return self.__singleRequest__(Application.Application, resourcePath, method, queryParams, headerParams)
