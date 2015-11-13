@@ -126,6 +126,9 @@ class AppSessionMetaDataSDK(AppSessionMetaData):
     def get_app_id(self):
         return self.asm.Application.Id
 
+    def get_app_version(self):
+        return self.asm.Application.VersionNumber
+
     @staticmethod
     def unpack_bs_property(bs_property, attribute):
         return getattr(bs_property, attribute)
@@ -140,6 +143,9 @@ class AppSessionMetaDataRaw(AppSessionMetaData):
 
     def get_app_id(self):
         return self.asm["Response"]["Application"]["Id"]
+
+    def get_app_version(self):
+        return self.asm["Response"]["Application"]["VersionNumber"]
 
     @staticmethod
     def unpack_bs_property(bs_property, attribute):
