@@ -12,7 +12,10 @@ legal = {'Statuses': [],
          'Name': [], 
          'StartPos':[], 
          'EndPos':[], 
-         'Format':[]
+         'Format':[],
+         'include':[],
+         'propertyFilters':[],
+         'userCreatedBy':[]
          #'Format': ['txt', 'json', 'vcf'], 
          }
 
