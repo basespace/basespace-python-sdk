@@ -504,7 +504,15 @@ class LaunchPayload(object):
         To validate other kinds of ID, we should (TODO!) resolve the type based on the varname
         and use the SDK to look it up.
         """
-        return True
+        vartype = self._launch_spec.get_property_bald_type(varname)
+        if vartype == "Sample":
+            self._api.getSampleById(basespace_id)
+        elif vartype == "Project":
+            self._api.getProjectById(basespace_id)
+        elif vartype == "AppResult":
+            self._api.getAppResultById(basespace_id)
+        else:
+            return True
 
     def to_basespace_id(self, param_name, varval):
         """
@@ -532,8 +540,13 @@ class LaunchPayload(object):
                     "wrong type of BaseMount path selected: %s needs to be of type %s" % (varval, spec_type))
             bid = bmi.id
         else:
-            bid = varval
-        assert self.is_valid_basespace_id(param_name, bid)
+            # strip off quotes, which will be what comes in from bs list samples -f csv
+            bid = varval.strip('"')
+        # skip this step for now - it could be really expensive for big launches
+        # try:
+        #     self.is_valid_basespace_id(param_name, bid)
+        # except ServerResponseException as e:
+        #     raise LaunchSpecificationException("invalid BaseSpace ID '%s' for var: %s (%s)" % (varval, param_name, str(e)))
         return bid
 
     def get_args(self):
