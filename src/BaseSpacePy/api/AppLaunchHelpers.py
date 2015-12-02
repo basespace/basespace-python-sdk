@@ -468,6 +468,7 @@ class LaunchPayload(object):
                         entity_names.append(bmi.name)
                     # if this is not a BaseMount path, try to resolve an entity name using the API
                     # note we're relying on the regular naming of the API to provide the right method name
+                    entry = entry.strip('"')
                     try:
                         method_name = "get%sById" % entity_type.title()
                         method = getattr(self._api, method_name)
