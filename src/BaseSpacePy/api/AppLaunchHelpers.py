@@ -393,8 +393,7 @@ class LaunchSpecification(object):
         launch_dict["Properties"] = properties_dict
         return json.dumps(launch_dict)
 
-    def format_property_information(self):
-        lines = ["\t".join(["Name", "Type", "Default"])]
+    def property_information_generator(self):
         minimum_requirements = self.get_minimum_requirements()
         for property_ in sorted(self.properties):
             property_name = self.clean_name(property_["Name"])
@@ -404,8 +403,11 @@ class LaunchSpecification(object):
             output = [property_name, property_type]
             if property_name in self.defaults:
                 output.append(str(self.defaults[property_name]))
-            lines.append("\t".join(output))
-        return "\n".join(lines)
+            yield output
+
+    def format_property_information(self):
+        header = ["\t".join(["Name", "Type", "Default"])]
+        return "\n".join(header + [ "\t".join(line) for line in self.property_information_generator() ])
 
     def dump_property_information(self):
         """
