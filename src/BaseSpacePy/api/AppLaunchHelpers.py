@@ -52,7 +52,8 @@ class AppSessionMetaData(object):
         """
         Unpacks the properties from an appsession and refines them ready to make a launch specification
 
-        :return:
+        :return: properties (list of dict of "Name" and "Type")
+                 defaults (dict from property name to default value)
         """
         appsession_properties = self.get_properties()
         properties = []
