@@ -49,6 +49,11 @@ class AppSessionMetaData(object):
         self.asm = appsession_metadata
 
     def get_refined_appsession_properties(self):
+        """
+        Unpacks the properties from an appsession and refines them ready to make a launch specification
+
+        :return:
+        """
         appsession_properties = self.get_properties()
         properties = []
         defaults = {}
