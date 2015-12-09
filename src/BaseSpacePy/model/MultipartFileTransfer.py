@@ -13,6 +13,7 @@ from BaseSpacePy.api.BaseSpaceException import MultiProcessingTaskFailedExceptio
 
 LOGGER = logging.getLogger(__name__)
 
+
 class UploadTask(object):
     '''
     Uploads a piece of a large local file.    
@@ -74,7 +75,7 @@ class UploadTask(object):
         return self
         
     def __str__(self):
-        return 'File piece %d of %d, total file size %s' % (self.piece, self.total_pieces, Utils.readable_bytes(self.total_size))
+        return 'File piece %d of %d, total %s' % (self.piece+1, self.total_pieces, Utils.readable_bytes(self.total_size))
 
 
 class DownloadTask(object):
@@ -180,7 +181,8 @@ class Consumer(multiprocessing.Process):
             else:                                                       
                 # attempt to run tasks, with retry
                 LOGGER.debug('Worker %s processing task: %s' % (self.name, str(next_task)))
-                for i in xrange(1, self.retries + 1):                        
+                logging.info('%s' % str(next_task))
+                for i in xrange(1, self.retries + 1):
                     if self.halt.is_set():
                         LOGGER.debug('Worker %s exiting, found halt signal' % self.name)
                         self.task_queue.task_done()
@@ -230,7 +232,7 @@ class Executor(object):
     '''
     def __init__(self):                                        
         self.tasks = multiprocessing.JoinableQueue()
-        self.result_queue = multiprocessing.Queue()                        
+        self.result_queue = multiprocessing.Queue()
         self.halt_event = multiprocessing.Event()
         self.lock = multiprocessing.Lock()
     
@@ -284,7 +286,7 @@ class MultipartUpload(object):
     '''
     Uploads a (large) file by uploading file parts in separate processes.    
     '''
-    def __init__(self, api, local_path, bs_file, process_count, part_size, temp_dir):
+    def __init__(self, api, local_path, bs_file, process_count, part_size, temp_dir, logger=None):
         '''
         Create a multipart upload object
         
@@ -301,9 +303,9 @@ class MultipartUpload(object):
         self.process_count  = process_count
         self.part_size      = part_size
         self.temp_dir       = temp_dir               
-                                           
+
         self.start_chunk    = 0
-    
+
     def upload(self):
         '''
         Start the upload, then when complete retrieve and return the file object from
@@ -332,7 +334,7 @@ class MultipartUpload(object):
         cmd = ['split', '-a', '4', '-d', '-b', str(chunk_size), self.local_path, prefix]
         rc = call(cmd)
         if rc != 0:
-            err_msg = "Splitting local file failed: %s" % str.local_path
+            err_msg = "Splitting local file failed: %s" % self.local_path
             raise MultiProcessingTaskFailedException(err_msg)
 
         self.exe = Executor()                    
@@ -342,8 +344,8 @@ class MultipartUpload(object):
         self.exe.add_workers(self.process_count)
         self.task_total = fileCount - self.start_chunk + 1                                                
 
-        LOGGER.debug("Total File Size %s" % Utils.readable_bytes(total_size))
-        LOGGER.debug("Using File Part Size %d MB" % self.part_size)
+        logging.info("Total File Size %s" % Utils.readable_bytes(total_size))
+        logging.info("Using File Part Size %d MB" % self.part_size)
         LOGGER.debug("Processes %d" % self.process_count)
         LOGGER.debug("File Chunk Count %d" % self.task_total)
         LOGGER.debug("Start Chunk %d" % self.start_chunk)
