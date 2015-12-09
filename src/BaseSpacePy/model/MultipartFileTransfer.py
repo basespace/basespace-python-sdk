@@ -181,7 +181,7 @@ class Consumer(multiprocessing.Process):
             else:                                                       
                 # attempt to run tasks, with retry
                 LOGGER.debug('Worker %s processing task: %s' % (self.name, str(next_task)))
-                logging.info('%s' % str(next_task))
+                LOGGER.info('%s' % str(next_task))
                 for i in xrange(1, self.retries + 1):
                     if self.halt.is_set():
                         LOGGER.debug('Worker %s exiting, found halt signal' % self.name)
@@ -344,8 +344,8 @@ class MultipartUpload(object):
         self.exe.add_workers(self.process_count)
         self.task_total = fileCount - self.start_chunk + 1                                                
 
-        logging.info("Total File Size %s" % Utils.readable_bytes(total_size))
-        logging.info("Using File Part Size %d MB" % self.part_size)
+        LOGGER.info("Total File Size %s" % Utils.readable_bytes(total_size))
+        LOGGER.info("Using File Part Size %d MB" % self.part_size)
         LOGGER.debug("Processes %d" % self.process_count)
         LOGGER.debug("File Chunk Count %d" % self.task_total)
         LOGGER.debug("Start Chunk %d" % self.start_chunk)
