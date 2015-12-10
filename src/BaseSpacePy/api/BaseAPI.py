@@ -12,7 +12,7 @@ import inspect
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import *
 from BaseSpacePy.model import *
-
+from itertools import chain
 
 class BaseAPI(object):
     '''
@@ -103,18 +103,31 @@ class BaseAPI(object):
             print '    # Path:      ' + str(resourcePath)
             print '    # QPars:     ' + str(queryParams)
             print '    # Hdrs:      ' + str(headerParams)
-        response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if self.verbose:
-            self.__json_print__('    # Response:  ',response)
-        if not response: 
-            raise ServerResponseException('No response returned')
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
-        elif response['ResponseStatus'].has_key('Message'):
-            raise ServerResponseException(str(response['ResponseStatus']['Message']))
-        
-        respObj = self.apiClient.deserialize(response, ListResponse.ListResponse)
-        return [self.apiClient.deserialize(c, myModel) for c in respObj._convertToObjectList()]
+        number_received = 0
+        total_number = None
+        responses = []
+        queryParams["Limit"] = 1024
+        while total_number is None or number_received < total_number:
+            queryParams["Offset"] = number_received
+            response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
+            if self.verbose:
+                self.__json_print__('    # Response:  ',response)
+            if not response:
+                raise ServerResponseException('No response returned')
+            if response['ResponseStatus'].has_key('ErrorCode'):
+                raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
+            elif response['ResponseStatus'].has_key('Message'):
+                raise ServerResponseException(str(response['ResponseStatus']['Message']))
+
+            respObj = self.apiClient.deserialize(response, ListResponse.ListResponse)
+            if total_number is None:
+                total_number = respObj.Response.TotalCount
+            elif total_number != respObj.Response.TotalCount:
+                raise ServerResponseException("Inconsistent values in large entity query")
+            responses.append(respObj)
+            number_received += respObj.Response.DisplayedCount
+
+        return [self.apiClient.deserialize(c, myModel) for c in chain(*[ ro._convertToObjectList() for ro in responses ])]
 
     def __makeCurlRequest__(self, data, url):
         '''
