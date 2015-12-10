@@ -13,6 +13,7 @@ import socket
 import ConfigParser
 import urlparse
 import logging
+import getpass
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
@@ -62,7 +63,9 @@ class BaseSpaceAPI(BaseAPI):
             self.profile    = cred['profile']
         # TODO this replacement won't work for all environments
         self.weburl         = cred['apiServer'].replace('api.','')
-        
+
+        self.tempdir        = cred['tempDirectoryBaseName'] if 'tempDirectoryBaseName' in cred else None
+
         apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
         super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, userAgent, timeout, verbose)
 
@@ -72,6 +75,7 @@ class BaseSpaceAPI(BaseAPI):
         for each credential.
         If clientKey was provided only in config file, include 'name' (in return dict) with profile name.
         Raises exception if required creds aren't provided (clientKey, clientSecret, apiServer, apiVersion).
+        also gets the tempdir to use, if any is specified
 
         :param clientKey: the client key of the user's app
         :param clientSecret: the client secret of the user's app
@@ -115,6 +119,8 @@ class BaseSpaceAPI(BaseAPI):
                     cred[conf_item] = lcl_cred[conf_item]
                 except KeyError:
                     cred[conf_item] = local_value
+        if "tempDirectoryBaseName" in lcl_cred:
+            cred["tempDirectoryBaseName"] = lcl_cred["tempDirectoryBaseName"]
         return cred
 
     def _getLocalCredentials(self, profile):
@@ -155,6 +161,10 @@ class BaseSpaceAPI(BaseAPI):
                 cred['accessToken'] = config.get(section_name, "accessToken")
             except ConfigParser.NoOptionError:
                 pass            
+            try:
+                cred['tempDirectoryBaseName'] = config.get(section_name, "tempDirectoryBaseName")
+            except ConfigParser.NoOptionError:
+                pass
         return cred
 
     def getAppSessionById(self, Id):
@@ -1163,7 +1173,12 @@ class BaseSpaceAPI(BaseAPI):
         if partSize <= 5 or partSize > 25:
             raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
         if tempDir is None:
-            tempDir = mkdtemp()
+            if self.tempdir:
+                username = getpass.getuser()
+                suffix = "pythonsdk_%s" % username
+                tempDir = mkdtemp(prefix=self.tempdir, suffix=username)
+            else:
+                tempDir = mkdtemp()
         bsFile = self.__initiateMultipartFileUpload__(resourceType, resourceId, fileName, directory, contentType)
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
         return myMpu.upload()                
@@ -1186,7 +1201,10 @@ class BaseSpaceAPI(BaseAPI):
         if partSize <= 5 or partSize > 25:
             raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
         if tempDir is None:
-            tempDir = mkdtemp()
+            if self.tempdir:
+                tempDir = self.tempdir
+            else:
+                tempDir = mkdtemp()
         bsFile = self.__initiateMultipartFileUploadSample__(Id, fileName, directory, contentType)
         myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)
         return myMpu.upload()
