@@ -64,8 +64,6 @@ class BaseSpaceAPI(BaseAPI):
         # TODO this replacement won't work for all environments
         self.weburl         = cred['apiServer'].replace('api.','')
 
-        self.tempdir        = cred['tempDirectoryBaseName'] if 'tempDirectoryBaseName' in cred else None
-
         apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
         super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, userAgent, timeout, verbose)
 
@@ -75,7 +73,6 @@ class BaseSpaceAPI(BaseAPI):
         for each credential.
         If clientKey was provided only in config file, include 'name' (in return dict) with profile name.
         Raises exception if required creds aren't provided (clientKey, clientSecret, apiServer, apiVersion).
-        also gets the tempdir to use, if any is specified
 
         :param clientKey: the client key of the user's app
         :param clientSecret: the client secret of the user's app
@@ -92,11 +89,13 @@ class BaseSpaceAPI(BaseAPI):
         if profile != "default":
             authenticate_cmd = "%s --config %s" % (authenticate_cmd, profile)
         cred = {}
-        # set profile name
-        if 'name' in lcl_cred:
-            cred['profile'] = lcl_cred['name']
-        else:
-            cred['profile'] = profile
+        # if access tokens have not been provided through the constructor,
+        # set a profile name
+        if not accessToken:
+            if 'name' in lcl_cred:
+                cred['profile'] = lcl_cred['name']
+            else:
+                cred['profile'] = profile
         # required credentials
         REQUIRED = ["accessToken", "apiServer", "apiVersion"]
         for conf_item in REQUIRED:
@@ -119,8 +118,6 @@ class BaseSpaceAPI(BaseAPI):
                     cred[conf_item] = lcl_cred[conf_item]
                 except KeyError:
                     cred[conf_item] = local_value
-        if "tempDirectoryBaseName" in lcl_cred:
-            cred["tempDirectoryBaseName"] = lcl_cred["tempDirectoryBaseName"]
         return cred
 
     def _getLocalCredentials(self, profile):
@@ -132,6 +129,8 @@ class BaseSpaceAPI(BaseAPI):
         :returns: A dictionary with credentials from local config file 
         '''
         config_file = os.path.join(os.path.expanduser('~/.basespace'), "%s.cfg" % profile)
+        if not os.path.exists(config_file):
+            raise CredentialsException("Could not find config file: %s" % config_file)
         section_name = "DEFAULT"
         cred = {}        
         config = ConfigParser.SafeConfigParser()
@@ -161,10 +160,6 @@ class BaseSpaceAPI(BaseAPI):
                 cred['accessToken'] = config.get(section_name, "accessToken")
             except ConfigParser.NoOptionError:
                 pass            
-            try:
-                cred['tempDirectoryBaseName'] = config.get(section_name, "tempDirectoryBaseName")
-            except ConfigParser.NoOptionError:
-                pass
         return cred
 
     def getAppSessionById(self, Id):
@@ -836,7 +831,7 @@ class BaseSpaceAPI(BaseAPI):
         method = 'GET'
         headerParams = {}
         return self.__listRequest__(GenomeV1.GenomeV1,
-                                    resourcePath, method, queryParams, headerParams)
+                                    resourcePath, method, queryParams, headerParams, sort=False)
 
     def getIntervalCoverage(self, Id, Chrom, StartPos, EndPos):
         '''
@@ -902,7 +897,7 @@ class BaseSpaceAPI(BaseAPI):
         if Format == 'vcf':
             raise NotImplementedError("Returning native VCF format isn't yet supported by BaseSpacePy")
         else:
-            return self.__listRequest__(Variant.Variant, resourcePath, method, queryParams, headerParams)
+            return self.__listRequest__(Variant.Variant, resourcePath, method, queryParams, headerParams, sort=False)
 
     def getVariantMetadata(self, Id, Format='json'):
         '''        
@@ -1152,7 +1147,7 @@ class BaseSpaceAPI(BaseAPI):
         return self.__singleRequest__(FileResponse.FileResponse,
                                       resourcePath, method, queryParams, headerParams, postData=postData, forcePost=1)
 
-    def multipartFileUpload(self, resourceType, resourceId, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
+    def multipartFileUpload(self, resourceType, resourceId, localPath, fileName, directory, contentType, processCount=10, partSize=25):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
         
@@ -1162,7 +1157,6 @@ class BaseSpaceAPI(BaseAPI):
         :param fileName: The desired filename on the server
         :param directory: The desired directory name on the server (empty string will place it in the root directory)
         :param contentType: The content type of the file
-        :param tempdir: (optional) Temp directory to use for temporary file chunks to upload
         :param processCount: (optional) The number of processes to be used, default 10
         :param partSize: (optional) The size in MB of individual upload parts (must be >5 Mb and <=25 Mb), default 25
         :returns: a File instance, which has been updated after the upload has completed.
@@ -1172,15 +1166,8 @@ class BaseSpaceAPI(BaseAPI):
         # First create file object in BaseSpace, then create multipart upload object and start upload
         if partSize <= 5 or partSize > 25:
             raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
-        if tempDir is None:
-            if self.tempdir:
-                username = getpass.getuser()
-                suffix = "pythonsdk_%s" % username
-                tempDir = mkdtemp(prefix=self.tempdir, suffix=username)
-            else:
-                tempDir = mkdtemp()
         bsFile = self.__initiateMultipartFileUpload__(resourceType, resourceId, fileName, directory, contentType)
-        myMpu = mpu(self, localPath, bsFile, processCount, partSize, temp_dir=tempDir)                
+        myMpu = mpu(self, localPath, bsFile, processCount, partSize)
         return myMpu.upload()                
 
     def multipartFileUploadSample(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):

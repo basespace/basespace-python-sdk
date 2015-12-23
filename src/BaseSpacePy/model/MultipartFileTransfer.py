@@ -18,14 +18,14 @@ class UploadTask(object):
     '''
     Uploads a piece of a large local file.    
     '''    
-    def __init__(self, api, bs_file_id, piece, total_pieces, local_path, total_size, temp_dir):
+    def __init__(self, api, bs_file_id, piece, total_pieces, local_path, total_size, chunk_size):
         self.api        = api
         self.bs_file_id = bs_file_id  # the BaseSpace File Id
         self.piece      = piece       # piece number 
         self.total_pieces = total_pieces # out of total piece count
         self.local_path = local_path  # the path of the local file to be uploaded, including file name        
         self.total_size = total_size  # total file size of upload, for reporting
-        self.temp_dir   = temp_dir    # temp location to store file chunks for upload
+        self.chunk_size   = chunk_size    # chunk size
         
         # tasks must implement these attributes and execute()
         self.success  = False
@@ -33,29 +33,18 @@ class UploadTask(object):
     
     def execute(self, lock):
         '''
-        Upload a piece of the target file, first splitting the local file into a temp file.
         Calculate md5 of file piece and pass to upload method.
         Lock is not used (but needed since worker sends it for multipart download)
         '''            
         try:
             fname = os.path.basename(self.local_path)
-            # this relies on the way the calling function has split the file
-            # but we still need to pass around the piece numbers because the BaseSpace API needs them
-            # to reassemble the file at the other end
-            # the zfill(4) is to make sure we have a zero padded suffix that split -a 4 -d will make
-            transFile = os.path.join(self.temp_dir, fname + str(self.piece).zfill(4))
-            #cmd = ['split', '-d', '-n', str(self.piece) + '/' + str(self.total_pieces), self.local_path]                        
-            #with open(transFile, "w") as fp:                                                    
-            #    rc = call(cmd, stdout=fp)
-            #    if rc != 0:
-            #        self.sucess = False
-            #        self.err_msg = "Splitting local file failed for piece %s" % str(self.piece)
-            #        return self            
-            with open(transFile, "r") as f:
-                out = f.read()
-                self.md5 = hashlib.md5(out).digest().encode('base64')            
+            chunk_data = ""
+            with open(self.local_path) as fh:
+                fh.seek(self.piece * self.chunk_size)
+                chunk_data = fh.read(self.chunk_size)
+            self.md5 = hashlib.md5(chunk_data).digest().encode('base64')
             try:
-                res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece+1,self.md5,transFile)
+                res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece+1,self.md5,chunk_data)
             except Exception as e:
                 self.success = False
                 self.err_msg = str(e)                
@@ -66,8 +55,6 @@ class UploadTask(object):
                 else:
                     self.success = False
                     self.err_msg = "Error - empty response from uploading file piece or missing ETag in response"
-            if self.success:
-                os.remove(transFile)
         # capture exception, since unpickleable exceptions may block
         except Exception as e:
             self.success = False
@@ -286,7 +273,7 @@ class MultipartUpload(object):
     '''
     Uploads a (large) file by uploading file parts in separate processes.    
     '''
-    def __init__(self, api, local_path, bs_file, process_count, part_size, temp_dir, logger=None):
+    def __init__(self, api, local_path, bs_file, process_count, part_size, logger=None):
         '''
         Create a multipart upload object
         
@@ -295,14 +282,12 @@ class MultipartUpload(object):
         :param bs_file:       the File object of the newly created BaseSpace File to upload 
         :param process_count: the number of process to use for uploading
         :param part_size:     in MB, the size of each uploaded part        
-        :param temp_dir:      temp directory to store file pieces for upload 
         '''
         self.api            = api    
         self.local_path     = local_path    
         self.remote_file    = bs_file
         self.process_count  = process_count
         self.part_size      = part_size
-        self.temp_dir       = temp_dir               
 
         self.start_chunk    = 0
 
@@ -319,27 +304,28 @@ class MultipartUpload(object):
         '''
         Determine number of file pieces to upload, add upload tasks to work queue         
         '''                
-        logfile = os.path.join(self.temp_dir, "main.log")
-        total_size = os.path.getsize(self.local_path)        
-        fileCount = int(total_size/(self.part_size*1024*1024)) + 1
+        from math import ceil
+        total_size = os.path.getsize(self.local_path)
+        # round up to get a number of chunks that will be enough for the whole file
+        fileCount = int(ceil(total_size/float(self.part_size*1024*1024)))
 
-        chunk_size = (total_size / fileCount) + 1
+        chunk_size = self.part_size*1024*1024
         assert chunk_size * fileCount > total_size
 
-        fname = os.path.basename(self.local_path)
-        prefix = os.path.join(self.temp_dir, fname)
+        # fname = os.path.basename(self.local_path)
+        # prefix = os.path.join(self.temp_dir, fname)
         # -a 4  always use 4 digit sufixes, to make sure we can predict the filenames
         # -d    use digits as suffixes, not letters
         # -b    chunk size (in bytes)
-        cmd = ['split', '-a', '4', '-d', '-b', str(chunk_size), self.local_path, prefix]
-        rc = call(cmd)
-        if rc != 0:
-            err_msg = "Splitting local file failed: %s" % self.local_path
-            raise MultiProcessingTaskFailedException(err_msg)
+        # cmd = ['split', '-a', '4', '-d', '-b', str(chunk_size), self.local_path, prefix]
+        # rc = call(cmd)
+        # if rc != 0:
+        #     err_msg = "Splitting local file failed: %s" % self.local_path
+        #     raise MultiProcessingTaskFailedException(err_msg)
 
         self.exe = Executor()                    
         for i in xrange(self.start_chunk, fileCount):
-            t = UploadTask(self.api, self.remote_file.Id, i, fileCount, self.local_path, total_size, self.temp_dir)            
+            t = UploadTask(self.api, self.remote_file.Id, i, fileCount, self.local_path, total_size, chunk_size)
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)
         self.task_total = fileCount - self.start_chunk + 1                                                

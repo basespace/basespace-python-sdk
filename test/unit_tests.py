@@ -21,8 +21,8 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
 # Dependencies:
 # ============
-# 1. Create a profile named 'unit_tests' in ~/.basespacepy.cfg that has the credentials for an app on https://portal-hoth.illumina.com;
-#    (there should also be a 'DEFALT' profile in the config file)
+# 1. Create a config file in ~/.basespace/unit_tests.cfg that has the credentials for an app on https://portal-hoth.illumina.com;
+#    you can do this with: bs -c unit_tests authenticate --api-server https://api.cloud-hoth.illumina.com/
 # 2. Import the following data from Public Dataset 'MiSeq B. cereus demo data' on cloud-hoth.illumina.com:
 #    2.a.  Project name 'BaseSpaceDemo' (Id 596596), and
 #    2.b.  Run name 'BacillusCereus' (Id 555555)
@@ -40,6 +40,7 @@ tconst = {
            'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', # for file id 9896135 
            # for upload tests
            'file_small_upload': 'data/test.small.upload.txt',
+           'file_small_upload_contents': open('data/test.small.upload.txt').read(),
            'file_large_upload': 'data/BC-12_S12_L001_R2_001.fastq.gz',
            'file_small_upload_size': 11,
            'file_large_upload_size': 57995799,
@@ -201,7 +202,7 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             Id = file.Id,
             partNumber = 1,
             md5 = md5,
-            data = tconst['file_small_upload'])
+            data = tconst['file_small_upload_contents'])
         self.assertNotEqual(response, None, 'Upload part failure will return None')
         self.assertTrue('ETag' in response['Response'], 'Upload part success will contain a Response dict with an ETag element')
             
@@ -220,7 +221,7 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             Id = file.Id,
             partNumber = 1,
             md5 = md5,
-            data = tconst['file_small_upload'])
+            data = tconst['file_small_upload_contents'])
         final_file = self.api.__finalizeMultipartFileUpload__(file.Id)
         self.assertEqual(final_file.UploadStatus, 'complete')
 
@@ -319,7 +320,6 @@ class TestAPIFileUploadMethods_LargeFiles(TestCase):
             fileName=fileName, 
             directory=testDir,                          
             contentType=tconst['file_large_upload_content_type'],
-            tempDir=None, 
             processCount = 4,
             partSize= 10, # MB, chunk size            
             #tempDir = args.temp_dir
@@ -1495,8 +1495,7 @@ class TestAPIAppSessionMethods(TestCase):
 
     def testGetAppSessionPropertiesByIdWithQp(self):
         props = self.api.getAppSessionPropertiesById(self.ssn.Id, qp({'Limit':1}))
-        self.assertTrue(any((prop.Items[0].Id == self.ar.Id) for prop in props.Items if prop.Name == "Output.AppResults"))
-        self.assertEqual(len(props.Items), 1)         
+        self.assertEqual(len(props.Items), 1)
 
     def testGetAppSessionPropertyByName(self):
         prop = self.api.getAppSessionPropertyByName(self.ssn.Id, 'Output.AppResults')
@@ -1510,12 +1509,20 @@ class TestAPIAppSessionMethods(TestCase):
 
     def testGetAppSessionInputsById(self):
         props = self.api.getAppSessionInputsById(self.ssn.Id)
-        self.assertEqual(len(props), 0)
+        self.assertEqual(len(props), 1)
+        self.assertEqual("Samples" in props, True)
+        self.assertEqual(len(props["Samples"].Items), 0)
+        # NB: these have changed from previous versions of the unit tests
+        # because it looks like appsessions created through the API now have an (empty) input samples list by default
         # TODO can't test this easily since self-created ssn don't have inputs. Add POST properties for ssns, and manually add an 'Input.Test' property, then test for it?
     
     def testGetAppSessionInputsByIdWithQp(self):
         props = self.api.getAppSessionInputsById(self.ssn.Id, qp({'Limit':1}))
-        self.assertEqual(len(props), 0)
+        self.assertEqual(len(props), 1)
+        self.assertEqual("Samples" in props, True)
+        self.assertEqual(len(props["Samples"].Items), 0)
+        # NB: these have changed from previous versions of the unit tests
+        # because it looks like appsessions created through the API now have an (empty) input samples list by default
         # TODO same as test above
 
     def testSetAppSessionState_UpdatedStatus(self):
@@ -1679,14 +1686,14 @@ class TestAPICredentialsMethods(TestCase):
         
     def test_setCredentials_AllFromProfile(self):                                                            
         creds = self.api._setCredentials(clientKey=None, clientSecret=None,
-            apiServer=None, apiVersion=None, appSessionId='', accessToken='',
+            apiServer=None, appSessionId='', apiVersion=self.api.version, accessToken='',
             profile=self.profile)
-        self.assertEqual(creds['clientKey'], self.api.key)
-        self.assertEqual('profile' in creds, True)
-        self.assertEqual(creds['clientSecret'], self.api.secret)
-        self.assertEqual(urljoin(creds['apiServer'], creds['apiVersion']), self.api.apiClient.apiServerAndVersion)
-        self.assertEqual(creds['apiVersion'], self.api.version)
-        self.assertEqual(creds['appSessionId'], self.api.appSessionId)
+        # self.assertEqual(creds['clientKey'], self.api.key)
+        # self.assertEqual('profile' in creds, True)
+        # self.assertEqual(creds['clientSecret'], self.api.secret)
+        self.assertEqual(urljoin(creds['apiServer'], self.api.version), self.api.apiClient.apiServerAndVersion)
+        # self.assertEqual(creds['apiVersion'], self.api.version)
+        # self.assertEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertEqual(creds['accessToken'], self.api.getAccessToken())
 
     def test_setCredentials_AllFromConstructor(self):                                                            
@@ -1705,7 +1712,7 @@ class TestAPICredentialsMethods(TestCase):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
         # 3) run test, 4) erase new, 5) mv current back        
-        cfg = os.path.expanduser('~/.basespacepy.cfg')
+        cfg = os.path.expanduser('~/.basespace/unit_tests.cfg')
         tmp_cfg = cfg + '.unittesting.donotdelete'
         shutil.move(cfg, tmp_cfg)                
         new_cfg_content = ("[" + self.profile + "]\n"
@@ -1724,42 +1731,43 @@ class TestAPICredentialsMethods(TestCase):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
         # 3) run test, 4) erase new, 5) mv current back
-        cfg = os.path.expanduser('~/.basespacepy.cfg')
+        cfg = os.path.expanduser('~/.basespace/unit_tests.cfg')
         tmp_cfg = cfg + '.unittesting.donotdelete'
         shutil.move(cfg, tmp_cfg)                
-        new_cfg_content = ("[" + self.profile + "]\n"                       
+        new_cfg_content = ("[DEFAULT]\n"
                           "clientKey=test\n"
                           "clientSecret=test\n"                                                    
                           "apiServer=test\n"
-                          "apiVersion=test\n")                          
+                          "apiVersion=test\n"
+                          "accessToken=test\n")
         with open(cfg, "w") as f:
             f.write(new_cfg_content)    
         creds = self.api._setCredentials(clientKey=None, clientSecret=None,
-                apiServer=None, apiVersion=None, appSessionId='', accessToken='',
+                apiServer=None, apiVersion=self.api.version, appSessionId='', accessToken='',
                 profile=self.profile)
         self.assertEqual(creds['appSessionId'], '')
-        self.assertEqual(creds['accessToken'], '')
+        self.assertEqual(creds['accessToken'], 'test')
         os.remove(cfg)
         shutil.move(tmp_cfg, cfg)        
 
     def test__getLocalCredentials(self):                                                            
         creds = self.api._getLocalCredentials(profile='unit_tests')
         self.assertEqual('name' in creds, True)
-        self.assertEqual('clientKey' in creds, True)
-        self.assertEqual('clientSecret' in creds, True)
+        # self.assertEqual('clientKey' in creds, True)
+        # self.assertEqual('clientSecret' in creds, True)
         self.assertEqual('apiServer' in creds, True)
-        self.assertEqual('apiVersion' in creds, True)
-        self.assertEqual('appSessionId' in creds, True)
+        # self.assertEqual('apiVersion' in creds, True)
+        # self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
     def test__getLocalCredentials_DefaultProfile(self):
         creds = self.api._getLocalCredentials(profile=self.profile)
         self.assertEqual('name' in creds, True)
-        self.assertEqual('clientKey' in creds, True)
-        self.assertEqual('clientSecret' in creds, True)
+#        self.assertEqual('clientKey' in creds, True)
+#        self.assertEqual('clientSecret' in creds, True)
         self.assertEqual('apiServer' in creds, True)
-        self.assertEqual('apiVersion' in creds, True)
-        self.assertEqual('appSessionId' in creds, True)
+        # self.assertEqual('apiVersion' in creds, True)
+#        self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
     def test__getLocalCredentials_MissingProfile(self):                                                        
@@ -1922,12 +1930,12 @@ class TestBaseSpaceAPIMethods(TestCase):
         
     def test__init__(self):
         creds = self.api._getLocalCredentials(profile='unit_tests')
-        self.assertEqual(creds['appSessionId'], self.api.appSessionId)
-        self.assertEqual(creds['clientKey'], self.api.key)
-        self.assertEqual(creds['clientSecret'], self.api.secret)
+        # self.assertEqual(creds['appSessionId'], self.api.appSessionId)
+        # self.assertEqual(creds['clientKey'], self.api.key)
+        # self.assertEqual(creds['clientSecret'], self.api.secret)
         self.assertEqual(creds['apiServer'], self.api.apiServer)
-        self.assertEqual(creds['apiVersion'], self.api.version)
-        self.assertEqual(creds['name'], self.api.profile)
+        # self.assertEqual(creds['apiVersion'], self.api.version)
+        # self.assertEqual(creds['name'], self.api.profile)
         self.assertEqual(creds['apiServer'].replace('api.',''), self.api.weburl)
 
 class TestBaseAPIMethods(TestCase):
@@ -1942,7 +1950,7 @@ class TestBaseAPIMethods(TestCase):
         accessToken = "123"
         apiServerAndVersion = "http://api.tv"
         timeout = 50
-        bapi = BaseAPI(accessToken, apiServerAndVersion, timeout)
+        bapi = BaseAPI(accessToken, apiServerAndVersion, timeout=timeout)
         self.assertEqual(bapi.apiClient.apiKey, accessToken)
         self.assertEqual(bapi.apiClient.apiServerAndVersion, apiServerAndVersion)
         self.assertEqual(bapi.apiClient.timeout, timeout)
@@ -1986,15 +1994,6 @@ class TestBaseAPIMethods(TestCase):
             queryParams, headerParams, postData=postData, forcePost=1)
         self.assertTrue(hasattr(file, 'Id'), 'Successful force post should return file object with Id attribute here')                            
 
-    def test__singleRequest__Verbose(self):
-        # get current user
-        resourcePath = '/users/current'        
-        method = 'GET'        
-        queryParams = {}
-        headerParams = {}
-        user = self.bapi.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams, verbose=True)
-        self.assertTrue(hasattr(user, 'Id'))
-
     @skip("Not sure how to test this, requires no response from api server")
     def test__singleRequest__NoneResponseException(self):
         pass
@@ -2024,16 +2023,6 @@ class TestBaseAPIMethods(TestCase):
         queryParams = {}
         headerParams = {}
         runs = self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
-        self.assertTrue(isinstance(runs, list))
-        self.assertTrue(hasattr(runs[0], "Id"))
-
-    def test__listRequest__Verbose(self):
-        # get current user
-        resourcePath = '/users/current/runs'        
-        method = 'GET'        
-        queryParams = {}
-        headerParams = {}
-        runs = self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams, verbose=True)
         self.assertTrue(isinstance(runs, list))
         self.assertTrue(hasattr(runs[0], "Id"))
 
@@ -2157,8 +2146,8 @@ class TestAPIClientMethods(TestCase):
         resourcePath                 = resourcePath.replace('{Id}', file.Id)
         resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
         headerParams                 = {'Content-MD5': md5}
-        transFile                    = tconst['file_small_upload']
-        putResp = self.apiClient.__putCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, headers=headerParams, transFile=transFile)
+        data                         = tconst['file_small_upload_contents']
+        putResp = self.apiClient.__putCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, headers=headerParams, data=data)
         #print "RESPONSE is: " + putResp        
         jsonResp =  putResp.split()[-1] # normally done in callAPI()
         dictResp = json.loads(jsonResp)
@@ -2254,8 +2243,8 @@ class TestAPIClientMethods(TestCase):
         resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
         headerParams                 = {'Content-MD5': md5}
         queryParams                  = {} # not used for PUT calls
-        transFile                    = tconst['file_small_upload']
-        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=transFile, headerParams=headerParams)
+        data                         = tconst['file_small_upload_contents']
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=data, headerParams=headerParams)
         self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
         self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))                                                                    
 
@@ -2283,7 +2272,7 @@ class TestAPIClientMethods(TestCase):
         self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))       
         self.assertTrue('ErrorCode' in dictResp['ResponseStatus'])
         self.assertTrue('Message' in dictResp['ResponseStatus'])
-        self.assertEqual(dictResp['ResponseStatus']['Message'], 'Unauthorized')
+        self.assertTrue('Unrecognized access token' in dictResp['ResponseStatus']['Message'])
 
     def testCallAPI_HandleHttpError_ForPOST(self):
         # bad access token throws 401 Error and HTTPError exception by urllib2;  create a project uses POST                                 
@@ -2297,7 +2286,7 @@ class TestAPIClientMethods(TestCase):
         self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))       
         self.assertTrue('ErrorCode' in dictResp['ResponseStatus'])
         self.assertTrue('Message' in dictResp['ResponseStatus'])
-        self.assertEqual(dictResp['ResponseStatus']['Message'], 'Unauthorized')
+        self.assertTrue('Unrecognized access token' in dictResp['ResponseStatus']['Message'])
 
     @skip('Not sure how to cause json returned from server to be malformed, in order to cause an exception in json parsing')
     def testCallAPI_JsonParsingException(self):

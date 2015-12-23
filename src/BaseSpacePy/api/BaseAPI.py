@@ -19,7 +19,7 @@ class BaseAPI(object):
     Parent class for BaseSpaceAPI and BillingAPI classes
     '''
 
-    def __init__(self, AccessToken, apiServerAndVersion, userAgent, timeout=10, verbose=False):
+    def __init__(self, AccessToken, apiServerAndVersion, userAgent=None, timeout=10, verbose=False):
         '''
         :param AccessToken: the current access token
         :param apiServerAndVersion: the api server URL with api version
@@ -83,16 +83,20 @@ class BaseAPI(object):
         else:
             return responseObject
 
-    def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams):
+    def __listRequest__(self, myModel, resourcePath, method, queryParams, headerParams, sort=True):
         '''
         Call a REST API that returns a list and deserialize response into a list of objects of the provided model.
         Handles errors from server.
+
+        Sorting by date for each call is the default, so that if a new item is created while we're paging through
+        we'll pick it up at the end. However, this should be switched off for some calls (like variants)
 
         :param myModel: a Model type to return a list of
         :param resourcePath: the api url path to call (without server and version)
         :param method: the REST method type, eg. GET
         :param queryParams: a dictionary of query parameters
         :param headerParams: a dictionary of header parameters
+        :param sort: sort the outputs from the API to prevent race-conditions
 
         :raises ServerResponseException: if server returns an error or has no response        
         :returns: a list of instances of the provided model
@@ -106,7 +110,14 @@ class BaseAPI(object):
         number_received = 0
         total_number = None
         responses = []
-        queryParams["Limit"] = 1024
+        # if the user explicitly sets a Limit in queryParams, just make one call with that limit
+        justOne = False
+        if "Limit" in queryParams:
+            justOne = True
+        else:
+            queryParams["Limit"] = 1024
+        if sort:
+            queryParams["SortBy"] = "DateCreated"
         while total_number is None or number_received < total_number:
             queryParams["Offset"] = number_received
             response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
@@ -120,11 +131,17 @@ class BaseAPI(object):
                 raise ServerResponseException(str(response['ResponseStatus']['Message']))
 
             respObj = self.apiClient.deserialize(response, ListResponse.ListResponse)
-            if total_number is None:
-                total_number = respObj.Response.TotalCount
-            elif total_number != respObj.Response.TotalCount:
-                raise ServerResponseException("Inconsistent values in large entity query")
             responses.append(respObj)
+            if justOne:
+                break
+            # if a TotalCount is not an attribute, assume we have all of them (eg. variantsets)
+            if not hasattr(respObj.Response, "TotalCount"):
+                break
+            # allow the total number to change on each call
+            # to catch the race condition where a new entity appears while we're calling
+            total_number = respObj.Response.TotalCount
+            if respObj.Response.DisplayedCount == 0:
+                raise ServerResponseException("Paged query returned no results")
             number_received += respObj.Response.DisplayedCount
 
         return [self.apiClient.deserialize(c, myModel) for c in chain(*[ ro._convertToObjectList() for ro in responses ])]

@@ -65,7 +65,7 @@ class APIClient:
         response = requests.post(resourcePath, data=json.dumps(postData), headers=headers)
         return response.text
 
-    def __putCall__(self, resourcePath, headers, transFile):
+    def __putCall__(self, resourcePath, headers, data):
         '''
         Performs a REST PUT call to the API server.
         
@@ -74,10 +74,21 @@ class APIClient:
         :param transFile: the name of the file containing only data to be PUT
         :returns: server response (a string containing upload status message (from curl?) followed by json response)
         '''
-        headerPrep  = [k + ':' + headers[k] for k in headers.keys()]        
-        cmd = 'curl -H "x-access-token:' + self.apiKey + '" -H "Content-MD5:' + headers['Content-MD5'].strip() +'" -T "'+ transFile +'" -X PUT ' + resourcePath
-        p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        return p.stdout.read()
+        # headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
+        # cmd = 'curl -H "x-access-token:' + self.apiKey + '" -H "Content-MD5:' + headers['Content-MD5'].strip() +'" -T "'+ transFile +'" -X PUT ' + resourcePath
+        # p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        # output = p.stdout.read()
+        # print output
+        # return output
+        import requests
+        put_headers = {
+            'Content-MD5'   :   headers['Content-MD5'].strip(),
+            'x-access-token':   self.apiKey
+        }
+        put_val = requests.put(resourcePath, data, headers=put_headers)
+        if put_val.status_code != 200:
+            raise ServerResponseException("Multi-part upload: Server return code %s with error %s" % (put_val.status_code, put_val.reason))
+        return put_val.text
 
     def callAPI(self, resourcePath, method, queryParams, postData, headerParams=None, forcePost=False):
         '''
@@ -145,7 +156,7 @@ class APIClient:
                 if method == 'DELETE':
                     raise NotImplementedError("DELETE REST API calls aren't currently supported")
                 response = self.__putCall__(url, headers, data)
-                response =  response.split()[-1] # discard upload status msg (from curl put?)                
+                response =  response.split()[-1] # discard upload status msg (from curl put?)
         else:
             raise RestMethodException('Method ' + method + ' is not recognized.')
 
