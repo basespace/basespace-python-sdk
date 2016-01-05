@@ -140,7 +140,7 @@ class BaseAPI(object):
             # allow the total number to change on each call
             # to catch the race condition where a new entity appears while we're calling
             total_number = respObj.Response.TotalCount
-            if respObj.Response.DisplayedCount == 0:
+            if total_number > 0 and respObj.Response.DisplayedCount == 0:
                 raise ServerResponseException("Paged query returned no results")
             number_received += respObj.Response.DisplayedCount
 
