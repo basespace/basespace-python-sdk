@@ -27,9 +27,10 @@ to get an access token and put it in the proper place.
 Also partly available here is obtaining session tokens (cookies), although these are not currently used.
 """
 
-DEFAULT_SCOPE = "CREATE GLOBAL,BROWSE GLOBAL,CREATE PROJECTS,READ GLOBAL"
-
 class AuthenticationException(Exception):
+    pass
+
+class AuthenticationScopeException(AuthenticationException):
     pass
 
 class AuthenticationAPI(object):
@@ -99,7 +100,8 @@ class OAuthAuthentication(AuthenticationAPI):
         super(OAuthAuthentication, self).__init__(config_path, api_server)
         self.api_version = api_version
 
-    def set_oauth_details(self, client_id, client_secret, scope=DEFAULT_SCOPE):
+    def set_oauth_details(self, client_id, client_secret, scopes):
+        scope_str = ",".join(scopes)
         OAUTH_URI = "%s%s/oauthv2/deviceauthorization" % (self.api_server, self.api_version)
         TOKEN_URI = "%s%s/oauthv2/token" % (self.api_server, self.api_version)
         s = requests.session()
@@ -107,7 +109,7 @@ class OAuthAuthentication(AuthenticationAPI):
         auth_payload = {
             "response_type": "device_code",
             "client_id": client_id,
-            "scope": scope,
+            "scope": scope_str,
         }
         try:
             r = s.post(url=OAUTH_URI,
@@ -119,6 +121,11 @@ class OAuthAuthentication(AuthenticationAPI):
             payload = r.json()
         except ValueError:
             raise AuthenticationException("bad payload from server - perhaps you should use https instead of http?")
+        if 'error' in payload:
+            if payload['error'] == 'invalid_scope':
+                raise AuthenticationScopeException("Authentication requested with invalid scope: %s" % scope_str)
+            else:
+                raise AuthenticationException("Authentication failed")
         auth_url = payload["verification_with_code_uri"]
         auth_code = payload["device_code"]
         print "please authenticate here: %s" % auth_url
