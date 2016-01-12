@@ -125,7 +125,8 @@ class OAuthAuthentication(AuthenticationAPI):
             if payload['error'] == 'invalid_scope':
                 raise AuthenticationScopeException("Authentication requested with invalid scope: %s" % scope_str)
             else:
-                raise AuthenticationException("Authentication failed")
+                msg = payload['error_description'] if 'error_description' in payload else payload['error']
+                raise AuthenticationException(msg)
         auth_url = payload["verification_with_code_uri"]
         auth_code = payload["device_code"]
         print "please authenticate here: %s" % auth_url
