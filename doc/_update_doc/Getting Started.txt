@@ -25,7 +25,7 @@ Version 0.1 of ``BaseSpacePy`` can be checked out here:
 Setup
 ###################
 
-*Requirements:* Python 2.6 with the packages 'urllib2', 'pycurl', 'multiprocessing' and 'shutil' available.
+*Requirements:* Python 2.6 with the packages 'urllib2', 'multiprocessing' and 'shutil' available.
 
 The multi-part file upload will currently only run on a unix setup.
 

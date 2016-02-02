@@ -20,7 +20,7 @@ Mauricio Varea
 REQUIREMENTS
 =========================================
 
-Python 2.6 with the packages 'pycurl', and 'python-dateutil' installed. You can install these on Ubuntu with 'apt-get install python-pycurl' and 'apt-get install python-dateutil'.
+Python 2.6 with the package 'python-dateutil' installed. You can install these on Ubuntu with 'apt-get install python-dateutil'.
 
 
 INSTALL

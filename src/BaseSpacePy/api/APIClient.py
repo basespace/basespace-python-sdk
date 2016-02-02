@@ -31,7 +31,7 @@ class APIClient:
 
     def __forcePostCall__(self, resourcePath, postData, headers):
         '''
-        For forcing a REST POST request using pycurl (seems to be used when POSTing with no post data)
+        For forcing a REST POST request (seems to be used when POSTing with no post data)
                 
         :param resourcePath: the url to call, including server address and api version
         :param postData: a dictionary of data to post
@@ -46,20 +46,6 @@ class APIClient:
             pass
         import logging
         logging.getLogger("requests").setLevel(logging.WARNING)
-        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
-        # import pycurl
-        # postData = [(p,postData[p]) for p in postData]
-        # headerPrep  = [k + ':' + headers[k] for k in headers.keys()]
-        # response = cStringIO.StringIO()
-        # c = pycurl.Curl()
-        # c.setopt(pycurl.URL,resourcePath + '?' + post)
-        # c.setopt(pycurl.HTTPHEADER, headerPrep)
-        # c.setopt(pycurl.POST, 1)
-        # c.setopt(pycurl.POSTFIELDS, post)
-        # c.setopt(c.WRITEFUNCTION, response.write)
-        # c.perform()
-        # c.close()
-        # return response.getvalue()
         encodedPost =  urllib.urlencode(postData)
         resourcePath = "%s?%s" % (resourcePath, encodedPost)
         response = requests.post(resourcePath, data=json.dumps(postData), headers=headers)
@@ -150,9 +136,9 @@ class APIClient:
                 if data and not len(data): 
                     data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
                 request = urllib2.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
-            else:                                    # use pycurl to force a post call, even w/o data
+            else:
                 response = self.__forcePostCall__(forcePostUrl, sentQueryParams, headers)
-            if method in ['PUT', 'DELETE']: #urllib doesnt do put and delete, default to pycurl here
+            if method in ['PUT', 'DELETE']:
                 if method == 'DELETE':
                     raise NotImplementedError("DELETE REST API calls aren't currently supported")
                 response = self.__putCall__(url, headers, data)

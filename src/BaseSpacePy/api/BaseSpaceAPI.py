@@ -180,7 +180,6 @@ class BaseSpaceAPI(BaseAPI):
         :param Id: an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used 
         :returns: An AppSession instance                
         '''
-        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
         if Id is None:
             Id = self.appSessionId
         if not Id:
@@ -188,14 +187,6 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'        
         resourcePath = resourcePath.replace('{AppSessionId}', Id)        
         response = cStringIO.StringIO()
-        # import pycurl
-        # c = pycurl.Curl()
-        # c.setopt(pycurl.URL, resourcePath)
-        # c.setopt(pycurl.USERPWD, self.key + ":" + self.secret)
-        # c.setopt(c.WRITEFUNCTION, response.write)
-        # c.perform()
-        # c.close()
-        # resp_dict = json.loads(response.getvalue())        
         import requests
         response = requests.get(resourcePath, auth=(self.key, self.secret))
         resp_dict = json.loads(response.text)

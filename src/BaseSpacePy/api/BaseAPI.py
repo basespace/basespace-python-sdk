@@ -51,7 +51,7 @@ class BaseAPI(object):
         :param headerParams: a dictionary of header parameters
         :param postData: (optional) data to POST, default None
         :param version: (optional) print detailed output, default False
-        :param forcePost: (optional) use a POST call with pycurl instead of urllib, default False (used only when POSTing with no post data?)
+        :param forcePost: (optional) use a POST call, default False (used only when POSTing with no post data?)
 
         :raises ServerResponseException: if server returns an error or has no response
         :returns: an instance of the Response model from the provided myModel
@@ -149,31 +149,21 @@ class BaseAPI(object):
     def __makeCurlRequest__(self, data, url):
         '''
         Make a curl POST request
-        
+
         :param data: data to post (eg. list of tuples of form (key, value))
         :param url: url to post data to
-        
+
         :raises ServerResponseException: if server returns an error or has no response
         :returns: dictionary of api server response
         '''
-        # pycurl is hard to get working, so best to cauterise it into only the functions where it is needed
-        import pycurl
-        post = urllib.urlencode(data)
-        response = cStringIO.StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL,url)
-        c.setopt(pycurl.POST, 1)
-        c.setopt(pycurl.POSTFIELDS, post)
-        c.setopt(c.WRITEFUNCTION, response.write)
-        c.perform()
-        c.close()
-        respVal = response.getvalue()
-        if not respVal:
+        import requests
+        r = requests.post(url, data)
+        if not r:
             raise ServerResponseException("No response from server")
-        obj = json.loads(respVal)
+        obj = json.loads(r.text)
         if obj.has_key('error'):
             raise ServerResponseException(str(obj['error'] + ": " + obj['error_description']))
-        return obj      
+        return obj
 
     def getTimeout(self):
         '''

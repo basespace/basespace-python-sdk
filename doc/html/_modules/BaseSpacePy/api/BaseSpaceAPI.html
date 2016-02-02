@@ -50,7 +50,6 @@
 <span class="kn">import</span> <span class="nn">urllib2</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
-<span class="kn">import</span> <span class="nn">pycurl</span>
 <span class="kn">import</span> <span class="nn">httplib</span>
 <span class="kn">import</span> <span class="nn">cStringIO</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -252,9 +251,9 @@
         <span class="n">resourcePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apiClient</span><span class="o">.</span><span class="n">apiServer</span> <span class="o">+</span> <span class="s">&#39;/appsessions/{AppSessionId}&#39;</span>        
         <span class="n">resourcePath</span> <span class="o">=</span> <span class="n">resourcePath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;{AppSessionId}&#39;</span><span class="p">,</span> <span class="n">Id</span><span class="p">)</span>        
         <span class="n">response</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">pycurl</span><span class="o">.</span><span class="n">Curl</span><span class="p">()</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">setopt</span><span class="p">(</span><span class="n">pycurl</span><span class="o">.</span><span class="n">URL</span><span class="p">,</span> <span class="n">resourcePath</span><span class="p">)</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">setopt</span><span class="p">(</span><span class="n">pycurl</span><span class="o">.</span><span class="n">USERPWD</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">secret</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="o">.</span><span class="n">Curl</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setopt</span><span class="p">(</span><span class="o">.</span><span class="n">URL</span><span class="p">,</span> <span class="n">resourcePath</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">setopt</span><span class="p">(</span><span class="o">.</span><span class="n">USERPWD</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">secret</span><span class="p">)</span>
         <span class="n">c</span><span class="o">.</span><span class="n">setopt</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">WRITEFUNCTION</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
         <span class="n">c</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
         <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
