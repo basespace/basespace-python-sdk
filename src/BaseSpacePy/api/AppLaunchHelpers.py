@@ -438,6 +438,11 @@ class LaunchPayload(object):
     """
 
     LAUNCH_NAME = "LaunchName"
+    ENTITY_TYPE_TO_METHOD_NAME = {
+        "sample" : "getSampleById",
+        "appresult" : "getAppResultById",
+        "project" : "getProjectById"
+    }
 
     def __init__(self, launch_spec, args, configoptions, api, disable_consistency_checking=True):
         """
@@ -478,8 +483,7 @@ class LaunchPayload(object):
                     # note we're relying on the regular naming of the API to provide the right method name
                     entry = entry.strip('"')
                     try:
-                        method_name = "get%sById" % entity_type.title()
-                        method = getattr(self._api, method_name)
+                        method = getattr(self._api, self.ENTITY_TYPE_TO_METHOD_NAME[entity_type])
                         entity_names.append(method(entry).Name)
                     except (AttributeError, ServerResponseException):
                         pass
@@ -509,17 +513,12 @@ class LaunchPayload(object):
         """
         This is not really needed if users are specifying inputs as BaseMount paths,
         because in these cases validation happens elsewhere
-
-        To validate other kinds of ID, we should (TODO!) resolve the type based on the varname
-        and use the SDK to look it up.
         """
         vartype = self._launch_spec.get_property_bald_type(varname)
-        if vartype == "Sample":
-            self._api.getSampleById(basespace_id)
-        elif vartype == "Project":
-            self._api.getProjectById(basespace_id)
-        elif vartype == "AppResult":
-            self._api.getAppResultById(basespace_id)
+        flat_vartype = vartype.lower()
+        if flat_vartype in self.ENTITY_TYPE_TO_METHOD_NAME:
+            method = getattr(self._api, self.ENTITY_TYPE_TO_METHOD_NAME[flat_vartype])
+            method(basespace_id)
         else:
             return True
 
