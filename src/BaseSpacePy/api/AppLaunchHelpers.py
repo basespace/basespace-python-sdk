@@ -38,7 +38,7 @@ class AppSessionMetaData(object):
 
     __metaclass__ = abc.ABCMeta
 
-    SKIP_PROPERTIES = ["app-session-name"]
+    SKIP_PROPERTIES = ["app-session-name", "attributes", "columns", "num-columns", "rowcount", "IsMultiNode"]
 
 
     def __init__(self, appsession_metadata):
@@ -62,8 +62,6 @@ class AppSessionMetaData(object):
             property_name = str(self.unpack_bs_property(as_property, "Name"))
             property_type = str(self.unpack_bs_property(as_property, "Type"))
             if not property_name.startswith("Input"):
-                continue
-            if property_name.count(".") != 1:
                 continue
             property_basename = property_name.split(".")[-1]
             if property_basename in self.SKIP_PROPERTIES:
@@ -184,7 +182,9 @@ class LaunchSpecification(object):
         :param parameter_name: parameter name to clean
         :return: cleaned name
         """
-        prefix, cleaned_name = parameter_name.split(".")
+        split_name = parameter_name.split(".")
+        prefix = split_name[0]
+        cleaned_name = split_name[-1]
         assert prefix == "Input"
         return cleaned_name
 
