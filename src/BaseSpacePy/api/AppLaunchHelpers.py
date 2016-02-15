@@ -476,7 +476,9 @@ class LaunchPayload(object):
                 if not self._launch_spec.is_list_property(varname):
                     arg = [arg]
                 for entry in arg:
-                    if os.path.exists(entry):
+                    # if the argument contains a path separator, it must be a valid BaseMount path
+                    # otherwise, an exception will be raised by BaseMountInterface
+                    if os.path.sep in entry:
                         bmi = BaseMountInterface(entry)
                         entity_names.append(bmi.name)
                     # if this is not a BaseMount path, try to resolve an entity name using the API
@@ -531,10 +533,10 @@ class LaunchPayload(object):
 
         :return basespaceid
         """
-        if varval.startswith("/") and not os.path.exists(varval):
-            raise LaunchSpecificationException("Parameter looks like a path, but does not exist: %s" % varval)
         spec_type = self._launch_spec.get_property_bald_type(param_name)
-        if os.path.exists(varval):
+        if os.path.sep in varval:
+            # if the argument contains a path separator, it must be a valid BaseMount path
+            # otherwise, an exception will be raised by BaseMountInterface
             bmi = BaseMountInterface(varval)
             # make sure we have a BaseMount access token to compare - old versions won't have one
             # also make sure we've been passed an access token -

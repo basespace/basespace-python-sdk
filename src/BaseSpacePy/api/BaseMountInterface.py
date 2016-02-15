@@ -22,7 +22,7 @@ class BaseMountInterface(object):
     def __init__(self, path):
         if path.endswith(os.sep):
             path = path[:-1]
-        self.path = path
+        self.path = os.path.expanduser(path)
         self.id = None
         self.type = None
         self.access_token = None
