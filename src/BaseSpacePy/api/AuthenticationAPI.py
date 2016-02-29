@@ -143,7 +143,7 @@ class OAuthAuthentication(AuthenticationAPI):
             r = s.post(url=TOKEN_URI,
                        data=token_payload)
             if r.status_code == 400:
-                if r.json()["error"] == "access_denied":
+                if r.json()["error"] == "access_denied" or r.json()["error"] == "AccessDenied":
                     sys.stdout.write("\n")
                     break
                 sys.stdout.write(".")
