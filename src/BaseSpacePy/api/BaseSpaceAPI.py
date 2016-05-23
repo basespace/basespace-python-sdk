@@ -14,6 +14,7 @@ import ConfigParser
 import urlparse
 import logging
 import getpass
+import requests
 
 from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseAPI import BaseAPI
@@ -376,6 +377,36 @@ class BaseSpaceAPI(BaseAPI):
         data = [('client_id', self.key), ('client_secret', self.secret), ('code', code), ('grant_type', grantType), ('redirect_uri', redirect_uri)]
         resp_dict = self.__makeCurlRequest__(data, self.apiClient.apiServerAndVersion + tokenURL)
         return str(resp_dict['access_token'])
+
+    def getAccessTokenDetails(self):
+        '''
+        Because this does not use the standard API prefix, this has to be done as a special case
+        :return:
+        '''
+        endpoint = self.apiClient.apiServerAndVersion + tokenURL + "/current"
+
+        print endpoint
+        args = {
+            "access_token": self.apiClient.apiKey
+        }
+        try:
+            response_raw = requests.get(endpoint, args)
+            response = response_raw.json()
+        except Exception as e:
+            raise ServerResponseException('Could not query access token endpoint: %s' % str(e))
+        if not response:
+            raise ServerResponseException('No response returned')
+        if response.has_key('ResponseStatus'):
+            if response['ResponseStatus'].has_key('ErrorCode'):
+                raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
+            elif response['ResponseStatus'].has_key('Message'):
+                raise ServerResponseException(str(response['ResponseStatus']['Message']))
+        elif response.has_key('ErrorCode'):
+            raise ServerResponseException(response["MessageFormatted"])
+
+        responseObject = self.apiClient.deserialize(response["Response"], Token.Token)
+        return responseObject
+
 
     def updatePrivileges(self, code, grantType='device', redirect_uri=None):
         '''
