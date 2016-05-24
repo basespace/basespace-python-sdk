@@ -385,7 +385,6 @@ class BaseSpaceAPI(BaseAPI):
         '''
         endpoint = self.apiClient.apiServerAndVersion + tokenURL + "/current"
 
-        print endpoint
         args = {
             "access_token": self.apiClient.apiKey
         }
