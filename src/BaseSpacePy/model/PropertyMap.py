@@ -7,7 +7,7 @@ class PropertyMap(object):
             'Href': 'str',
             'Name': 'str',
             'Description': 'str',
-            'Items': 'list<PropertyMapKeyValues>',           
+            'Content': 'list<str>',
         }
 
     def __str__(self):
