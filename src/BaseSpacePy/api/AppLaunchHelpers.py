@@ -48,6 +48,25 @@ class AppSessionMetaData(object):
         """
         self.asm = appsession_metadata
 
+    def _get_all_duplicate_names(self):
+        appsession_properties = self.get_properties()
+        all_names = set()
+        duplicate_names = set()
+        for as_property in appsession_properties:
+            property_name = str(self.unpack_bs_property(as_property, "Name"))
+            if not property_name.startswith("Input"):
+                continue
+            property_basename = property_name.split(".")[-1]
+            if property_basename in self.SKIP_PROPERTIES:
+                continue
+            if property_basename in BS_ENTITY_LIST_NAMES:
+                continue
+            if property_basename in all_names:
+                duplicate_names.add(property_basename)
+            else:
+                all_names.add(property_basename)
+        return duplicate_names
+
     def get_refined_appsession_properties(self):
         """
         Unpacks the properties from an appsession and refines them ready to make a launch specification
@@ -55,6 +74,7 @@ class AppSessionMetaData(object):
         :return: properties (list of dict of "Name" and "Type")
                  defaults (dict from property name to default value)
         """
+        all_names = self._get_all_duplicate_names()
         appsession_properties = self.get_properties()
         properties = []
         defaults = {}
@@ -64,6 +84,9 @@ class AppSessionMetaData(object):
             if not property_name.startswith("Input"):
                 continue
             property_basename = property_name.split(".")[-1]
+            if property_basename in all_names:
+                property_basename = ".".join(property_name.split(".")[-2:])
+                import pdb; pdb.set_trace()
             if property_basename in self.SKIP_PROPERTIES:
                 continue
             if property_basename in BS_ENTITY_LIST_NAMES:
@@ -172,21 +195,38 @@ class LaunchSpecification(object):
 
     def __init__(self, properties, defaults):
         self.properties = properties
+        self.cleaned_names = {}
         self.property_lookup = dict((self.clean_name(property_["Name"]), property_) for property_ in self.properties)
         self.defaults = defaults
 
-    @staticmethod
-    def clean_name(parameter_name):
+    def clean_name(self, parameter_name):
         """
         strip off the Input. prefix, which is needed by the launch payload but gets in the way otherwise
         :param parameter_name: parameter name to clean
         :return: cleaned name
         """
-        split_name = parameter_name.split(".")
-        prefix = split_name[0]
-        cleaned_name = split_name[-1]
-        assert prefix == "Input"
-        return cleaned_name
+        if not self.cleaned_names:
+            dup_names = set()
+            all_names = set()
+            for property_ in self.properties:
+                split_name = property_["Name"].split(".")
+                name_prefix = split_name[0]
+                assert name_prefix == "Input"
+                name_suffix = split_name[-1]
+                if name_suffix in all_names:
+                    dup_names.add(name_suffix)
+                else:
+                    all_names.add(name_suffix)
+            for property_ in self.properties:
+                full_name = property_["Name"]
+                split_name = full_name.split(".")
+                name_suffix = split_name[-1]
+                if name_suffix in dup_names:
+                    clean_name = ".".join(split_name[-2:])
+                else:
+                    clean_name = split_name[-1]
+                self.cleaned_names[full_name] = clean_name
+        return self.cleaned_names[parameter_name]
 
     def process_parameter(self, param, varname):
         # if option is prefixed with an @, it's a file (or process substitution with <() )
