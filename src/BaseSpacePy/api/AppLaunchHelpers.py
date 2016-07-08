@@ -86,7 +86,6 @@ class AppSessionMetaData(object):
             property_basename = property_name.split(".")[-1]
             if property_basename in all_names:
                 property_basename = ".".join(property_name.split(".")[-2:])
-                import pdb; pdb.set_trace()
             if property_basename in self.SKIP_PROPERTIES:
                 continue
             if property_basename in BS_ENTITY_LIST_NAMES:
