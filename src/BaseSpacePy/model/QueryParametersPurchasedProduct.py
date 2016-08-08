@@ -11,7 +11,7 @@ class QueryParametersPurchasedProduct(object):
         if pars is None:
             pars = {}
         self.passed = {}
-        for k in pars.keys():
+        for k in list(pars.keys()):
             self.passed[k] = pars[k]
         self.validate()
         
@@ -25,6 +25,6 @@ class QueryParametersPurchasedProduct(object):
         return self.passed
     
     def validate(self):
-        for p in self.passed.keys():
-            if not legal.has_key(p): 
+        for p in list(self.passed.keys()):
+            if p not in legal: 
                 raise UnknownParameterException(p)

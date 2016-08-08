@@ -1,5 +1,5 @@
 
-import urlparse
+import urllib.parse
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model import * #@UnusedWildImport
@@ -18,7 +18,7 @@ class BillingAPI(BaseAPI):
         '''        
         self.appSessionId   = appSessionId        
         self.version        = version        
-        apiServerAndVersion = urlparse.urljoin(apiServer, version)        
+        apiServerAndVersion = urllib.parse.urljoin(apiServer, version)        
         super(BillingAPI, self).__init__(AccessToken, apiServerAndVersion)
 
     def createPurchase(self, products, appSessionId=''):

@@ -74,12 +74,12 @@ class BaseMountInterface(object):
         return "%s : (%s) : (%s)" % (self.path, self.id, self.type)
 
     def _get_access_token_from_config(self, config_path):
-        from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
+        from configparser import SafeConfigParser, NoSectionError, NoOptionError
         config = SafeConfigParser()
         config.read(config_path)
         try:
             return config.get("DEFAULT", "accessToken")
-        except NoOptionError, NoSectionError:
+        except NoOptionError as NoSectionError:
             raise BaseMountInterfaceException("malformed BaseMount config: %s" % config_path)
 
 
@@ -105,4 +105,4 @@ if __name__ == "__main__":
     import sys
     path = sys.argv[1]
     mbi = BaseMountInterface(path)
-    print mbi
+    print(mbi)

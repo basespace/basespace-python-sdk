@@ -37,7 +37,7 @@ class QueryParameters(object):
             required = []         
         self.passed = {}
         try:
-            for k in pars.keys():
+            for k in list(pars.keys()):
                 self.passed[k] = pars[k]
         except AttributeError:
             raise QueryParameterException("The 'pars' argument to QueryParameters must be a dictionary")
@@ -64,10 +64,10 @@ class QueryParameters(object):
         :returns: None
         '''
         for p in self.required:
-            if not self.passed.has_key(p): 
+            if p not in self.passed: 
                 raise UndefinedParameterException(p)
-        for p in self.passed.keys():
-            if not legal.has_key(p): 
+        for p in list(self.passed.keys()):
+            if p not in legal: 
                 raise UnknownParameterException(p)
             if len(legal[p])>0 and (not self.passed[p] in legal[p]): 
                 raise IllegalParameterException(p,legal[p])

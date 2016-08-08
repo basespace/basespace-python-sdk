@@ -27,12 +27,12 @@ class TestSDK(object):
         """ 
         Compare a dictionary from a REST API response and a SDK object for identity.
         """
-        for r_key, r_val in rest_dict.iteritems():
+        for r_key, r_val in rest_dict.items():
             # confirm that the key from REST api exists in stored object
             try:
                 p_val = getattr(p_obj, r_key)                                      
             except AttributeError:
-                print "REST API attribute '" + r_key + "' doesn't exist in object"                            
+                print("REST API attribute '" + r_key + "' doesn't exist in object")                            
             else:
                 self.classify_rest_item(r_val, p_val, r_key)                    
 
@@ -41,9 +41,9 @@ class TestSDK(object):
         Compare a list from a REST API response and an SDK object for identity.
         """                   
         if type(p_obj) != list:
-            print "Attribute '" + r_key + "' is a list in the REST API but not in the object"
+            print("Attribute '" + r_key + "' is a list in the REST API but not in the object")
         elif len(p_obj) != len(rest_list):
-            print "Attribute '" + r_key + "' has different list length between REST API and object"
+            print("Attribute '" + r_key + "' has different list length between REST API and object")
         else:
             for r_val, p_val in map(None, rest_list, p_obj):
                 self.classify_rest_item(r_val, p_val, r_key)
@@ -53,26 +53,26 @@ class TestSDK(object):
         Compare a built-in type from a REST API response and an SDK object for identity.
         """                   
         # convert unicode to ascii for comparisons
-        if isinstance(rest_val, unicode):
+        if isinstance(rest_val, str):
             rest_val = rest_val.encode('ascii','ignore')
         # don't compare values for datetimes
         if r_key in ['DateCreated', 'DateModified', 'DateUploadCompleted', 'DateUploadStarted']:
             pass
         elif rest_val != p_obj:                                
-            print "REST API attribute '" + r_key + "' has value '" + str(rest_val) + "' doesn't match object value '" + str(p_obj) + "'"                            
+            print("REST API attribute '" + r_key + "' has value '" + str(rest_val) + "' doesn't match object value '" + str(p_obj) + "'")                            
 
     def classify_rest_item(self, r_val, p_val, r_key):
         """
         Determine the input REST item's type and call method to compare to input object
         """                                        
-        if type(r_val) in [ int, str, bool, float, unicode]:                            
+        if type(r_val) in [ int, str, bool, float, str]:                            
             self.compare_builtin_to_obj(r_val, p_val, r_key)
         elif type(r_val) == dict:            
             self.compare_dict_to_obj(r_val, p_val)
         elif type(r_val) == list:                                    
             self.compare_list_to_obj(r_val, p_val, r_key)
         else:
-            print "REST API attribute'" + r_key + "' has an unrecognized attribute type"                            
+            print("REST API attribute'" + r_key + "' has an unrecognized attribute type")                            
         
     def test_rest_vs_sdk(self):
         """
@@ -308,69 +308,69 @@ class TestSuite(object):
         try:
             self.tests.append((FilterVariantSet(cfg['vcf_id'], cfg['vcf_chr'], cfg['vcf_start'], cfg['vcf_end'], cfg['vcf_format'], cfg['query_p']), "with query parameter"))
         except AttributeError:            
-            print "Skipping test FilterVariantSet -- missing input parameter"
+            print("Skipping test FilterVariantSet -- missing input parameter")
         try:
             self.tests.append((GetAppSessionById(cfg['ssn_id']), "test"))
         except AttributeError:
-            print "Skipping test GetAppSessionById -- missing input parameter"
+            print("Skipping test GetAppSessionById -- missing input parameter")
         try:
             self.tests.append((GetAppSessionPropertiesById(cfg['ssn_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetAppSessionPropertiesById -- missing input parameter"
+            print("Skipping test GetAppSessionPropertiesById -- missing input parameter")
         try:            
-            for key, value in cfg['multivalue_property_names'].iteritems():
+            for key, value in cfg['multivalue_property_names'].items():
                 self.tests.append((GetAppSessionPropertyByName(cfg['ssn_id'], value, cfg['query_p']), key))
         except AttributeError:
-            print "Skipping test GetAppSessionPropertiesByName -- missing input parameter"
+            print("Skipping test GetAppSessionPropertiesByName -- missing input parameter")
         try:
             self.tests.append((GetRunById(cfg['run_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetRunById -- missing input parameter"
+            print("Skipping test GetRunById -- missing input parameter")
         try:
             self.tests.append((GetRunPropertiesById(cfg['run_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetRunPropertiesById -- missing input parameter"
+            print("Skipping test GetRunPropertiesById -- missing input parameter")
         try:
             self.tests.append((GetProjectById(cfg['project_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetProjectById -- missing input parameter"
+            print("Skipping test GetProjectById -- missing input parameter")
         try:
             self.tests.append((GetProjectPropertiesById(cfg['project_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:            
-            print "Skipping test GetProjectPropertiesById -- missing input parameter"
+            print("Skipping test GetProjectPropertiesById -- missing input parameter")
         try:
             self.tests.append((GetSampleById(cfg['sample_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetSampleById -- missing input parameter"
+            print("Skipping test GetSampleById -- missing input parameter")
         try:
             self.tests.append((GetSamplePropertiesById(cfg['sample_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:            
-            print "Skipping test GetSamplePropertiesById -- missing input parameter"            
+            print("Skipping test GetSamplePropertiesById -- missing input parameter")            
         try:
             self.tests.append((GetAppResultById(cfg['appresult_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetAppResultById -- missing input parameter"
+            print("Skipping test GetAppResultById -- missing input parameter")
         try:
             self.tests.append((GetAppResultPropertiesById(cfg['appresult_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:            
-            print "Skipping test GetAppResultPropertiesById -- missing input parameter"            
+            print("Skipping test GetAppResultPropertiesById -- missing input parameter")            
         try:
             self.tests.append((GetFileById(cfg['file_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:
-            print "Skipping test GetFileById -- missing input parameter"
+            print("Skipping test GetFileById -- missing input parameter")
         try:
             self.tests.append((GetFilePropertiesById(cfg['file_id'], cfg['query_p']), "with query parameter"))
         except AttributeError:            
-            print "Skipping test GetFilePropertiesById -- missing input parameter"          
+            print("Skipping test GetFilePropertiesById -- missing input parameter")          
 
     
     def test_rest_vs_sdk(self):
         for test in self.tests:
-            print "\nTesting REST vs SDK for " + test[0].__class__.__name__ + "' with comment '" + test[1] + "'"
+            print("\nTesting REST vs SDK for " + test[0].__class__.__name__ + "' with comment '" + test[1] + "'")
             try:
                 test[0].test_rest_vs_sdk()
             except Exception as e:
-                print "Exception: " + str(e)        
+                print("Exception: " + str(e))        
 
 if __name__ == '__main__':
         

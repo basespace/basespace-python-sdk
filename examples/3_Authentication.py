@@ -17,7 +17,7 @@ import sys
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import time
 import webbrowser 
-import cPickle as Pickle
+import pickle as Pickle
 import os
 
 """
@@ -50,13 +50,13 @@ else:
 
 # First, get the verification code and uri for scope 'browse global'
 deviceInfo = myAPI.getVerificationCode('browse global')
-print "\n URL for user to visit and grant access: "
-print deviceInfo['verification_with_code_uri']
+print("\n URL for user to visit and grant access: ")
+print(deviceInfo['verification_with_code_uri'])
 
 ## PAUSE HERE
 # Have the user visit the verification uri to grant us access
-print "\nPlease visit the uri within 15 seconds and grant access"
-print deviceInfo['verification_with_code_uri']
+print("\nPlease visit the uri within 15 seconds and grant access")
+print(deviceInfo['verification_with_code_uri'])
 webbrowser.open_new(deviceInfo['verification_with_code_uri'])
 time.sleep(15)
 ## PAUSE HERE
@@ -68,13 +68,13 @@ code = deviceInfo['device_code']
 myAPI.updatePrivileges(code)
 
 # As a reference the provided access-token can be obtained from the BaseSpaceApi object
-print "\nMy Access-token:"
-print myAPI.getAccessToken()
+print("\nMy Access-token:")
+print(myAPI.getAccessToken())
 
 
 # Let's try and grab all available genomes with our new api! 
 allGenomes  = myAPI.getAvailableGenomes()
-print "\nGenomes \n" + str(allGenomes)
+print("\nGenomes \n" + str(allGenomes))
 
 
 # If at a later stage we wish to initialize a BaseSpaceAPI object when we already have
@@ -82,8 +82,8 @@ print "\nGenomes \n" + str(allGenomes)
 # object using the key-word AccessToken.
 myToken = myAPI.getAccessToken()
 myAPI.setAccessToken(myToken)
-print "\nA BaseSpaceAPI instance was updated with an access-token: "
-print myAPI 
+print("\nA BaseSpaceAPI instance was updated with an access-token: ")
+print(myAPI) 
 
 #################### Web-based verification #################################
 # The scenario where the authentication is done through a web-browser
@@ -94,8 +94,8 @@ else:
     BSapiWeb = BaseSpaceAPI(profile='DEFAULT')
 userUrl= BSapiWeb.getWebVerificationCode('browse global','http://localhost',state='myState')
 
-print "\nHave the user visit:"
-print userUrl
+print("\nHave the user visit:")
+print(userUrl)
 
 webbrowser.open_new(userUrl)
 
@@ -121,8 +121,8 @@ this object is only given by the client_key and client_secret.
 
 # Get current user
 user= myAPI.getUserById('current')
-print user
-print myAPI
+print(user)
+print(myAPI)
 
 #### Here some work goes on
 
@@ -136,7 +136,7 @@ f.close()
 
 # Imagine the current request is done, we will simulate this by deleting the api instance  
 myAPI = None
-print "\nTry printing the removed API, we get: " + str(myAPI)
+print("\nTry printing the removed API, we get: " + str(myAPI))
 
 
 # Next request in the session with id = id123 comes in
@@ -145,10 +145,10 @@ if os.path.exists(mySessionId):
     f = open(mySessionId)
     myAPI = Pickle.load(f)
     f.close()
-    print 
-    print "We got the API back!"
-    print myAPI
+    print() 
+    print("We got the API back!")
+    print(myAPI)
 else:
-    print "Looks like we haven't stored anything for this session yet"
+    print("Looks like we haven't stored anything for this session yet")
     # create a BaseSpaceAPI for the first time
 

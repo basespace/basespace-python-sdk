@@ -3,7 +3,7 @@ import time
 import os
 import math
 import multiprocessing
-import Queue
+import queue
 import shutil
 import signal
 import hashlib
@@ -50,7 +50,7 @@ class UploadTask(object):
                 self.err_msg = str(e)                
             else:
                 # ETag contains hex encoded MD5 of part data on success
-                if res and res['Response'].has_key('ETag'):                
+                if res and 'ETag' in res['Response']:                
                     self.success = True
                 else:
                     self.success = False
@@ -158,7 +158,7 @@ class Consumer(multiprocessing.Process):
         while True:                                
             try:
                 next_task = self.task_queue.get(True, self.get_task_timeout) # block until timeout
-            except Queue.Empty:
+            except queue.Empty:
                 LOGGER.debug('Worker %s exiting, getting task from task queue timed out and/or is empty' % self.name)
                 break                    
             if next_task is None:            
@@ -169,7 +169,7 @@ class Consumer(multiprocessing.Process):
                 # attempt to run tasks, with retry
                 LOGGER.debug('Worker %s processing task: %s' % (self.name, str(next_task)))
                 LOGGER.info('%s' % str(next_task))
-                for i in xrange(1, self.retries + 1):
+                for i in range(1, self.retries + 1):
                     if self.halt.is_set():
                         LOGGER.debug('Worker %s exiting, found halt signal' % self.name)
                         self.task_queue.task_done()
@@ -203,7 +203,7 @@ class Consumer(multiprocessing.Process):
         while 1:
             try:
                 self.task_queue.get(False)                
-            except Queue.Empty:            
+            except queue.Empty:            
                 break
             else:
                 self.task_queue.task_done()
@@ -233,7 +233,7 @@ class Executor(object):
         '''
         Added workers to internal list of workers, adding a poison pill for each to the task queue
         '''
-        self.consumers = [ Consumer(self.tasks, self.result_queue, self.halt_event, self.lock) for i in xrange(num_workers) ]
+        self.consumers = [ Consumer(self.tasks, self.result_queue, self.halt_event, self.lock) for i in range(num_workers) ]
         for c in self.consumers:
             self.tasks.put(None)
 
@@ -258,7 +258,7 @@ class Executor(object):
         while 1:
             try:
                 success = self.result_queue.get(False) # non-blocking                    
-            except Queue.Empty:                    
+            except queue.Empty:                    
                 break
             else:                    
                 if success == False:                        
@@ -324,7 +324,7 @@ class MultipartUpload(object):
         #     raise MultiProcessingTaskFailedException(err_msg)
 
         self.exe = Executor()                    
-        for i in xrange(self.start_chunk, fileCount):
+        for i in range(self.start_chunk, fileCount):
             t = UploadTask(self.api, self.remote_file.Id, i, fileCount, self.local_path, total_size, chunk_size)
             self.exe.add_task(t)            
         self.exe.add_workers(self.process_count)
@@ -416,7 +416,7 @@ class MultipartDownload(object):
                     os.makedirs(self.full_temp_dir)
         
         self.exe = Executor()                    
-        for i in xrange(self.start_chunk, self.file_count+1):         
+        for i in range(self.start_chunk, self.file_count+1):         
             t = DownloadTask(self.api, self.file_id, file_name, self.full_local_dir, 
                              i, self.file_count, part_size_bytes, total_bytes, self.full_temp_dir)
             self.exe.add_task(t)            
@@ -452,7 +452,7 @@ class MultipartDownload(object):
         Assembles download files chunks into single large file, then cleanup by deleting file chunks
         '''        
         LOGGER.debug("Assembling downloaded file parts into single file")                                                   
-        part_files = [os.path.join(self.full_temp_dir, self.file_name + '.' + str(i)) for i in xrange(self.start_chunk, self.file_count+1)]                    
+        part_files = [os.path.join(self.full_temp_dir, self.file_name + '.' + str(i)) for i in range(self.start_chunk, self.file_count+1)]                    
         with open(os.path.join(self.full_local_dir, self.file_name), 'w+b') as whole_file:
             for part_file in part_files:                
                 shutil.copyfileobj(open(part_file, 'r+b'), whole_file)                         
