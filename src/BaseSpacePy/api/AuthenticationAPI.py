@@ -1,6 +1,6 @@
 import sys
 import time
-import ConfigParser
+import configparser
 import getpass
 import os
 import requests
@@ -49,7 +49,7 @@ class AuthenticationAPI(object):
         :param config_path: path to config file
         :return: ConfigParser object
         """
-        self.config = ConfigParser.SafeConfigParser()
+        self.config = configparser.SafeConfigParser()
         self.config.optionxform = str
         if os.path.exists(self.config_path):
             self.config.read(self.config_path)
@@ -86,7 +86,7 @@ class SessionAuthentication(AuthenticationAPI):
         pass
 
     def set_session_details(self, config_path):
-        username = raw_input("username:")
+        username = input("username:")
         password = getpass.getpass()
         s, r = self.basespace_session(username, password)
         self.config.set(self.DEFAULT_CONFIG_NAME, self.SESSION_TOKEN_NAME, r.cookies[self.COOKIE_NAME])
@@ -129,7 +129,7 @@ class OAuthAuthentication(AuthenticationAPI):
                 raise AuthenticationException(msg)
         auth_url = payload["verification_with_code_uri"]
         auth_code = payload["device_code"]
-        print "please authenticate here: %s" % auth_url
+        print("please authenticate here: %s" % auth_url)
         # poll the token URL until we get the token
         token_payload = {
             "client_id": client_id,
@@ -156,6 +156,6 @@ class OAuthAuthentication(AuthenticationAPI):
         self.construct_default_config(self.api_server)
         if not access_token:
             raise Exception("problem obtaining token!")
-        print "Success!"
+        print("Success!")
         self.config.set(self.DEFAULT_CONFIG_NAME, self.ACCESS_TOKEN_NAME, access_token)
         self.write_config()

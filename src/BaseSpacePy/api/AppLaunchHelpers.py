@@ -18,8 +18,8 @@ import copy
 import json
 import os
 
-from BaseMountInterface import BaseMountInterface
-from BaseSpaceException import ServerResponseException
+from .BaseMountInterface import BaseMountInterface
+from .BaseSpaceException import ServerResponseException
 
 # if these strings are in the property names, we should not try to capture default values for them.
 # these are "global" but are needed by more than one object, so it's the cleanest way for now
@@ -27,7 +27,7 @@ BS_ENTITIES = ["sample", "project", "appresult", "file"]
 BS_ENTITY_LIST_NAMES = ["Samples", "Projects", "AppResults", "Files"]
 
 
-class AppSessionMetaData(object):
+class AppSessionMetaData(object, metaclass=abc.ABCMeta):
     """
     Class to help extract information from an appsession.
     This is an abstract base class without two concrete implementations:
@@ -35,8 +35,6 @@ class AppSessionMetaData(object):
     2. AppSessionMetaDataRaw: Working on a raw appsession (a .json object)
 
     """
-
-    __metaclass__ = abc.ABCMeta
 
     SKIP_PROPERTIES = ["app-session-name", "attributes", "columns", "num-columns", "rowcount", "IsMultiNode"]
 
@@ -429,8 +427,8 @@ class LaunchSpecification(object):
             raise LaunchSpecificationException(
                 "Compulsory variable(s) missing! (%s)" % str(required_vars - supplied_var_names))
         if supplied_var_names - (self.get_variable_requirements() | set(["LaunchName"])):
-            print "warning! unused variable(s) specified: (%s)" % str(
-                supplied_var_names - self.get_variable_requirements())
+            print("warning! unused variable(s) specified: (%s)" % str(
+                supplied_var_names - self.get_variable_requirements()))
         all_vars = copy.copy(self.defaults)
         all_vars.update(user_supplied_vars)
         self.resolve_list_variables(all_vars)
@@ -459,7 +457,7 @@ class LaunchSpecification(object):
         dump all properties with their type and any default value
         for verbose usage information output
         """
-        print self.format_property_information()
+        print(self.format_property_information())
 
     def format_minimum_requirements(self):
         minimum_requirements = self.get_minimum_requirements()

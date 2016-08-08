@@ -49,43 +49,43 @@ billAPI   = BillingAPI(BaseSpaceStoreUrl, version, AppSessionId, AccessToken=acc
 
 # create a consumable purchase, and associated it with an AppSession
 # also add tags to provide (fake) details about the purchase
-print "\nCreating purchase\n"
+print("\nCreating purchase\n")
 purch = billAPI.createPurchase({'id':product_id,'quantity':4, 'tags':["test","test_tag"] }, AppSessionId)
 
 # record the purchase Id and RefundSecret for refunding later
 purchaseId = purch.Id
 refundSecret = purch.RefundSecret
 
-print "Now complete the purchase in your web browser"
-print "CLOSE the browser window/tab after you click 'Purchase' (and don't proceed into the app)"
+print("Now complete the purchase in your web browser")
+print("CLOSE the browser window/tab after you click 'Purchase' (and don't proceed into the app)")
 time.sleep(3)
 ## PAUSE HERE
-print "Opening: " + purch.HrefPurchaseDialog
+print("Opening: " + purch.HrefPurchaseDialog)
 webbrowser.open_new(purch.HrefPurchaseDialog)
-print "Waiting 30 seconds..."
+print("Waiting 30 seconds...")
 time.sleep(30)
 ## PAUSE HERE
 
-print "\nConfirm the purchase"
+print("\nConfirm the purchase")
 post_purch = billAPI.getPurchaseById(purchaseId)
-print "The status of the purchase is now: " + post_purch.Status
+print("The status of the purchase is now: " + post_purch.Status)
 
-print "\nRefunding the Purchase"
+print("\nRefunding the Purchase")
 # note we must use the same access token that was provided used for the purchase
 refunded_purchase = billAPI.refundPurchase(purchaseId, refundSecret, comment='the product did not function well as a frisbee')
 
-print "\nGetting all purchases for the current user with the tags we used for the purchase above"
+print("\nGetting all purchases for the current user with the tags we used for the purchase above")
 purch_prods = billAPI.getUserProducts(Id='current', queryPars=qpp( {'Tags':'test,test_tag'} ))
 if not len(purch_prods):
-    print "\nHmmm, didn't find any purchases with these tags. Did everything go OK above?\n"
+    print("\nHmmm, didn't find any purchases with these tags. Did everything go OK above?\n")
 else:
-    print "\nFor the first of these purchases:\n"
-    print "Purchase Name: " + purch_prods[0].Name
-    print "Purchase Price: " + purch_prods[0].Price
-    print "Purchase Quantity: " + purch_prods[0].Quantity
-    print "Tags: " + str(purch_prods[0].Tags)
+    print("\nFor the first of these purchases:\n")
+    print("Purchase Name: " + purch_prods[0].Name)
+    print("Purchase Price: " + purch_prods[0].Price)
+    print("Purchase Quantity: " + purch_prods[0].Quantity)
+    print("Tags: " + str(purch_prods[0].Tags))
 
     # Get the refund status of the purchase
-    print "\nGetting the (refunded) Purchase we just made"
+    print("\nGetting the (refunded) Purchase we just made")
     get_purch = billAPI.getPurchaseById(purch_prods[0].PurchaseId)
-    print "Refund Status: " + get_purch.RefundStatus + "\n"
+    print("Refund Status: " + get_purch.RefundStatus + "\n")

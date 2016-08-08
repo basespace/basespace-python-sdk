@@ -1,17 +1,17 @@
 
 from pprint import pprint
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import shutil
-import urllib
-import httplib
-import cStringIO
+import urllib.request, urllib.parse, urllib.error
+import http.client
+import io
 import json
 import os
 import re
 from tempfile import mkdtemp
 import socket
-import ConfigParser
-import urlparse
+import configparser
+import urllib.parse
 import logging
 import getpass
 import requests
@@ -65,7 +65,7 @@ class BaseSpaceAPI(BaseAPI):
         # TODO this replacement won't work for all environments
         self.weburl         = cred['apiServer'].replace('api.','')
 
-        apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
+        apiServerAndVersion = urllib.parse.urljoin(cred['apiServer'], cred['apiVersion'])
         super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, userAgent, timeout, verbose)
 
     def _setCredentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
@@ -134,32 +134,32 @@ class BaseSpaceAPI(BaseAPI):
             raise CredentialsException("Could not find config file: %s" % config_file)
         section_name = "DEFAULT"
         cred = {}        
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         if config.read(config_file):
             cred['name'] = profile
             try:
                 cred['clientKey'] = config.get(section_name, "clientKey")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['clientSecret'] = config.get(section_name, "clientSecret")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['apiServer'] = config.get(section_name, "apiServer")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['apiVersion'] = config.get(section_name, "apiVersion")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try: 
                 cred['appSessionId'] = config.get(section_name, "appSessionId")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['accessToken'] = config.get(section_name, "accessToken")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass            
         return cred
 
@@ -187,7 +187,7 @@ class BaseSpaceAPI(BaseAPI):
             raise AppSessionException("An AppSession Id is required")
         resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'        
         resourcePath = resourcePath.replace('{AppSessionId}', Id)        
-        response = cStringIO.StringIO()
+        response = io.StringIO()
         import requests
         response = requests.get(resourcePath, auth=(self.key, self.secret))
         resp_dict = json.loads(response.text)
@@ -219,7 +219,7 @@ class BaseSpaceAPI(BaseAPI):
         :param response: a dictionary (decoded from json) from getting an AppSession from the api server
         :returns: An AppSession instance                
         '''        
-        if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ErrorCode' in response['ResponseStatus']:
             raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                    
         tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion, userAgent=self.apiClient.userAgent)
         res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)            
@@ -360,7 +360,7 @@ class BaseSpaceAPI(BaseAPI):
         :returns: a url 
         '''        
         data = {'client_id': self.key, 'redirect_uri': redirectURL, 'scope': scope, 'response_type': 'code', "state": state}
-        return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
+        return self.weburl + webAuthorize + '?' + urllib.parse.urlencode(data)
 
     def obtainAccessToken(self, code, grantType='device', redirect_uri=None):
         '''
@@ -395,12 +395,12 @@ class BaseSpaceAPI(BaseAPI):
             raise ServerResponseException('Could not query access token endpoint: %s' % str(e))
         if not response:
             raise ServerResponseException('No response returned')
-        if response.has_key('ResponseStatus'):
-            if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ResponseStatus' in response:
+            if 'ErrorCode' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
-            elif response['ResponseStatus'].has_key('Message'):
+            elif 'Message' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['Message']))
-        elif response.has_key('ErrorCode'):
+        elif 'ErrorCode' in response:
             raise ServerResponseException(response["MessageFormatted"])
 
         responseObject = self.apiClient.deserialize(response["Response"], Token.Token)
@@ -977,7 +977,7 @@ class BaseSpaceAPI(BaseAPI):
                 ref.append(d)
             postData['References']  = ref
         # case, an appSession is provided, we need to check if the app is running
-        if queryParams.has_key('appsessionid'):
+        if 'appsessionid' in queryParams:
             session = self.getAppSession(Id=queryParams['appsessionid'])
             if not session.canWorkOn():
                 raise Exception('AppSession status must be "running," to create an AppResults. Current status is ' + session.Status)
@@ -1035,7 +1035,7 @@ class BaseSpaceAPI(BaseAPI):
             queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
         
         # case, an appSession is provided, we need to check if the app is running
-        if queryParams.has_key('appsessionid'):
+        if 'appsessionid' in queryParams:
             session = self.getAppSession(Id=queryParams['appsessionid'])
             if not session.canWorkOn():
                 raise Exception('AppSession status must be "running," to create a Sample. Current status is ' + session.Status)
@@ -1300,21 +1300,21 @@ class BaseSpaceAPI(BaseAPI):
         queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
         
         response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ErrorCode' in response['ResponseStatus']:
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         
         # get the Amazon URL, then do the download; for range requests include
         # size to ensure reading until end of data stream. Create local file if
         # it doesn't exist (don't truncate in case other processes from 
         # multipart download also do this)
-        req = urllib2.Request(response['Response']['HrefContent'])
+        req = urllib.request.Request(response['Response']['HrefContent'])
         filename = os.path.join(localDir, name)
         if not os.path.exists(filename):
             open(filename, 'a').close()
         iter_size = 16*1024 # python default
         if len(byteRange):
             req.add_header('Range', 'bytes=%s-%s' % (byteRange[0], byteRange[1]))
-        flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking                
+        flo = urllib.request.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking                
         totRead = 0
         with open(filename, 'r+b', 0) as fp:
             if len(byteRange) and standaloneRangeFile == False:
@@ -1372,7 +1372,7 @@ class BaseSpaceAPI(BaseAPI):
         queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
         
         response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ErrorCode' in response['ResponseStatus']:
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                
         return response['Response']['HrefContent']
 
@@ -1394,7 +1394,7 @@ class BaseSpaceAPI(BaseAPI):
         queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
         
         response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
-        if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ErrorCode' in response['ResponseStatus']:
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         
         # record S3 URL
@@ -1402,9 +1402,9 @@ class BaseSpaceAPI(BaseAPI):
         
         # TODO should use HEAD call here, instead do small GET range request
         # GET S3 url and record etag         
-        req = urllib2.Request(response['Response']['HrefContent'])
+        req = urllib.request.Request(response['Response']['HrefContent'])
         req.add_header('Range', 'bytes=%s-%s' % (0, 1))
-        flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking  
+        flo = urllib.request.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking  
         try:
             etag = flo.headers['etag']
         except KeyError:
@@ -1442,7 +1442,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         LEGAL_KEY_TYPES = [str, int, float, bool]
         propList = []
-        for key, value in rawProperties.iteritems():
+        for key, value in rawProperties.items():
             if type(value) not in LEGAL_KEY_TYPES:
                 raise IllegalParameterException(type(value), LEGAL_KEY_TYPES)
             propName = "%s.%s" % (namespace, key)

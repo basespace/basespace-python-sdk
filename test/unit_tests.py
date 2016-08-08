@@ -3,7 +3,7 @@ import os
 import sys
 from tempfile import mkdtemp
 import shutil
-from urlparse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin
 import multiprocessing
 import hashlib
 import webbrowser

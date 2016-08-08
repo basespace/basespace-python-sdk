@@ -51,30 +51,30 @@ else:
 
 # Using the basespaceApi we can request the appSession object corresponding to the AppSession id supplied
 myAppSession = myAPI.getAppSession()
-print myAppSession
+print(myAppSession)
 
 # An app session contains a referal to one or more appLaunchObjects which reference the data module
 # the user launched the app on. This can be a list of projects, samples, or a mixture of objects  
-print "\nType of data the app was triggered on can be seen in 'references'"
-print myAppSession.References
+print("\nType of data the app was triggered on can be seen in 'references'")
+print(myAppSession.References)
 
 # We can also get a handle to the user who started the AppSession
-print "\nWe can get a handle for the user who triggered the app\n" + str(myAppSession.UserCreatedBy)
+print("\nWe can get a handle for the user who triggered the app\n" + str(myAppSession.UserCreatedBy))
 
 # Let's have a closer look at the appSessionLaunchObject
 myReference =  myAppSession.References[0]
-print "\nWe can get out information such as the href to the launch object:"
-print myReference.HrefContent
-print "\nand the specific type of that object:"
-print myReference.Type
+print("\nWe can get out information such as the href to the launch object:")
+print(myReference.HrefContent)
+print("\nand the specific type of that object:")
+print(myReference.Type)
 
 
 # Now we will want to ask for more permission for the specific reference object
-print "\nWe can get out the specific project objects by using 'content':" 
+print("\nWe can get out the specific project objects by using 'content':") 
 myReference =  myReference.Content
-print myReference
-print "\nThe scope string for requesting read access to the reference object is:"
-print myReference.getAccessStr(scope='write')
+print(myReference)
+print("\nThe scope string for requesting read access to the reference object is:")
+print(myReference.getAccessStr(scope='write'))
 
 # We can easily request write access to the reference object so our App can start contributing analysis
 # by default we ask for write permission and authentication for a device
