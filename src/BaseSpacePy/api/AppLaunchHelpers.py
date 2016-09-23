@@ -26,6 +26,7 @@ from BaseSpaceException import ServerResponseException
 BS_ENTITIES = ["sample", "project", "appresult", "file"]
 BS_ENTITY_LIST_NAMES = ["Samples", "Projects", "AppResults", "Files"]
 
+LAUNCH_NAME = "LaunchName"
 
 class AppSessionMetaData(object):
     """
@@ -250,6 +251,8 @@ class LaunchSpecification(object):
         """
         for varname in var_dict:
             varval = var_dict[varname]
+            if varname == LAUNCH_NAME:
+                continue
             if self.is_list_property(varname) and not isinstance(varval, list):
                 var_dict[varname] = [varval]
                 # raise AppLaunchException("non-list property specified for list parameter")
@@ -476,7 +479,6 @@ class LaunchPayload(object):
     and mapping BaseMount paths to the API reference strings the launch needs
     """
 
-    LAUNCH_NAME = "LaunchName"
     ENTITY_TYPE_TO_METHOD_NAME = {
         "sample" : "getSampleById",
         "appresult" : "getAppResultById",
@@ -537,8 +539,8 @@ class LaunchPayload(object):
         :param app_name: name of app
         :return: useful name for app launch
         """
-        if self.LAUNCH_NAME in self._configoptions:
-            return self._configoptions[self.LAUNCH_NAME]
+        if LAUNCH_NAME in self._configoptions:
+            return self._configoptions[LAUNCH_NAME]
         else:
             launch_names = self._find_all_entity_names("sample")
             if not launch_names:
