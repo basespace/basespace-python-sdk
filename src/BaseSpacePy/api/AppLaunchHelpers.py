@@ -27,6 +27,7 @@ BS_ENTITIES = ["sample", "project", "appresult", "file"]
 BS_ENTITY_LIST_NAMES = ["Samples", "Projects", "AppResults", "Files"]
 
 LAUNCH_NAME = "LaunchName"
+BATCH_NUMBER = "BatchNumber"
 
 class AppSessionMetaData(object):
     """
@@ -251,7 +252,7 @@ class LaunchSpecification(object):
         """
         for varname in var_dict:
             varval = var_dict[varname]
-            if varname == LAUNCH_NAME:
+            if varname == LAUNCH_NAME or varname == BATCH_NUMBER:
                 continue
             if self.is_list_property(varname) and not isinstance(varval, list):
                 var_dict[varname] = [varval]
@@ -431,9 +432,9 @@ class LaunchSpecification(object):
         if required_vars - supplied_var_names:
             raise LaunchSpecificationException(
                 "Compulsory variable(s) missing! (%s)" % str(required_vars - supplied_var_names))
-        if supplied_var_names - (self.get_variable_requirements() | set(["LaunchName"])):
+        if supplied_var_names - (self.get_variable_requirements() | set([LAUNCH_NAME, BATCH_NUMBER])):
             print "warning! unused variable(s) specified: (%s)" % str(
-                supplied_var_names - self.get_variable_requirements())
+                supplied_var_names - (self.get_variable_requirements() | set([LAUNCH_NAME, BATCH_NUMBER])))
         all_vars = copy.copy(self.defaults)
         all_vars.update(user_supplied_vars)
         self.resolve_list_variables(all_vars)
@@ -490,7 +491,10 @@ class LaunchPayload(object):
         :param launch_spec (LaunchSpecification)
         :param args (list) list or arguments to the app launch. These could be BaseSpace IDs or BaseMount paths
         :param configoptions (dict) key->value mapping for additional option values, such as genome-id
-        the ordering of args has to match the ordering of the sorted minimum requirements
+        :param api (BaseSpaceAPI) BaseSpace API object
+        :param disable_consistency_checking (bool) default behaviour is to ensure all entities and the launch itself
+            is done with the same access token. This parameter allows inconsistency (at user's risk!)
+        the ordering of args has to match the ordering of the sorted minimum requirements from the launch_spec
         It might be better to use a dict, but ultimately call order has to match at some point
         """
         self._launch_spec = launch_spec
@@ -540,6 +544,13 @@ class LaunchPayload(object):
         :return: useful name for app launch
         """
         if LAUNCH_NAME in self._configoptions:
+            # if there is a batch number, the user might have provided a format string (eg. "launch%d") in LAUNCH_NAME
+            # to create batch-specific launch names. Try to use this, but otherwise just return the LAUNCH_NAME
+            if BATCH_NUMBER in self._configoptions:
+                try:
+                    return self._configoptions[LAUNCH_NAME] % self._configoptions[BATCH_NUMBER]
+                except TypeError:
+                    pass
             return self._configoptions[LAUNCH_NAME]
         else:
             launch_names = self._find_all_entity_names("sample")
