@@ -297,6 +297,25 @@ class BaseSpaceAPI(BaseAPI):
         postData['statussummary'] = Summary
         return self.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams, headerParams, postData=postData)
 
+    def stopAppSession(self, Id):
+        """
+        Unfortunately, the v1pre3 appsession stop endpoint does not support tokens,
+        so this method has to create a special API object to call a v2 endpoint :(
+
+        :param Id:
+        :return: An AppSessionResponse that contains the appsession we just stopped
+        """
+        resourcePath = '/appsessions/{Id}/stop'
+        method = 'POST'
+        resourcePath = resourcePath.replace('{Id}', Id)
+        queryParams = {}
+        headerParams = {}
+        postData = {}
+        apiServerAndVersion = urlparse.urljoin(self.apiServer, "v2")
+        v2api = BaseAPI(self.getAccessToken(), apiServerAndVersion)
+        return v2api.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams,
+                                  headerParams, postData=postData)
+
     def __deserializeObject__(self, dct, type):
         '''
         Converts API response into object instances for Projects, Samples, and AppResults.
