@@ -26,9 +26,6 @@ from BaseSpaceException import ServerResponseException
 BS_ENTITIES = ["sample", "project", "appresult", "file"]
 BS_ENTITY_LIST_NAMES = ["Samples", "Projects", "AppResults", "Files"]
 
-LAUNCH_NAME = "LaunchName"
-BATCH_NUMBER = "BatchNumber"
-
 class AppSessionMetaData(object):
     """
     Class to help extract information from an appsession.
@@ -252,8 +249,6 @@ class LaunchSpecification(object):
         """
         for varname in var_dict:
             varval = var_dict[varname]
-            if varname == LAUNCH_NAME or varname == BATCH_NUMBER:
-                continue
             if self.is_list_property(varname) and not isinstance(varval, list):
                 var_dict[varname] = [varval]
                 # raise AppLaunchException("non-list property specified for list parameter")
@@ -432,9 +427,8 @@ class LaunchSpecification(object):
         if required_vars - supplied_var_names:
             raise LaunchSpecificationException(
                 "Compulsory variable(s) missing! (%s)" % str(required_vars - supplied_var_names))
-        if supplied_var_names - (self.get_variable_requirements() | set([LAUNCH_NAME, BATCH_NUMBER])):
-            print "warning! unused variable(s) specified: (%s)" % str(
-                supplied_var_names - (self.get_variable_requirements() | set([LAUNCH_NAME, BATCH_NUMBER])))
+        if supplied_var_names - self.get_variable_requirements():
+            print "warning! unused variable(s) specified: (%s)" % str(supplied_var_names - self.get_variable_requirements())
         all_vars = copy.copy(self.defaults)
         all_vars.update(user_supplied_vars)
         self.resolve_list_variables(all_vars)
@@ -543,25 +537,15 @@ class LaunchPayload(object):
         :param app_name: name of app
         :return: useful name for app launch
         """
-        if LAUNCH_NAME in self._configoptions:
-            # if there is a batch number, the user might have provided a format string (eg. "launch%d") in LAUNCH_NAME
-            # to create batch-specific launch names. Try to use this, but otherwise just return the LAUNCH_NAME
-            if BATCH_NUMBER in self._configoptions:
-                try:
-                    return self._configoptions[LAUNCH_NAME] % self._configoptions[BATCH_NUMBER]
-                except TypeError:
-                    pass
-            return self._configoptions[LAUNCH_NAME]
+        launch_names = self._find_all_entity_names("sample")
+        if not launch_names:
+            launch_names = self._find_all_entity_names("appresult")
+        if len(launch_names) > 3:
+            contracted_names = launch_names[:3] + ["%dmore" % (len(launch_names) - 3)]
+            launch_instance_name = "+".join(contracted_names)
         else:
-            launch_names = self._find_all_entity_names("sample")
-            if not launch_names:
-                launch_names = self._find_all_entity_names("appresult")
-            if len(launch_names) > 3:
-                contracted_names = launch_names[:3] + ["%dmore" % (len(launch_names) - 3)]
-                launch_instance_name = "+".join(contracted_names)
-            else:
-                launch_instance_name = "+".join(launch_names)
-            return "%s : %s" % (app_name, launch_instance_name)
+            launch_instance_name = "+".join(launch_names)
+        return "%s : %s" % (app_name, launch_instance_name)
 
     def is_valid_basespace_id(self, varname, basespace_id):
         """
