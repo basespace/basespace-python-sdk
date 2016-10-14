@@ -560,7 +560,7 @@ class LaunchPayload(object):
         else:
             return True
 
-    def to_basespace_id(self, param_name, varval):
+    def preprocess_arg(self, param_name, varval):
         """
         Checks if a value for a parameter looks like a BaseMount path and tries to convert it into a BaseSpace ID
 
@@ -570,6 +570,8 @@ class LaunchPayload(object):
         :return basespaceid
         """
         spec_type = self._launch_spec.get_property_bald_type(param_name)
+        if spec_type == "string":
+            return varval
         if os.path.sep in varval:
             # if the argument contains a path separator, it must be a valid BaseMount path
             # otherwise, an exception will be raised by BaseMountInterface
@@ -605,9 +607,9 @@ class LaunchPayload(object):
         for i, param_name in enumerate(params):
             arg = self._args[i]
             if isinstance(arg, list):
-                arg_map[param_name] = [self.to_basespace_id(param_name, arg_part) for arg_part in arg]
+                arg_map[param_name] = [self.preprocess_arg(param_name, arg_part) for arg_part in arg]
             else:
-                arg_map[param_name] = self.to_basespace_id(param_name, arg)
+                arg_map[param_name] = self.preprocess_arg(param_name, arg)
         return arg_map
 
     def get_all_variables(self):
