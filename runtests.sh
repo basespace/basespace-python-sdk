@@ -16,4 +16,8 @@ cat test/dotbasespace/unit_tests.cfg | sed "s/__ACCESS_TOKEN__/$ACCESS_TOKEN/" >
 cp ~/.basespace/unit_tests.cfg ~/.basespace/default.cfg
 
 
-python test/unit_tests.py
+# python test/unit_tests.py
+
+ls /jhlkjgfhlkjghdsdsdsds
+
+exit $?
