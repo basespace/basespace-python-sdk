@@ -3,12 +3,12 @@ import os
 import sys
 from tempfile import mkdtemp
 import shutil
-from urlparse import urlparse, urljoin
 import multiprocessing
 import hashlib
 import webbrowser
 import time
 import json
+import base64
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI, deviceURL
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.APIClient import APIClient
@@ -19,6 +19,9 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 
 
 
+from six.moves.urllib.parse import urlparse, urljoin
+
+
 # Dependencies:
 # ============
 # 1. Create a config file in ~/.basespace/unit_tests.cfg that has the credentials for an app on https://portal-hoth.illumina.com;
@@ -26,18 +29,18 @@ from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 # 2. Import the following data from Public Dataset 'MiSeq B. cereus demo data' on cloud-hoth.illumina.com:
 #    2.a.  Project name 'BaseSpaceDemo' (Id 596596), and
 #    2.b.  Run name 'BacillusCereus' (Id 555555)
-# 3. Download the following fastq file from BaseSpaceDemo's samples section: 
+# 3. Download the following fastq file from BaseSpaceDemo's samples section:
 #    < https://cloud-hoth.illumina.com/sample/855866/files/tree/BC-12_S12_L001_R2_001.fastq.gz?id=9896135 >
 #    and place it into the 'data' directory of this repository. It's 56MB in size.
 #
 # Note that large file upload download tests may take minutes each to complete, and oauth tests will open web browsers.
 
-tconst = { 
+tconst = {
            # for download tests
            'file_id_small': '9896072', # 2.2 KB,  public data B. cereus Project, data/intentisties/basecalls/Alignment/DemultiplexSummaryF1L1.9.txt
-           'file_id_large': '9896135', # 55.31 MB  public data B. cereus Project, data/intensities/basecalls/BC-12_S12_L001_R2_001.fastq.gz           
+           'file_id_large': '9896135', # 55.31 MB  public data B. cereus Project, data/intensities/basecalls/BC-12_S12_L001_R2_001.fastq.gz
            'file_small_md5': '4c3328bcf26ffb54da4de7b3c8879f94', # for file id 9896072
-           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', # for file id 9896135 
+           'file_large_md5': '9267236a2d870da1d4cb73868bb51b35', # for file id 9896135
            # for upload tests
            'file_small_upload': 'data/test.small.upload.txt',
            'file_small_upload_contents': open('data/test.small.upload.txt').read(),
@@ -62,7 +65,7 @@ tconst = {
            'PF_count': '446158',
            'appresult_id': '1213212',
            'appresult_referenced_sample_id': '855855',
-           #'appsession_id': '1305304', TEMP           
+           #'appsession_id': '1305304', TEMP
            # for coverage and variant apis
            'bam_file_id': '9895890',
            'bam_cov_chr_name': 'chr',
@@ -71,25 +74,25 @@ tconst = {
            'vcf_file_id': '9895892',
            'vcf_chr_name': 'chr',
            'vcf_start_coord': '1',
-           'vcf_end_coord': '200000',  
+           'vcf_end_coord': '200000',
           }
 
 class TestFileDownloadMethods(TestCase):
     '''
     Tests methods of File objects
     '''
-    def setUp(self):        
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.file = self.api.getFileById(tconst['file_id_small'])
-        self.temp_dir = mkdtemp()    
-            
+        self.temp_dir = mkdtemp()
+
     def tearDown(self):
-        shutil.rmtree(self.temp_dir) 
-        
+        shutil.rmtree(self.temp_dir)
+
     def testDownloadFile(self):
         new_file = self.file.downloadFile(
             self.api,
-            localDir = self.temp_dir,            
+            localDir = self.temp_dir,
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
@@ -98,12 +101,12 @@ class TestFileDownloadMethods(TestCase):
         with open(file_path, "r+b") as fp:
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
-        
+
     def testDownloadFileWithBsDirectoryArg(self):
         new_file = self.file.downloadFile(
             self.api,
             localDir = self.temp_dir,
-            createBsDir = True,    
+            createBsDir = True,
             )
         file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
@@ -112,68 +115,68 @@ class TestFileDownloadMethods(TestCase):
         with open(file_path, "r+b") as fp:
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
-        
+
     def testDownloadFileWithByteRangeArg(self):
         new_file = self.file.downloadFile(
             self.api,
             localDir = self.temp_dir,
-            byteRange = [1000,2000]            
+            byteRange = [1000,2000]
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertEqual(1001, os.stat(file_path).st_size)
-        os.remove(file_path)        
+        os.remove(file_path)
 
 class TestAPIFileUploadMethods_SmallFiles(TestCase):
     '''
     Tests single and multi-part upload methods
     '''
     @classmethod
-    def setUpClass(cls):    
+    def setUpClass(cls):
         '''
         For all upload unit tests (not per test):
         Create a new 'unit test' project, or get it if exists, to upload to data to.
         Then create a new app result in this project, getting a new app session id
-        '''        
-        cls.api = BaseSpaceAPI(profile='unit_tests')        
-        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        '''
+        cls.api = BaseSpaceAPI(profile='unit_tests')
+        cls.proj = cls.api.createProject(tconst['create_project_name'])
         cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
-    
-    def test__singlepartFileUpload__(self):                    
+
+    def test__singlepartFileUpload__(self):
         testDir = "testSinglePartSmallFileUploadDirectory"
         fileName = os.path.basename(tconst['file_small_upload'])
         myFile = self.api.__singlepartFileUpload__(
             resourceType = 'appresults',
             resourceId = self.ar.Id,
-            localPath=tconst['file_small_upload'], 
-            fileName=fileName, 
-            directory=testDir, 
-            contentType=tconst['file_small_upload_content_type'])                
+            localPath=tconst['file_small_upload'],
+            fileName=fileName,
+            directory=testDir,
+            contentType=tconst['file_small_upload_content_type'])
         self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(myFile.Size, tconst['file_small_upload_size'])
         self.assertEqual(myFile.UploadStatus, 'complete')
         # test fresh File object
         newFile = self.api.getFileById(myFile.Id)
-        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))        
+        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
-        self.assertEqual(newFile.UploadStatus, 'complete')                        
+        self.assertEqual(newFile.UploadStatus, 'complete')
 
     def testAppResultFileUpload_SmallUpload(self):
         testDir = "testSmallUploadDirectory"
         fileName = os.path.basename(tconst['file_small_upload'])
         myFile = self.api.appResultFileUpload(
-            Id=self.ar.Id, 
-            localPath=tconst['file_small_upload'], 
-            fileName=fileName, 
-            directory=testDir, 
-            contentType=tconst['file_small_upload_content_type'])                
+            Id=self.ar.Id,
+            localPath=tconst['file_small_upload'],
+            fileName=fileName,
+            directory=testDir,
+            contentType=tconst['file_small_upload_content_type'])
         self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(myFile.Size, tconst['file_small_upload_size'])
         self.assertEqual(myFile.UploadStatus, 'complete')
         # test fresh File object
         newFile = self.api.getFileById(myFile.Id)
-        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))        
+        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
         self.assertEqual(newFile.UploadStatus, 'complete')
 
@@ -182,22 +185,22 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
         file = self.api.__initiateMultipartFileUpload__(
             resourceType = 'appresults',
             resourceId = self.ar.Id,
-            fileName = os.path.basename(tconst['file_small_upload']),            
+            fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType=tconst['file_small_upload_content_type'])
-        self.assertEqual(file.Name, os.path.basename(tconst['file_small_upload']))                    
-        
+        self.assertEqual(file.Name, os.path.basename(tconst['file_small_upload']))
+
     def test__uploadMultipartUnit__(self):
         testDir = "test__uploadMultipartUnit__"
         file = self.api.__initiateMultipartFileUpload__(
             resourceType = 'appresults',
             resourceId = self.ar.Id,
-            fileName = os.path.basename(tconst['file_small_upload']),            
+            fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType=tconst['file_small_upload_content_type'])
         with open(tconst['file_small_upload']) as fp:
             out = fp.read()
-            md5 = hashlib.md5(out).digest().encode('base64')  
+        md5 = base64.b64encode(hashlib.md5(out.encode('utf-8')).digest())
         response = self.api.__uploadMultipartUnit__(
             Id = file.Id,
             partNumber = 1,
@@ -205,18 +208,20 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             data = tconst['file_small_upload_contents'])
         self.assertNotEqual(response, None, 'Upload part failure will return None')
         self.assertTrue('ETag' in response['Response'], 'Upload part success will contain a Response dict with an ETag element')
-            
+
     def test__finalizeMultipartFileUpload__(self):
         testDir = "test__finalizeMultipartFileUpload__"
         file = self.api.__initiateMultipartFileUpload__(
             resourceType = 'appresults',
             resourceId = self.ar.Id,
-            fileName = os.path.basename(tconst['file_small_upload']),            
+            fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType=tconst['file_small_upload_content_type'])
         with open(tconst['file_small_upload']) as fp:
             out = fp.read()
-            md5 = hashlib.md5(out).digest().encode('base64')  
+            # md5 = hashlib.md5(out).digest().encode('base64')
+            # import pdb;pdb.set_trace()
+        md5 = base64.b64encode(hashlib.md5(out.encode('utf-8')).digest())
         response = self.api.__uploadMultipartUnit__(
             Id = file.Id,
             partNumber = 1,
@@ -230,11 +235,11 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             myFile = self.api.multipartFileUpload(
                 resourceType = 'appresults',
                 resourceId = self.ar.Id,
-                localPath=tconst['file_large_upload'], 
-                fileName=os.path.basename(tconst['file_large_upload']), 
-                directory="",                          
-                contentType=tconst['file_large_upload_content_type'],            
-                partSize=5, # MB, chunk size                        
+                localPath=tconst['file_large_upload'],
+                fileName=os.path.basename(tconst['file_large_upload']),
+                directory="",
+                contentType=tconst['file_large_upload_content_type'],
+                partSize=5, # MB, chunk size
                 )
 
     def testMultiPartFileUpload_LargePartSizeException(self):
@@ -242,21 +247,21 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             myFile = self.api.multipartFileUpload(
                 resourceType = 'appresults',
                 resourceId = self.ar.Id,
-                localPath=tconst['file_large_upload'], 
-                fileName=os.path.basename(tconst['file_large_upload']), 
-                directory="",                          
-                contentType=tconst['file_large_upload_content_type'],            
-                partSize=26, # MB, chunk size                        
+                localPath=tconst['file_large_upload'],
+                fileName=os.path.basename(tconst['file_large_upload']),
+                directory="",
+                contentType=tconst['file_large_upload_content_type'],
+                partSize=26, # MB, chunk size
                 )
 
-    def testIntegration_SmallFileUploadThenDownload(self):            
+    def testIntegration_SmallFileUploadThenDownload(self):
         upFile = self.api.appResultFileUpload(
-            Id=self.ar.Id, 
-            localPath=tconst['file_small_upload'], 
-            fileName=os.path.basename(tconst['file_small_upload']), 
-            directory="test_upload_download_dir", 
-            contentType=tconst['file_small_upload_content_type'])        
-        tempDir = mkdtemp()        
+            Id=self.ar.Id,
+            localPath=tconst['file_small_upload'],
+            fileName=os.path.basename(tconst['file_small_upload']),
+            directory="test_upload_download_dir",
+            contentType=tconst['file_small_upload_content_type'])
+        tempDir = mkdtemp()
         downFile = self.api.fileDownload(upFile.Id, tempDir, createBsDir=True)
         downPath = os.path.join(tempDir, upFile.Path)
         self.assertTrue(os.path.isfile(downPath), "Failed to find path %s" % downPath)
@@ -264,7 +269,7 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
         self.assertEqual(os.path.getsize(tconst['file_small_upload']), os.path.getsize(downPath))
         with open(downPath, "r+b") as fp:
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_upload_md5'])
-        os.remove(downPath)                        
+        os.remove(downPath)
 
 
 class TestMultipartFileTransferMethods(TestCase):
@@ -280,64 +285,64 @@ class TestAPIFileUploadMethods_LargeFiles(TestCase):
     Tests multi-part upload methods on large(-ish) files -- may be time consuming
     '''
     @classmethod
-    def setUpClass(cls):    
+    def setUpClass(cls):
         '''
         For all upload unit tests (not per test):
         Create a new 'unit test' project, or get it if exists, to upload to data to.
         Then create a new app result in this project, getting a new app session id
-        '''        
+        '''
         cls.api = BaseSpaceAPI(profile='unit_tests')
         cls.proj = cls.api.createProject(tconst['create_project_name'])
         cls.ar = cls.proj.createAppResult(cls.api, "test upload", "test upload", appSessionId="")
- 
+
 #    @skip('large upload')
     def testAppResultFileUpload_LargeUpload(self):
         testDir = "testLargeUploadDirectory"
-        fileName = os.path.basename(tconst['file_large_upload'])            
+        fileName = os.path.basename(tconst['file_large_upload'])
         myFile = self.api.appResultFileUpload(
-            Id=self.ar.Id, 
-            localPath=tconst['file_large_upload'], 
-            fileName=fileName, 
-            directory=testDir, 
+            Id=self.ar.Id,
+            localPath=tconst['file_large_upload'],
+            fileName=fileName,
+            directory=testDir,
             contentType=tconst['file_small_upload_content_type'])
         self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(myFile.Size, tconst['file_large_upload_size'])
         self.assertEqual(myFile.UploadStatus, 'complete')
         # test fresh File object
         newFile = self.api.getFileById(myFile.Id)
-        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))        
+        self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(newFile.Size, tconst['file_large_upload_size'])
         self.assertEqual(newFile.UploadStatus, 'complete')
-        
+
 #    @skip('large upload')
     def testMultiPartFileUpload(self):
         testDir = "testMultipartUploadDir"
-        fileName = os.path.basename(tconst['file_large_upload']) 
+        fileName = os.path.basename(tconst['file_large_upload'])
         myFile = self.api.multipartFileUpload(
             resourceType = 'appresults',
             resourceId = self.ar.Id,
-            localPath=tconst['file_large_upload'], 
-            fileName=fileName, 
-            directory=testDir,                          
+            localPath=tconst['file_large_upload'],
+            fileName=fileName,
+            directory=testDir,
             contentType=tconst['file_large_upload_content_type'],
             processCount = 4,
-            partSize= 10, # MB, chunk size            
+            partSize= 10, # MB, chunk size
             #tempDir = args.temp_dir
-            )            
+            )
         self.assertEqual(myFile.Size, tconst['file_large_upload_size'])
         self.assertEqual(myFile.Name, fileName)
-        self.assertEqual(myFile.Path, os.path.join(testDir, fileName))    
-        self.assertEqual(myFile.UploadStatus, 'complete')    
+        self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
+        self.assertEqual(myFile.UploadStatus, 'complete')
 
 #    @skip('large upload and download')
-    def testIntegration_LargeFileUploadThenDownload(self):            
+    def testIntegration_LargeFileUploadThenDownload(self):
         upFile = self.api.appResultFileUpload(
-            Id=self.ar.Id, 
-            localPath=tconst['file_large_upload'], 
-            fileName=os.path.basename(tconst['file_large_upload']), 
-            directory="test_upload_download_dir", 
-            contentType=tconst['file_large_upload_content_type'])        
-        tempDir = mkdtemp()        
+            Id=self.ar.Id,
+            localPath=tconst['file_large_upload'],
+            fileName=os.path.basename(tconst['file_large_upload']),
+            directory="test_upload_download_dir",
+            contentType=tconst['file_large_upload_content_type'])
+        tempDir = mkdtemp()
         downFile = self.api.fileDownload(upFile.Id, tempDir, createBsDir=True)
         downPath = os.path.join(tempDir, upFile.Path)
         self.assertTrue(os.path.isfile(downPath), "Failed to find path %s" % downPath)
@@ -345,26 +350,26 @@ class TestAPIFileUploadMethods_LargeFiles(TestCase):
         self.assertEqual(os.path.getsize(tconst['file_large_upload']), os.path.getsize(downPath))
         with open(downPath, "r+b") as fp:
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_large_upload_md5'])
-        os.remove(downPath)                        
- 
+        os.remove(downPath)
+
 class TestAPIFileDownloadMethods_SmallFiles(TestCase):
     '''
     Tests single and multi-part download methods
     '''
-    def setUp(self):        
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        self.temp_dir = mkdtemp()    
-            
+        self.temp_dir = mkdtemp()
+
     def tearDown(self):
-        shutil.rmtree(self.temp_dir) 
+        shutil.rmtree(self.temp_dir)
 
     def test__downloadFile__(self):
         file_name = 'testfile.abc'
         bs_file = self.api.getFileById(tconst['file_id_small'])
         self.api.__downloadFile__(
-            tconst['file_id_small'],                    
+            tconst['file_id_small'],
             localDir = self.temp_dir,
-            name = file_name,            
+            name = file_name,
             )
         file_path = os.path.join(self.temp_dir, file_name)
         self.assertTrue(os.path.isfile(file_path))
@@ -373,43 +378,43 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
         with open(file_path, "r+b") as fp:
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
         os.remove(file_path)
-        
+
     def test__downloadFile__WithByteRangeArg(self):
-        file_name = 'testfile.abc'        
+        file_name = 'testfile.abc'
         self.api.__downloadFile__(
-            tconst['file_id_large'],                    
+            tconst['file_id_large'],
             localDir = self.temp_dir,
             name = file_name,
-            byteRange = [2000,3000]            
+            byteRange = [2000,3000]
             )
         file_path = os.path.join(self.temp_dir, file_name)
-        self.assertTrue(os.path.isfile(file_path))        
+        self.assertTrue(os.path.isfile(file_path))
         self.assertEqual(3001, os.stat(file_path).st_size) # seek() into file, so size is larger
         os.remove(file_path)
 
     def test__downloadFile__WithByteRangeStoredInStandaloneFile(self):
         file_name = 'testfile.abc'
         self.api.__downloadFile__(
-            tconst['file_id_large'],                    
+            tconst['file_id_large'],
             localDir = self.temp_dir,
             name = file_name,
             byteRange = [2000,3000],
-            standaloneRangeFile = True,         
+            standaloneRangeFile = True,
             )
         file_path = os.path.join(self.temp_dir, file_name)
-        self.assertTrue(os.path.isfile(file_path))        
+        self.assertTrue(os.path.isfile(file_path))
         self.assertEqual(1001, os.stat(file_path).st_size) # no seek() into standalone file, so size is only range data
         os.remove(file_path)
-        
+
     def test__downloadFile__WithLockArg(self):
         lock = multiprocessing.Lock() # just testing that passing in a lock won't crash anything
         file_name = 'testfile.abc'
         bs_file = self.api.getFileById(tconst['file_id_small'])
         self.api.__downloadFile__(
-            tconst['file_id_small'],                    
+            tconst['file_id_small'],
             localDir = self.temp_dir,
             name = file_name,
-            lock = lock,            
+            lock = lock,
             )
         file_path = os.path.join(self.temp_dir, file_name)
         self.assertTrue(os.path.isfile(file_path))
@@ -417,12 +422,12 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
         self.assertEqual(bs_file.Size, os.stat(file_path).st_size)
         with open(file_path, "r+b") as fp:
             self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
-        os.remove(file_path)        
-        
+        os.remove(file_path)
+
     def testFileDownload_SmallFile(self):
         new_file = self.api.fileDownload(
-            tconst['file_id_small'],                    
-            localDir = self.temp_dir,            
+            tconst['file_id_small'],
+            localDir = self.temp_dir,
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
@@ -434,9 +439,9 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
 
     def testFileDownload_SmallFileWithBsDirectoryArg(self):
         new_file = self.api.fileDownload(
-            tconst['file_id_small'],                    
+            tconst['file_id_small'],
             localDir = self.temp_dir,
-            createBsDir = True,         
+            createBsDir = True,
             )
         file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
@@ -448,43 +453,43 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
 
     def testFileDownload_WithByteRangeArg(self):
         new_file = self.api.fileDownload(
-            tconst['file_id_large'],                    
+            tconst['file_id_large'],
             localDir = self.temp_dir,
-            byteRange = [1000,2000]            
+            byteRange = [1000,2000]
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
         # confirm file size is correct
         self.assertEqual(1001, os.stat(file_path).st_size)
-        os.remove(file_path)        
+        os.remove(file_path)
 
     def testFileDownload_LargeByteRangeException(self):
         with self.assertRaises(ByteRangeException):
             self.api.fileDownload(
-                tconst['file_id_large'],                    
+                tconst['file_id_large'],
                 localDir = self.temp_dir,
-                byteRange = [1,10000001]            
-                )        
+                byteRange = [1,10000001]
+                )
 
     def testFileDownload_MisorderedByteRangeException(self):
         with self.assertRaises(ByteRangeException):
             self.api.fileDownload(
-                tconst['file_id_large'],                    
+                tconst['file_id_large'],
                 localDir = self.temp_dir,
-                byteRange = [1000, 1]            
+                byteRange = [1000, 1]
                 )
 
     def testFileDownload_PartialByteRangeException(self):
         with self.assertRaises(ByteRangeException):
             self.api.fileDownload(
-                tconst['file_id_large'],                    
+                tconst['file_id_large'],
                 localDir = self.temp_dir,
-                byteRange = [1000]            
+                byteRange = [1000]
                 )
 
     def testMultipartFileDownload_SmallFile(self):
         new_file = self.api.multipartFileDownload(
-            tconst['file_id_small'],                    
+            tconst['file_id_small'],
             localDir = self.temp_dir,
             processCount = 10,
             partSize = 12
@@ -499,7 +504,7 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
 
     def testMultipartFileDownload_WithBsDirectoryArg(self):
         new_file = self.api.multipartFileDownload(
-            tconst['file_id_small'],                    
+            tconst['file_id_small'],
             localDir = self.temp_dir,
             processCount = 10,
             partSize = 12,
@@ -515,13 +520,13 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
 
     def testMultipartFileDownload_WithTempFileArg(self):
         new_file = self.api.multipartFileDownload(
-            tconst['file_id_small'],                    
-            localDir = self.temp_dir,            
+            tconst['file_id_small'],
+            localDir = self.temp_dir,
             tempDir = self.temp_dir
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
-        # confirm file size and md5 are correct        
+        # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
         fp = open(file_path, "r+b")
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
@@ -529,14 +534,14 @@ class TestAPIFileDownloadMethods_SmallFiles(TestCase):
 
     def testMultipartFileDownload_WithTempFileAndBsDirArgs(self):
         new_file = self.api.multipartFileDownload(
-            tconst['file_id_small'],                    
-            localDir = self.temp_dir,            
+            tconst['file_id_small'],
+            localDir = self.temp_dir,
             tempDir = self.temp_dir,
             createBsDir = True,
             )
         file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
-        # confirm file size and md5 are correct        
+        # confirm file size and md5 are correct
         self.assertEqual(new_file.Size, os.stat(file_path).st_size)
         fp = open(file_path, "r+b")
         self.assertEqual(Utils.md5_for_file(fp), tconst['file_small_md5'])
@@ -546,18 +551,18 @@ class TestAPIFileDownloadMethods_LargeFiles(TestCase):
     '''
     Tests multi-part download methods on large(-ish) files -- may be time consuming
     '''
-    def setUp(self):        
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        self.temp_dir = mkdtemp()    
-            
+        self.temp_dir = mkdtemp()
+
     def tearDown(self):
-        shutil.rmtree(self.temp_dir) 
+        shutil.rmtree(self.temp_dir)
 
 #    @skip('large download')
     def testFileDownload_LargeFile(self):
         new_file = self.api.fileDownload(
-            tconst['file_id_large'],                    
-            localDir = self.temp_dir,            
+            tconst['file_id_large'],
+            localDir = self.temp_dir,
             )
         file_path = os.path.join(self.temp_dir, new_file.Name)
         self.assertTrue(os.path.isfile(file_path))
@@ -570,9 +575,9 @@ class TestAPIFileDownloadMethods_LargeFiles(TestCase):
 #    @skip('large download')
     def testFileDownload_LargeFileWithBsDirectoryArg(self):
         new_file = self.api.fileDownload(
-            tconst['file_id_large'],                    
+            tconst['file_id_large'],
             localDir = self.temp_dir,
-            createBsDir = True,         
+            createBsDir = True,
             )
         file_path = os.path.join(self.temp_dir, new_file.Path)
         self.assertTrue(os.path.isfile(file_path))
@@ -585,7 +590,7 @@ class TestAPIFileDownloadMethods_LargeFiles(TestCase):
 #    @skip('large download')
     def testMultipartFileDownload_LargeFile(self):
         new_file = self.api.multipartFileDownload(
-            tconst['file_id_large'],                    
+            tconst['file_id_large'],
             localDir = self.temp_dir,
             processCount = 10,
             partSize = 12
@@ -602,55 +607,55 @@ class TestAppResultMethods(TestCase):
     '''
     Tests AppResult object methods
     '''
-    def setUp(self):                            
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.appResult = self.api.getAppResultById(tconst['appresult_id'])
-                
-    def testIsInit(self):        
+
+    def testIsInit(self):
         self.assertEqual(self.appResult.isInit(), True)
-            
+
     def testIsInitException(self):
-        appResult = AppResult.AppResult()        
+        appResult = AppResult.AppResult()
         with self.assertRaises(ModelNotInitializedException):
-            appResult.isInit()                                      
+            appResult.isInit()
 
     def testGetAccessString(self):
         self.assertEqual(self.appResult.getAccessStr(), 'write appresult ' + self.appResult.Id)
-        
+
     def testGetAccessStringWithArg(self):
         self.assertEqual(self.appResult.getAccessStr('read'), 'read appresult ' + self.appResult.Id)
-            
+
     def testGetReferencedSamplesIds(self):
         self.assertEqual(self.appResult.getReferencedSamplesIds(), [tconst['appresult_referenced_sample_id']])
-        
+
     def testGetReferencedSamples(self):
         samples = self.appResult.getReferencedSamples(self.api)
         self.assertEqual(samples[0].Id, tconst['appresult_referenced_sample_id'])
-    
+
     def testGetFiles(self):
-        files = self.appResult.getFiles(self.api)        
+        files = self.appResult.getFiles(self.api)
         self.assertTrue(hasattr(files[0], 'Id'))
 
     def testGetFilesWithQp(self):
-        files = self.appResult.getFiles(self.api, qp({'Limit':1}))        
+        files = self.appResult.getFiles(self.api, qp({'Limit':1}))
         self.assertTrue(hasattr(files[0], 'Id'))
         self.assertEqual(len(files), 1)
-    
+
     def testUploadFile(self):
         '''
         Create a new 'unit test' project, or get it if exists, to upload to data to.
         Then create a new appresult in this project, getting a new appsession id
         Then...upload a file to the new appresult
         '''
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test appresult upload", "test appresult upload", appSessionId="")
         testDir = "testSmallUploadAppResultDirectory"
         fileName = os.path.basename(tconst['file_small_upload'])
         myFile = ar.uploadFile(
-            api=self.api, 
-            localPath=tconst['file_small_upload'], 
-            fileName=fileName, 
-            directory=testDir, 
+            api=self.api,
+            localPath=tconst['file_small_upload'],
+            fileName=fileName,
+            directory=testDir,
             contentType=tconst['file_small_upload_content_type'])
         self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(myFile.Size, tconst['file_small_upload_size'])
@@ -659,72 +664,72 @@ class TestAppResultMethods(TestCase):
         newFile = self.api.getFileById(myFile.Id)
         self.assertEqual(newFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(newFile.Size, tconst['file_small_upload_size'])
-        self.assertEqual(newFile.UploadStatus, 'complete')                
+        self.assertEqual(newFile.UploadStatus, 'complete')
 
 class TestAPIAppResultMethods(TestCase):
     '''
     Tests API object AppResult methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
 
     def testGetAppResultById(self):
         appresult = self.api.getAppResultById(tconst['appresult_id'])
         self.assertTrue(appresult.Id, 'appresult_id')
-        
+
     def testGetAppResultByIdWithQp(self):
         appresult = self.api.getAppResultById(tconst['appresult_id'], qp({'Limit':1})) # Limit doesn't make sense here
-        self.assertTrue(appresult.Id, 'appresult_id')        
-            
+        self.assertTrue(appresult.Id, 'appresult_id')
+
     def testGetAppResultPropertiesById(self):
-        props = self.api.getAppResultPropertiesById(tconst['appresult_id'])        
+        props = self.api.getAppResultPropertiesById(tconst['appresult_id'])
         self.assertTrue(hasattr(props, 'TotalCount'))
-        
+
     def testGetAppResultPropertiesByIdWithQp(self):
         props = self.api.getAppResultPropertiesById(tconst['appresult_id'], qp({'Limit':1}))
-        self.assertTrue(hasattr(props, 'TotalCount')) 
+        self.assertTrue(hasattr(props, 'TotalCount'))
         self.assertEqual(len(props.Items), 1)
 
     def testGetAppResultFilesById(self):
-        files = self.api.getAppResultFilesById(tconst['appresult_id'])        
+        files = self.api.getAppResultFilesById(tconst['appresult_id'])
         self.assertTrue(hasattr(files[0], 'Id'))
-        
+
     def testGetAppResultFilesByIdWithQp(self):
-        files = self.api.getAppResultFilesById(tconst['appresult_id'], qp({'Limit':1}))        
+        files = self.api.getAppResultFilesById(tconst['appresult_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(files[0], 'Id'))
-        self.assertEqual(len(files), 1)    
-            
+        self.assertEqual(len(files), 1)
+
     def testGetAppResultFiles(self):
-        files = self.api.getAppResultFiles(tconst['appresult_id'])        
+        files = self.api.getAppResultFiles(tconst['appresult_id'])
         self.assertTrue(hasattr(files[0], 'Id'))
-        
+
     def testGetAppResultFilesWithQp(self):
-        files = self.api.getAppResultFiles(tconst['appresult_id'], qp({'Limit':1}))        
+        files = self.api.getAppResultFiles(tconst['appresult_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(files[0], 'Id'))
-        self.assertEqual(len(files), 1)    
+        self.assertEqual(len(files), 1)
 
     def testGetAppResultsByProject(self):
         appresults = self.api.getAppResultsByProject(tconst['project_id'])
         self.assertTrue(hasattr(appresults[0], 'Id'))
-        
+
     def testGetAppResultsByProjectWithQp(self):
         appresults = self.api.getAppResultsByProject(tconst['project_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(appresults[0], 'Id'))
         self.assertEqual(len(appresults), 1)
-        
+
     def testGetAppResultsByProjectWithStatusesArg(self):
         appresults = self.api.getAppResultsByProject(tconst['project_id'], statuses=['complete'])
         self.assertTrue(hasattr(appresults[0], 'Id'))
-        
+
     def testCreateAppResultNewAppSsn(self):
         '''
         Create a new 'unit test' project, or get it if exists.
-        Create a new app result that creates a new app ssn.        
+        Create a new app result that creates a new app ssn.
         '''
-        proj = self.api.createProject(tconst['create_project_name'])   
-        ar = self.api.createAppResult(proj.Id, name="test create appresult new ssn", 
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = self.api.createAppResult(proj.Id, name="test create appresult new ssn",
             desc="test create appresult new ssn", appSessionId="")
-        self.assertTrue(hasattr(ar, 'Id'))        
+        self.assertTrue(hasattr(ar, 'Id'))
 
     def testCreateAppResultCredentialsAppSsn(self):
         '''
@@ -733,69 +738,69 @@ class TestAPIAppResultMethods(TestCase):
         then create a new api obj with the new ssn,
         then create an appresult in the new ssn
         '''
-        proj = self.api.createProject(tconst['create_project_name'])   
-        ar = self.api.createAppResult(proj.Id, name="test create appresult creds ssn", 
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = self.api.createAppResult(proj.Id, name="test create appresult creds ssn",
             desc="test create appresult creds ssn", appSessionId="")
         #url = urlparse(self.api.apiClient.apiServer)
         #newApiServer = url.scheme + "://" + url.netloc
-        #new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
+        #new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer,
         new_api = BaseSpaceAPI(self.api.key, self.api.secret, self.api.apiServer,
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
-        ar2 = new_api.createAppResult(proj.Id, name="test create appresult creds ssn 2", 
+        ar2 = new_api.createAppResult(proj.Id, name="test create appresult creds ssn 2",
             desc="test create appresult creds ssn 2")
         self.assertTrue(hasattr(ar2, 'Id'))
-        
+
     def testCreateAppResultProvidedAppSsn(self):
         '''
         Create a new app result that creates a new app ssn,
         then create a new api obj with the new ssn,
         then create an appresult in the new ssn
         '''
-        proj = self.api.createProject(tconst['create_project_name'])   
-        ar = self.api.createAppResult(proj.Id, name="test create appresult provided ssn", 
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = self.api.createAppResult(proj.Id, name="test create appresult provided ssn",
             desc="test create appresult provided ssn", appSessionId="")
-        ar2 = self.api.createAppResult(proj.Id, name="test create appresult provided ssn 2", 
+        ar2 = self.api.createAppResult(proj.Id, name="test create appresult provided ssn 2",
             desc="test create appresult provided ssn 2", appSessionId=ar.AppSession.Id)
         self.assertTrue(hasattr(ar2, 'Id'))
-        
-    # Note that appResultFileUpload() is tested with other file upload methods 
+
+    # Note that appResultFileUpload() is tested with other file upload methods
     # (in a separate suite: TestAPIUploadMethods)
-    
+
 class TestRunMethods(TestCase):
     '''
     Tests Run object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        self.run = self.api.getRunById(tconst['run_id'])                                        
+        self.run = self.api.getRunById(tconst['run_id'])
 
-    def testIsInit(self):        
+    def testIsInit(self):
         self.assertEqual(self.run.isInit(), True)
-            
+
     def testIsInitException(self):
         run = Run.Run()
         with self.assertRaises(ModelNotInitializedException):
-            run.isInit()                                      
+            run.isInit()
 
     def testGetAccessString(self):
         self.assertEqual(self.run.getAccessStr(), 'write run ' + self.run.Id)
-        
+
     def testGetAccessStringWithArg(self):
         self.assertEqual(self.run.getAccessStr('read'), 'read run ' + self.run.Id)
 
     def testRunGetFiles(self):
-        rf = self.run.getFiles(self.api)                
+        rf = self.run.getFiles(self.api)
         self.assertTrue(hasattr(rf[0], 'Id'))
-        
+
     def testRunGetFilesWithQp(self):
-        rf = self.run.getFiles(self.api, qp({'Limit':200}))        
+        rf = self.run.getFiles(self.api, qp({'Limit':200}))
         self.assertTrue(hasattr(rf[0], 'Id'))
         self.assertEqual(len(rf), 200)
 
     def testRunSamples(self):
-        rs = self.run.getSamples(self.api)        
+        rs = self.run.getSamples(self.api)
         self.assertTrue(hasattr(rs[0], 'Id'))
-        
+
     def testRunSamplesWithQp(self):
         rs = self.run.getSamples(self.api, qp({'Limit':1}))
         self.assertTrue(hasattr(rs[0], 'Id'))
@@ -804,8 +809,8 @@ class TestRunMethods(TestCase):
 class TestAPIRunMethods(TestCase):
     '''
     Tests API object Run methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
 
     def testGetAccessibleRunsByUser(self):
@@ -816,37 +821,37 @@ class TestAPIRunMethods(TestCase):
         runs = self.api.getAccessibleRunsByUser(qp({'Limit':500}))
         run = next(r for r in runs if r.Id == tconst['run_id'])
         self.assertTrue(run.Id, tconst['run_id'])
-        
-    def testGetRunById(self):                                                    
-        rf = self.api.getRunById(tconst['run_id'])        
+
+    def testGetRunById(self):
+        rf = self.api.getRunById(tconst['run_id'])
         self.assertEqual(rf.Id, tconst['run_id'])
-        
-    def testGetRunByIdWithQp(self):                                                    
-        rf = self.api.getRunById(tconst['run_id'], qp({'Limit':1})) # limit doesn't make much sense here            
+
+    def testGetRunByIdWithQp(self):
+        rf = self.api.getRunById(tconst['run_id'], qp({'Limit':1})) # limit doesn't make much sense here
         self.assertEqual(rf.Id, tconst['run_id'])
-        
-    def testGetRunPropertiesById(self):                                                    
-        props = self.api.getRunPropertiesById(tconst['run_id'])        
-        self.assertTrue(hasattr(props, 'TotalCount'))        
-        
-    def testGetRunPropertiesByIdWithQp(self):                                                    
-        props = self.api.getRunPropertiesById(tconst['run_id'], qp({'Limit':1}))                
+
+    def testGetRunPropertiesById(self):
+        props = self.api.getRunPropertiesById(tconst['run_id'])
+        self.assertTrue(hasattr(props, 'TotalCount'))
+
+    def testGetRunPropertiesByIdWithQp(self):
+        props = self.api.getRunPropertiesById(tconst['run_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(props, 'TotalCount'))
         self.assertEqual(len(props.Items), 1)
-    
-    def testGetRunFilesById(self):                                                    
-        rf = self.api.getRunFilesById(tconst['run_id'])                
+
+    def testGetRunFilesById(self):
+        rf = self.api.getRunFilesById(tconst['run_id'])
         self.assertTrue(hasattr(rf[0], 'Id'))
-        
+
     def testGetRunFilesByIdWithQp(self):
         rf = self.api.getRunFilesById(tconst['run_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(rf[0], 'Id'))
-        self.assertEqual(len(rf), 1)        
+        self.assertEqual(len(rf), 1)
 
     def testRunSamplesById(self):
-        rs = self.api.getRunSamplesById(tconst['run_id'])        
+        rs = self.api.getRunSamplesById(tconst['run_id'])
         self.assertTrue(hasattr(rs[0], 'Id'))
-        
+
     def testRunSamplesByIdWithQp(self):
         rs = self.api.getRunSamplesById(tconst['run_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(rs[0], 'Id'))
@@ -855,35 +860,35 @@ class TestAPIRunMethods(TestCase):
 class TestSampleMethods(TestCase):
     '''
     Tests Sample object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.sample = self.api.getSampleById(tconst['sample_id'])
-        
-    def testIsInit(self):        
+
+    def testIsInit(self):
         self.assertEqual(self.sample.isInit(), True)
-            
+
     def testIsInitException(self):
         sample = Sample.Sample()
         with self.assertRaises(ModelNotInitializedException):
-            sample.isInit()                                      
+            sample.isInit()
 
     def testGetAccessString(self):
         self.assertEqual(self.sample.getAccessStr(), 'write sample ' + self.sample.Id)
-        
+
     def testGetAccessStringWithArg(self):
         self.assertEqual(self.sample.getAccessStr('read'), 'read sample ' + self.sample.Id)
-            
+
     def testGetReferencedAppResults(self):
         ars = self.sample.getReferencedAppResults(self.api)
         self.assertTrue(hasattr(ars[0], 'Id'), "Referenced AppResult should have an Id (assuming this Sample has been analyzed)")
-    
+
     def testGetFiles(self):
-        files = self.sample.getFiles(self.api)        
+        files = self.sample.getFiles(self.api)
         self.assertTrue(hasattr(files[0], "Id"))
 
     def testGetFilesWithQp(self):
-        files = self.sample.getFiles(self.api, qp({'Limit':1}))        
+        files = self.sample.getFiles(self.api, qp({'Limit':1}))
         self.assertTrue(hasattr(files[0], "Id"))
         self.assertEqual(len(files), 1)
 
@@ -900,10 +905,10 @@ class TestSampleMethods(TestCase):
         testDir = "testLargeUploadSampleDirectory"
         fileName = os.path.basename(tconst['file_large_upload'])
         myFile = s.uploadFile(
-            api=self.api, 
-            localPath=tconst['file_large_upload'], 
-            fileName=fileName, 
-            directory=testDir, 
+            api=self.api,
+            localPath=tconst['file_large_upload'],
+            fileName=fileName,
+            directory=testDir,
             contentType=tconst['file_large_upload_content_type'])
         self.assertEqual(myFile.Path, os.path.join(testDir, fileName))
         self.assertEqual(myFile.Size, tconst['file_large_upload_size'])
@@ -920,7 +925,7 @@ class TestAPISampleMethods(TestCase):
     '''
     def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-              
+
     def testGetSamplesByProject(self):
         samples = self.api.getSamplesByProject(tconst['project_id'])
         self.assertIsInstance(int(samples[0].Id), int)
@@ -928,29 +933,29 @@ class TestAPISampleMethods(TestCase):
     def testGetSamplesByProjectWithQp(self):
         samples = self.api.getSamplesByProject(tconst['project_id'], qp({'Limit':1}))
         self.assertIsInstance(int(samples[0].Id), int)
-        self.assertEqual(len(samples), 1)        
+        self.assertEqual(len(samples), 1)
 
-    def testGetSampleById(self):        
+    def testGetSampleById(self):
         sample = self.api.getSampleById(tconst['sample_id'])
         self.assertEqual(sample.Id, tconst['sample_id'])
 
-    def testGetSampleByIdWithQp(self):        
+    def testGetSampleByIdWithQp(self):
         sample = self.api.getSampleById(tconst['sample_id'], qp({'Limit':1})) # Limit doesn't make much sense here
-        self.assertEqual(sample.Id, tconst['sample_id'])        
-    
+        self.assertEqual(sample.Id, tconst['sample_id'])
+
     def testGetSamplePropertiesById(self):
         props = self.api.getSamplePropertiesById(tconst['sample_id'])
-        self.assertTrue(hasattr(props, 'TotalCount'))        
+        self.assertTrue(hasattr(props, 'TotalCount'))
 
     def testGetSamplePropertiesByIdWithQp(self):
         props = self.api.getSamplePropertiesById(tconst['sample_id'], qp({'Limit':1}))
-        self.assertTrue(hasattr(props, 'TotalCount'))        
+        self.assertTrue(hasattr(props, 'TotalCount'))
         self.assertEqual(len(props.Items), 1)
-        
+
     def testGetSampleFilesById(self):
         files = self.api.getSampleFilesById(tconst['sample_id'])
         self.assertTrue(hasattr(files[0], 'Id'))
-        
+
     def testGetSampleFilesByIdWithQp(self):
         files = self.api.getSampleFilesById(tconst['sample_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(files[0], 'Id'))
@@ -963,10 +968,10 @@ class TestProjectMethods(TestCase):
     def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.project = self.api.getProjectById(tconst['project_id'])
-        
-    def testIsInit(self):        
+
+    def testIsInit(self):
         self.assertEqual(self.project.isInit(), True)
-            
+
     def testIsInitException(self):
         project = Project.Project()
         with self.assertRaises(ModelNotInitializedException):
@@ -974,14 +979,14 @@ class TestProjectMethods(TestCase):
 
     def testGetAccessString(self):
         self.assertEqual(self.project.getAccessStr(), 'write project ' + self.project.Id)
-        
+
     def testGetAccessStringWithArg(self):
-        self.assertEqual(self.project.getAccessStr('read'), 'read project ' + self.project.Id)            
-    
+        self.assertEqual(self.project.getAccessStr('read'), 'read project ' + self.project.Id)
+
     def testGetAppResults(self):
         appresults = self.project.getAppResults(self.api)
         self.assertTrue(hasattr(appresults[0], 'Id'))
-            
+
     def testGetAppResultsWithOptionalArgs(self):
         appresults = self.project.getAppResults(self.api, qp({'Limit':1}), statuses=['complete'])
         self.assertTrue(hasattr(appresults[0], 'Id'))
@@ -990,7 +995,7 @@ class TestProjectMethods(TestCase):
     def testGetSamples(self):
         samples = self.project.getSamples(self.api)
         self.assertIsInstance(int(samples[0].Id), int)
-    
+
     def testGetSamplesWithOptionalArgs(self):
         samples = self.project.getSamples(self.api, qp({'Limit':1}))
         self.assertIsInstance(int(samples[0].Id), int)
@@ -1003,27 +1008,27 @@ class TestProjectMethods(TestCase):
         then create a new api obj with the new ssn,
         then create an appresult in the new ssn
         '''
-        proj = self.api.createProject(tconst['create_project_name'])   
-        ar = proj.createAppResult(self.api, name="test create appresult creds ssn, project obj", 
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = proj.createAppResult(self.api, name="test create appresult creds ssn, project obj",
             desc="test create appresult creds ssn, project obj", appSessionId="")
         #url = urlparse(self.api.apiClient.apiServer)
-        #newApiServer = url.scheme + "://" + url.netloc        
-        #new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer, 
-        new_api = BaseSpaceAPI(self.api.key, self.api.secret, self.api.apiServer,                               
+        #newApiServer = url.scheme + "://" + url.netloc
+        #new_api = BaseSpaceAPI(self.api.key, self.api.secret, newApiServer,
+        new_api = BaseSpaceAPI(self.api.key, self.api.secret, self.api.apiServer,
             self.api.version, ar.AppSession.Id, self.api.getAccessToken())
-        ar2 = proj.createAppResult(new_api, name="test create appresult creds ssn, project obj 2", 
+        ar2 = proj.createAppResult(new_api, name="test create appresult creds ssn, project obj 2",
             desc="test create appresult creds ssn, proejct obj 2")
-        self.assertTrue(hasattr(ar2, 'Id'))        
+        self.assertTrue(hasattr(ar2, 'Id'))
 
     def testCreateAppResultWithOptionalArgs(self):
         '''
         Create a new 'unit test' project, or get it if exists.
-        Create a new app result that creates a new app ssn.        
+        Create a new app result that creates a new app ssn.
         '''
-        proj = self.api.createProject(tconst['create_project_name'])   
-        ar = proj.createAppResult(self.api, name="test create appresult new ssn, project obj", 
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = proj.createAppResult(self.api, name="test create appresult new ssn, project obj",
             desc="test create appresult new ssn, project obj", samples=[], appSessionId="")
-        self.assertTrue(hasattr(ar, 'Id'))        
+        self.assertTrue(hasattr(ar, 'Id'))
 
     def testCreateSample(self):
         '''
@@ -1032,7 +1037,7 @@ class TestProjectMethods(TestCase):
         then create a new api obj with the new ssn,
         then create a sample in the new ssn
         '''
-        proj = self.api.createProject(tconst['create_project_name'])   
+        proj = self.api.createProject(tconst['create_project_name'])
         s = proj.createSample(self.api, "SRA123456", "SRA Import", 1,
                               tconst['create_sample_name'], [tconst['read_length']],
                               tconst['raw_count'], tconst['PF_count'], appSessionId="")
@@ -1046,80 +1051,80 @@ class TestProjectMethods(TestCase):
 class TestAPIProjectMethods(TestCase):
     '''
     Tests API Project object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
 
     def testCreateProject(self):
         proj = self.api.createProject(tconst['create_project_name'])
-        self.assertEqual(proj.Name, tconst['create_project_name'])        
-              
+        self.assertEqual(proj.Name, tconst['create_project_name'])
+
     def testGetProjectById(self):
         proj = self.api.getProjectById(tconst['project_id'])
         self.assertEqual(proj.Id, tconst['project_id'])
 
     def testGetProjectByIdWithQp(self):
         proj = self.api.getProjectById(tconst['project_id'], qp({'Limit':1})) # Limit doesn't make sense here
-        self.assertEqual(proj.Id, tconst['project_id'])                        
+        self.assertEqual(proj.Id, tconst['project_id'])
 
     def testGetProjectPropertiesById(self):
         props = self.api.getProjectPropertiesById(tconst['project_id'])
-        self.assertTrue(hasattr(props, 'TotalCount'))                         
+        self.assertTrue(hasattr(props, 'TotalCount'))
 
     def testGetProjectPropertiesByIdWithQp(self):
-        props = self.api.getProjectPropertiesById(tconst['project_id'], qp({'Limit':1}))         
-        self.assertTrue(hasattr(props, 'TotalCount'))      
+        props = self.api.getProjectPropertiesById(tconst['project_id'], qp({'Limit':1}))
+        self.assertTrue(hasattr(props, 'TotalCount'))
         # test project has no properties, so can't test Limit
 
     def testGetProjectByUser(self):
-        projects = self.api.getProjectByUser()        
+        projects = self.api.getProjectByUser()
         self.assertTrue(hasattr(projects[0], 'Id'))
-        
+
     def testGetProjectByUserWithQp(self):
-        projects = self.api.getProjectByUser(qp({'Limit':1}))        
-        self.assertTrue(hasattr(projects[0], 'Id'))        
+        projects = self.api.getProjectByUser(qp({'Limit':1}))
+        self.assertTrue(hasattr(projects[0], 'Id'))
 
 class TestUserMethods(TestCase):
     '''
     Tests User object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.user = self.api.getUserById('current')
-        
-    def testIsInit(self):        
+
+    def testIsInit(self):
         self.assertEqual(self.user.isInit(), True)
-            
+
     def testIsInitException(self):
         user = User.User()
         with self.assertRaises(ModelNotInitializedException):
             user.isInit()
-            
+
     def testGetProjects(self):
-        projects = self.user.getProjects(self.api)        
+        projects = self.user.getProjects(self.api)
         self.assertTrue(hasattr(projects[0], 'Id'))
-        
+
     def testGetProjectsWithQp(self):
-        projects = self.user.getProjects(self.api, queryPars=qp({'Limit':1}))        
+        projects = self.user.getProjects(self.api, queryPars=qp({'Limit':1}))
         self.assertTrue(hasattr(projects[0], 'Id'))
         self.assertTrue(len(projects), 1)
-    
+
     def testGetRuns(self):
-        runs = self.user.getRuns(self.api)        
+        runs = self.user.getRuns(self.api)
         self.assertTrue(hasattr(runs[0], 'Id'))
-        
+
     def testGetRunsWithQp(self):
-        runs = self.user.getRuns(self.api, queryPars=qp({'Limit':1}))        
+        runs = self.user.getRuns(self.api, queryPars=qp({'Limit':1}))
         self.assertTrue(hasattr(runs[0], 'Id'))
         self.assertTrue(len(runs), 1)
 
 class TestAPIUserMethods(TestCase):
     '''
     Tests API User object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-                          
+
     def testGetUserById(self):
         user = self.api.getUserById('current')
         self.assertTrue(hasattr(user, 'Id'), 'User object should contain Id attribute')
@@ -1127,32 +1132,32 @@ class TestAPIUserMethods(TestCase):
 class TestFileMethods(TestCase):
     '''
     Tests File object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
         self.file = self.api.getFileById(tconst['file_id_small'])
-        
-    def testIsInit(self):        
+
+    def testIsInit(self):
         self.assertEqual(self.file.isInit(), True)
-            
+
     def testIsInitException(self):
         file = File.File()
         with self.assertRaises(ModelNotInitializedException):
             file.isInit()
-    
-    # not testing isValidFileOption() -- deprecated   
+
+    # not testing isValidFileOption() -- deprecated
 
     # downloadFile() is tested in a separate suite
-    
+
     def testGetFileUrl(self):
         url = self.file.getFileUrl(self.api)
         url_parts = urlparse(url)
         self.assertEqual(url_parts.scheme, 'https')
-    
+
     def testGetFileS3metadata(self):
-        meta = self.file.getFileS3metadata(self.api)        
+        meta = self.file.getFileS3metadata(self.api)
         self.assertTrue('url' in meta)
-        self.assertTrue('etag' in meta)        
+        self.assertTrue('etag' in meta)
 
     def testGetIntervalCoverage(self):
         bam = self.api.getFileById(tconst['bam_file_id'])
@@ -1168,21 +1173,21 @@ class TestFileMethods(TestCase):
         cov_meta = bam.getCoverageMeta(
             self.api,
             Chrom = tconst['bam_cov_chr_name'] )
-        self.assertTrue(hasattr(cov_meta, 'MaxCoverage'))                    
-        
+        self.assertTrue(hasattr(cov_meta, 'MaxCoverage'))
+
     def testFilterVariant(self):
         vcf = self.api.getFileById(tconst['vcf_file_id'])
         vars = vcf.filterVariant(
-            self.api, 
+            self.api,
             Chrom = tconst['vcf_chr_name'],
             StartPos = tconst['vcf_start_coord'],
-            EndPos = tconst['vcf_end_coord'], )            
+            EndPos = tconst['vcf_end_coord'], )
         self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
-    
+
     def testFilterVariantWithQp(self):
         vcf = self.api.getFileById(tconst['vcf_file_id'])
         vars = vcf.filterVariant(
-            self.api, 
+            self.api,
             Chrom = tconst['vcf_chr_name'],
             StartPos = tconst['vcf_start_coord'],
             EndPos = tconst['vcf_end_coord'],
@@ -1190,18 +1195,18 @@ class TestFileMethods(TestCase):
             queryPars = qp({'Limit':1}) )
         self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
         self.assertEqual(len(vars), 1)
-        
+
     def testFilterVariantReturnVCFString(self):
         vcf = self.api.getFileById(tconst['vcf_file_id'])
         with self.assertRaises(NotImplementedError): # for now...
             vars = vcf.filterVariant(
-                self.api, 
+                self.api,
                 Chrom = tconst['vcf_chr_name'],
                 StartPos = tconst['vcf_start_coord'],
                 EndPos = tconst['vcf_end_coord'],
                 Format = 'vcf')
-            #self.assertEqual(type(vars), str)            
-    
+            #self.assertEqual(type(vars), str)
+
     def testGetVariantMeta(self):
         vcf = self.api.getFileById(tconst['vcf_file_id'])
         hdr = vcf.getVariantMeta(self.api)
@@ -1216,22 +1221,22 @@ class TestFileMethods(TestCase):
 class TestAPIFileMethods(TestCase):
     '''
     Tests API File object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-                          
+
     def testGetFileById(self):
         file = self.api.getFileById(tconst['file_id_small'])
         self.assertTrue(file.Id, tconst['file_id_small'])
 
     def testGetFileByIdWithQp(self):
         file = self.api.getFileById(tconst['file_id_small'], qp({'Limit':1})) # Limit doesn't make much sense here
-        self.assertEqual(file.Id, tconst['file_id_small'])        
+        self.assertEqual(file.Id, tconst['file_id_small'])
 
     def testGetFilesBySample(self):
         files = self.api.getFilesBySample(tconst['sample_id'])
         self.assertTrue(hasattr(files[0], 'Id'))
-        
+
     def testGetFilesBySampleWithQp(self):
         files = self.api.getFilesBySample(tconst['sample_id'], qp({'Limit':1}))
         self.assertTrue(hasattr(files[0], 'Id'))
@@ -1240,7 +1245,7 @@ class TestAPIFileMethods(TestCase):
     def testGetFilePropertiesById(self):
         props = self.api.getFilePropertiesById(tconst['file_id_small'])
         self.assertTrue(hasattr(props, 'TotalCount'))
-        
+
     def testGetFilePropertiesByIdWithQp(self):
         props = self.api.getFilePropertiesById(tconst['file_id_small'], qp({'Limit':1}))
         self.assertTrue(hasattr(props, 'TotalCount'))
@@ -1250,45 +1255,45 @@ class TestAPIFileMethods(TestCase):
         url = self.api.fileUrl(tconst['file_id_small'])
         url_parts = urlparse(url)
         self.assertEqual(url_parts.scheme, 'https')
-    
+
     def testFileS3metadata(self):
-        meta = self.api.fileS3metadata(tconst['file_id_small'])        
+        meta = self.api.fileS3metadata(tconst['file_id_small'])
         self.assertTrue('url' in meta)
         self.assertTrue('etag' in meta)
 
-    # api file upload/download methods are tested in a separate suite:                
-        # __initiateMultipartFileUpload__()    
-        # __uploadMultipartUnit__()        
-        # __finalizeMultipartFileUpload__()        
-        # __singlepartFileUpload__()                        
-        # multipartFileUpload()            
-                        
+    # api file upload/download methods are tested in a separate suite:
+        # __initiateMultipartFileUpload__()
+        # __uploadMultipartUnit__()
+        # __finalizeMultipartFileUpload__()
+        # __singlepartFileUpload__()
+        # multipartFileUpload()
+
         # __downloadFile__()
         # fileDownload()
-        # multipartFileDownload()        
+        # multipartFileDownload()
 
 class TestAppSessionSemiCompactMethods(TestCase):
     '''
     Tests AppSessionSemiCompact object methods
-    '''        
+    '''
     @classmethod
-    def setUpClass(cls):                        
+    def setUpClass(cls):
         cls.api = BaseSpaceAPI(profile='unit_tests')
         # create an app session, since the client key and secret must match those of the ssn application
-        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.proj = cls.api.createProject(tconst['create_project_name'])
         cls.ar = cls.proj.createAppResult(cls.api, "test AppSessionSemiCompact Methods", "test AppSessionSemiCompact Methods", appSessionId="")
         cls.ssn = cls.ar.AppSession # this is an AppSessionSemiCompact instance
 
-    def testIsInit(self):        
+    def testIsInit(self):
         self.assertEqual(self.ssn.isInit(), True)
-            
+
     def testIsInitException(self):
-        ssn = AppSessionSemiCompact.AppSessionSemiCompact()        
+        ssn = AppSessionSemiCompact.AppSessionSemiCompact()
         with self.assertRaises(ModelNotInitializedException):
-            ssn.isInit()                                      
-                    
+            ssn.isInit()
+
     def testCanWorkOn(self):
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test canWorkOn()", "test canWorkOn()", appSessionId="")
         self.assertEqual(ar.AppSession.canWorkOn(), True)
         ar.AppSession.setStatus(self.api, 'NeedsAttention', "Will you look into this?")
@@ -1296,28 +1301,28 @@ class TestAppSessionSemiCompactMethods(TestCase):
         ar.AppSession.setStatus(self.api, 'TimedOut', "This is taking forever")
         self.assertEqual(ar.AppSession.canWorkOn(), True)
         ar.AppSession.setStatus(self.api, 'Complete', "Time to wrap things up")
-        self.assertEqual(ar.AppSession.canWorkOn(), False)            
+        self.assertEqual(ar.AppSession.canWorkOn(), False)
 
     def testCanWorkOn_Aborted(self):
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test canWorkOn() Aborted", "test canWorkOn() Aborted", appSessionId="")
         self.assertEqual(ar.AppSession.canWorkOn(), True)
         ar.AppSession.setStatus(self.api, 'Aborted', "Abandon Ship!")
-        self.assertEqual(ar.AppSession.canWorkOn(), False)            
-    
+        self.assertEqual(ar.AppSession.canWorkOn(), False)
+
     def setStatus(self):
         status = 'Complete'
         statusSummary = "Let's go home now"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setStatus()", "test setStatus()", appSessionId="")
         ar.AppSession.setStatus(self.api, status, statusSummary)
         self.assertEqual(ar.AppSession.Status, status)
         self.assertEqual(ar.AppSession.StatusSummary, statusSummary)
-    
+
     def testSetStatus_CompleteStatusException(self):
         status = 'Complete'
         statusSummary = "Let's go"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setStatus() Complete exception", "test setStatus() Complete exception", appSessionId="")
         ar.AppSession.setStatus(self.api, status, statusSummary)
         status = 'Aborted'
@@ -1328,36 +1333,36 @@ class TestAppSessionSemiCompactMethods(TestCase):
     def testSetStatus_AbortedStatusException(self):
         status = 'Aborted'
         statusSummary = "Let's go"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setStatus() aborted exception", "test setStatus() aborted exception", appSessionId="")
         ar.AppSession.setStatus(self.api, status, statusSummary)
         status = 'Running'
         statusSummary = "I thought everything was peachy?"
         with self.assertRaises(AppSessionException):
             ar.AppSession.setStatus(self.api, status, statusSummary)
-                        
+
 class TestAppSessionMethods(TestCase):
     '''
     Tests AppSession object methods
-    '''        
+    '''
     @classmethod
-    def setUpClass(cls):                        
+    def setUpClass(cls):
         cls.api = BaseSpaceAPI(profile='unit_tests')
         # create an app session, since the client key and secret must match those of the ssn application
-        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.proj = cls.api.createProject(tconst['create_project_name'])
         cls.ar = cls.proj.createAppResult(cls.api, "test AppSession Methods", "test AppSession Methods", appSessionId="")
-        cls.ssn = cls.api.getAppSessionById(cls.ar.AppSession.Id) # this is an AppSession instance        
+        cls.ssn = cls.api.getAppSessionById(cls.ar.AppSession.Id) # this is an AppSession instance
 
-    def testIsInit(self):        
+    def testIsInit(self):
         self.assertEqual(self.ssn.isInit(), True)
-            
+
     def testIsInitException(self):
-        ssn = AppSession.AppSession()        
+        ssn = AppSession.AppSession()
         with self.assertRaises(ModelNotInitializedException):
-            ssn.isInit()                                      
-                    
+            ssn.isInit()
+
     def testCanWorkOn(self):
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test canWorkOn()", "test canWorkOn()", appSessionId="")
         ssn = self.api.getAppSessionById(ar.AppSession.Id)
         self.assertEqual(ssn.canWorkOn(), True)
@@ -1366,32 +1371,32 @@ class TestAppSessionMethods(TestCase):
         ssn.setStatus(self.api, 'TimedOut', "This is taking forever")
         self.assertEqual(ssn.canWorkOn(), True)
         ssn.setStatus(self.api, 'Complete', "Time to wrap things up")
-        self.assertEqual(ssn.canWorkOn(), False)            
+        self.assertEqual(ssn.canWorkOn(), False)
 
     def testCanWorkOn_Aborted(self):
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test canWorkOn() Aborted", "test canWorkOn() Aborted", appSessionId="")
         ssn = self.api.getAppSessionById(ar.AppSession.Id)
         self.assertEqual(ssn.canWorkOn(), True)
         ssn.setStatus(self.api, 'Aborted', "Abandon Ship!")
-        self.assertEqual(ssn.canWorkOn(), False)            
-    
+        self.assertEqual(ssn.canWorkOn(), False)
+
     def setStatus(self):
         status = 'Complete'
         statusSummary = "Let's go home now"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setStatus()", "test setStatus()", appSessionId="")
         ssn = self.api.getAppSessionById(ar.AppSession.Id)
         ssn.setStatus(self.api, status, statusSummary)
         self.assertEqual(ssn.Status, status)
         self.assertEqual(ssn.StatusSummary, statusSummary)
-    
+
     def testSetStatus_CompleteStatusException(self):
         status = 'Complete'
         statusSummary = "Let's go"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setStatus() Complete exception", "test setStatus() Complete exception", appSessionId="")
-        ssn = self.api.getAppSessionById(ar.AppSession.Id)        
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)
         ssn.setStatus(self.api, status, statusSummary)
         status = 'Aborted'
         statusSummary = '(Too) late breaking changes'
@@ -1401,19 +1406,19 @@ class TestAppSessionMethods(TestCase):
     def testSetStatus_AbortedStatusException(self):
         status = 'Aborted'
         statusSummary = "Let's go"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setStatus() aborted exception", "test setStatus() aborted exception", appSessionId="")
-        ssn = self.api.getAppSessionById(ar.AppSession.Id)        
+        ssn = self.api.getAppSessionById(ar.AppSession.Id)
         ssn.setStatus(self.api, status, statusSummary)
         status = 'Running'
         statusSummary = "I thought everything was peachy?"
         with self.assertRaises(AppSessionException):
             ssn.setStatus(self.api, status, statusSummary)
-            
-    def test__deserializeReferences__(self):                
+
+    def test__deserializeReferences__(self):
         asla = AppSessionLaunchObject.AppSessionLaunchObject()
         asla.Type = 'Project'
-        asla.Content = { "Id": "123", 
+        asla.Content = { "Id": "123",
                     "UserOwnedBy": {"Id": "321",
                                     "Href": "v1pre3/users/321",
                                     "Name": "Jay Flatley" },
@@ -1429,44 +1434,44 @@ class TestAppSessionLaunchObjectMethods(TestCase):
     '''
     Tests AppSessionLaunchObject object methods
     '''
-    def setUp(self):                            
-        self.api = BaseSpaceAPI(profile='unit_tests')    
-    
+    def setUp(self):
+        self.api = BaseSpaceAPI(profile='unit_tests')
+
     def test__deserializeObject__(self):
         asla = AppSessionLaunchObject.AppSessionLaunchObject()
         asla.Type = 'Project'
-        asla.Content = { "Id": "123", 
+        asla.Content = { "Id": "123",
                     "UserOwnedBy": {"Id": "321",
                                     "Href": "v1pre3/users/321",
                                     "Name": "Jay Flatley" },
                     "Href": "v1pre3/projects/123",
                     "Name": "Project Boomtown",
-                    "DataCreated": "2020-01-01T01:01:01.0000000" }        
+                    "DataCreated": "2020-01-01T01:01:01.0000000" }
         asla.__deserializeObject__(self.api)
         self.assertEqual(asla.Content.Id, "123")
-    
+
 class TestAPIAppSessionMethods(TestCase):
     '''
     Tests API AppSession object methods
-    '''        
+    '''
     @classmethod
-    def setUpClass(cls):                        
+    def setUpClass(cls):
         cls.api = BaseSpaceAPI(profile='unit_tests')
         # create an app session, since the client key and secret must match those of the ssn application
-        cls.proj = cls.api.createProject(tconst['create_project_name'])                        
+        cls.proj = cls.api.createProject(tconst['create_project_name'])
         cls.ar = cls.proj.createAppResult(cls.api, "test API AppSession Methods", "test API AppSession Methods", appSessionId="")
         cls.ssn = cls.ar.AppSession
 
-    def test__deserializeAppSessionResponse__(self):        
+    def test__deserializeAppSessionResponse__(self):
         # very similar to 2nd half of BaseAPI.__singleRequest__()
         references = [ { "Type": "Project",
-                       "Href": "v1pre3/projects/321", 
-                       "Content": {"Id": "321", } } ]                                          
+                       "Href": "v1pre3/projects/321",
+                       "Content": {"Id": "321", } } ]
         ssn_dict = { "ResponseStatus": {},
-                     "Notifications": {}, 
+                     "Notifications": {},
                      "Response": {"Id": "123",
                                   "Href": "v1pre3/appsessions/123",
-                                  "References": references, } }                                                            
+                                  "References": references, } }
         ssn = self.api.__deserializeAppSessionResponse__(ssn_dict)
         self.assertEqual(ssn.Id, "123")
         self.assertEqual(ssn.References[0].Content.Id, "321")
@@ -1474,9 +1479,9 @@ class TestAPIAppSessionMethods(TestCase):
     def test__deserializeAppSessionResponse__ErrorCodeException(self):
         ssn_dict = { "ResponseStatus": { "ErrorCode": "666", "Message": "We are dying" } }
         with self.assertRaises(AppSessionException):
-            self.api.__deserializeAppSessionResponse__(ssn_dict)    
-    
-    def testGetAppSessionById(self):                
+            self.api.__deserializeAppSessionResponse__(ssn_dict)
+
+    def testGetAppSessionById(self):
         ssn = self.api.getAppSessionById(self.ssn.Id)
         self.assertEqual(ssn.Id, self.ssn.Id)
 
@@ -1491,7 +1496,7 @@ class TestAPIAppSessionMethods(TestCase):
 
     def testGetAppSessionPropertiesById(self):
         props = self.api.getAppSessionPropertiesById(self.ssn.Id)
-        self.assertTrue(any((prop.Items[0].Id == self.ar.Id) for prop in props.Items if prop.Name == "Output.AppResults"))         
+        self.assertTrue(any((prop.Items[0].Id == self.ar.Id) for prop in props.Items if prop.Name == "Output.AppResults"))
 
     def testGetAppSessionPropertiesByIdWithQp(self):
         props = self.api.getAppSessionPropertiesById(self.ssn.Id, qp({'Limit':1}))
@@ -1515,7 +1520,7 @@ class TestAPIAppSessionMethods(TestCase):
         # NB: these have changed from previous versions of the unit tests
         # because it looks like appsessions created through the API now have an (empty) input samples list by default
         # TODO can't test this easily since self-created ssn don't have inputs. Add POST properties for ssns, and manually add an 'Input.Test' property, then test for it?
-    
+
     def testGetAppSessionInputsByIdWithQp(self):
         props = self.api.getAppSessionInputsById(self.ssn.Id, qp({'Limit':1}))
         self.assertEqual(len(props), 1)
@@ -1531,11 +1536,11 @@ class TestAPIAppSessionMethods(TestCase):
         ssn = self.api.setAppSessionState(self.ssn.Id, status, statusSummary)
         self.assertEqual(ssn.Status, status)
         self.assertEqual(ssn.StatusSummary, statusSummary)
-    
+
     def testSetAppSessionStateToComplete(self):
         status = 'Complete'
         statusSummary = 'things are looking good'
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
         ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
         self.assertEqual(ssn.Status, status)
@@ -1544,16 +1549,16 @@ class TestAPIAppSessionMethods(TestCase):
     def testSetAppSessionStateToNeedsAttention(self):
         status = 'NeedsAttention'
         statusSummary = 'things are looking shaky'
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
         ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
         self.assertEqual(ssn.Status, status)
         self.assertEqual(ssn.StatusSummary, statusSummary)
-    
+
     def testSetAppSessionStateToTimedOut(self):
         status = 'TimedOut'
         statusSummary = 'things are falling behind'
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
         ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
         self.assertEqual(ssn.Status, status)
@@ -1562,93 +1567,93 @@ class TestAPIAppSessionMethods(TestCase):
     def testSetAppSessionStateToAborted(self):
         status = 'Aborted'
         statusSummary = 'things are looking bad'
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test setAppSessionState to " + status, "test setAppSessionState to " + status, appSessionId="")
         ssn = self.api.setAppSessionState(ar.AppSession.Id, status, statusSummary)
         self.assertEqual(ssn.Status, status)
         self.assertEqual(ssn.StatusSummary, statusSummary)
-        
+
     def testSetAppSessionState_StatusException(self):
         status = 'PrettyMuchWorkingKindaSorta'
         statusSummary = 'tests, what tests'
         with self.assertRaises(AppSessionException):
             ssn = self.api.setAppSessionState(self.ssn.Id, status, statusSummary)
 
-    def test__deserializeObject__Project(self):        
+    def test__deserializeObject__Project(self):
         type = 'Project'
         dct = { "HrefSamples": "testurl",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__deserializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)
         self.assertEqual(new_obj.HrefSamples, "testurl")
         with self.assertRaises(AttributeError):
             self.assertEqual(new_obj.Gibberish, "more Gibberish")
-    
+
     def test__deserializeObject__Sample(self):
         type = 'Sample'
         dct = { "SampleNumber": "123",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__deserializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)
         self.assertEqual(new_obj.SampleNumber, 123)
         with self.assertRaises(AttributeError):
             self.assertEqual(new_obj.Gibberish, "more Gibberish")
-    
+
     def test__deserializeObject__AppResult(self):
         type = 'AppResult'
         dct = { "Description": "Fuzzy",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__deserializeObject__(dct, type)        
+        new_obj = self.api.__deserializeObject__(dct, type)
         self.assertEqual(new_obj.Description, "Fuzzy")
         with self.assertRaises(AttributeError):
             self.assertEqual(new_obj.Gibberish, "more Gibberish")
-    
+
     def test__deserializeObject__Other(self):
         type = 'Other'
         dct = { "Description": "Fuzzy",
                 "Gibberish": "more Gibberish" }
-        new_obj = self.api.__deserializeObject__(dct, type)        
-        self.assertEqual(new_obj, dct)        
-    
+        new_obj = self.api.__deserializeObject__(dct, type)
+        self.assertEqual(new_obj, dct)
+
 class TestAPICoverageMethods(TestCase):
     '''
     Tests API Coverage object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        
+
     def testGetIntervalCoverage(self):
         cov = self.api.getIntervalCoverage(
             Id = tconst['bam_file_id'],
             Chrom = tconst['bam_cov_chr_name'],
             StartPos = tconst['bam_cov_start_coord'],
-            EndPos = tconst['bam_cov_end_coord'])        
+            EndPos = tconst['bam_cov_end_coord'])
         self.assertEqual(cov.Chrom, tconst['bam_cov_chr_name'])
         self.assertEqual(cov.StartPos, int(tconst['bam_cov_start_coord']))
-        self.assertEqual(cov.EndPos, int(tconst['bam_cov_end_coord']))      
+        self.assertEqual(cov.EndPos, int(tconst['bam_cov_end_coord']))
 
     def testGetCoverageMetaInfo(self):
         cov_meta = self.api.getCoverageMetaInfo(
             Id = tconst['bam_file_id'],
             Chrom = tconst['bam_cov_chr_name'])
         self.assertTrue(hasattr(cov_meta, 'MaxCoverage'))
-        
+
 class TestAPIVariantMethods(TestCase):
     '''
     Tests API Variant object methods
-    '''        
-    def setUp(self):                            
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-    
-    def testFilterVariantSet(self):        
+
+    def testFilterVariantSet(self):
         vars = self.api.filterVariantSet(
-            Id = tconst['vcf_file_id'], 
+            Id = tconst['vcf_file_id'],
             Chrom = tconst['vcf_chr_name'],
             StartPos = tconst['vcf_start_coord'],
-            EndPos = tconst['vcf_end_coord'], )            
+            EndPos = tconst['vcf_end_coord'], )
         self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
-    
+
     def testFilterVariantWithQp(self):
         vars = self.api.filterVariantSet(
-            Id = tconst['vcf_file_id'], 
+            Id = tconst['vcf_file_id'],
             Chrom = tconst['vcf_chr_name'],
             StartPos = tconst['vcf_start_coord'],
             EndPos = tconst['vcf_end_coord'],
@@ -1656,8 +1661,8 @@ class TestAPIVariantMethods(TestCase):
             queryPars = qp({'Limit':1}) )
         self.assertEqual(vars[0].CHROM, tconst['vcf_chr_name'])
         self.assertEqual(len(vars), 1)
-        
-    def testFilterVariantReturnVCFString(self):        
+
+    def testFilterVariantReturnVCFString(self):
         with self.assertRaises(NotImplementedError): # for now...
             vars = self.api.filterVariantSet(
                 Id = tconst['vcf_file_id'],
@@ -1665,26 +1670,26 @@ class TestAPIVariantMethods(TestCase):
                 StartPos = tconst['vcf_start_coord'],
                 EndPos = tconst['vcf_end_coord'],
                 Format = 'vcf')
-            #self.assertEqual(type(vars), str)            
-    
-    def testGetVariantMeta(self):        
+            #self.assertEqual(type(vars), str)
+
+    def testGetVariantMeta(self):
         hdr = self.api.getVariantMetadata(tconst['vcf_file_id'])
         self.assertTrue(hasattr(hdr, 'Metadata'))
 
-    def testGetVariantMetaReturnVCFString(self):        
+    def testGetVariantMetaReturnVCFString(self):
         with self.assertRaises(NotImplementedError): # for now...
-            hdr = self.api.getVariantMetadata(tconst['vcf_file_id'], Format='vcf')            
+            hdr = self.api.getVariantMetadata(tconst['vcf_file_id'], Format='vcf')
             #self.assertEqual(type(hdr), str)
-    
+
 class TestAPICredentialsMethods(TestCase):
     '''
     Tests API object credentials methods
-    '''        
-    def setUp(self):        
+    '''
+    def setUp(self):
         self.profile = 'unit_tests'
         self.api = BaseSpaceAPI(profile=self.profile)
-        
-    def test_setCredentials_AllFromProfile(self):                                                            
+
+    def test_setCredentials_AllFromProfile(self):
         creds = self.api._setCredentials(clientKey=None, clientSecret=None,
             apiServer=None, appSessionId='', apiVersion=self.api.version, accessToken='',
             profile=self.profile)
@@ -1696,7 +1701,7 @@ class TestAPICredentialsMethods(TestCase):
         # self.assertEqual(creds['appSessionId'], self.api.appSessionId)
         self.assertEqual(creds['accessToken'], self.api.getAccessToken())
 
-    def test_setCredentials_AllFromConstructor(self):                                                            
+    def test_setCredentials_AllFromConstructor(self):
         creds = self.api._setCredentials(clientKey='test_key', clientSecret='test_secret',
             apiServer='https://www.test.server.com', apiVersion='test_version', appSessionId='test_ssn',
             accessToken='test_token', profile=self.profile)
@@ -1711,10 +1716,10 @@ class TestAPICredentialsMethods(TestCase):
     def test_setCredentials_MissingConfigCredsException(self):
         # Danger: if this test fails unexpectedly, the config file may not be renamed back to the original name
         # 1) mv current .basespacepy.cfg, 2) create new with new content,
-        # 3) run test, 4) erase new, 5) mv current back        
+        # 3) run test, 4) erase new, 5) mv current back
         cfg = os.path.expanduser('~/.basespace/unit_tests.cfg')
         tmp_cfg = cfg + '.unittesting.donotdelete'
-        shutil.move(cfg, tmp_cfg)                
+        shutil.move(cfg, tmp_cfg)
         new_cfg_content = ("[" + self.profile + "]\n"
                           "accessToken=test\n"
                           "appSessionId=test\n")
@@ -1733,24 +1738,24 @@ class TestAPICredentialsMethods(TestCase):
         # 3) run test, 4) erase new, 5) mv current back
         cfg = os.path.expanduser('~/.basespace/unit_tests.cfg')
         tmp_cfg = cfg + '.unittesting.donotdelete'
-        shutil.move(cfg, tmp_cfg)                
+        shutil.move(cfg, tmp_cfg)
         new_cfg_content = ("[DEFAULT]\n"
                           "clientKey=test\n"
-                          "clientSecret=test\n"                                                    
+                          "clientSecret=test\n"
                           "apiServer=test\n"
                           "apiVersion=test\n"
                           "accessToken=test\n")
         with open(cfg, "w") as f:
-            f.write(new_cfg_content)    
+            f.write(new_cfg_content)
         creds = self.api._setCredentials(clientKey=None, clientSecret=None,
                 apiServer=None, apiVersion=self.api.version, appSessionId='', accessToken='',
                 profile=self.profile)
         self.assertEqual(creds['appSessionId'], '')
         self.assertEqual(creds['accessToken'], 'test')
         os.remove(cfg)
-        shutil.move(tmp_cfg, cfg)        
+        shutil.move(tmp_cfg, cfg)
 
-    def test__getLocalCredentials(self):                                                            
+    def test__getLocalCredentials(self):
         creds = self.api._getLocalCredentials(profile='unit_tests')
         self.assertEqual('name' in creds, True)
         # self.assertEqual('clientKey' in creds, True)
@@ -1770,27 +1775,27 @@ class TestAPICredentialsMethods(TestCase):
 #        self.assertEqual('appSessionId' in creds, True)
         self.assertEqual('accessToken' in creds, True)
 
-    def test__getLocalCredentials_MissingProfile(self):                                                        
+    def test__getLocalCredentials_MissingProfile(self):
         with self.assertRaises(CredentialsException):
-            creds = self.api._getLocalCredentials(profile="SuperCallaFragaListic AppTastic")                
+            creds = self.api._getLocalCredentials(profile="SuperCallaFragaListic AppTastic")
 
 class TestAPIGenomeMethods(TestCase):
     '''
     Tests API object Genome methods
-    '''        
-    def setUp(self):                
+    '''
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
 
     def testGetAvailableGenomes(self):
-        genomes = self.api.getAvailableGenomes()        
+        genomes = self.api.getAvailableGenomes()
         #self.assertIsInstance(g[0], GenomeV1.GenomeV1)
         self.assertIsInstance(int(genomes[0].Id), int)
-        
+
     def testGetAvailableGenomesWithQp(self):
         genomes = self.api.getAvailableGenomes(qp({'Limit':200}))
         genome = next(gen for gen in genomes if gen.Id == tconst['genome_id'])
-        self.assertTrue(genome.Id, tconst['genome_id'])        
-        
+        self.assertTrue(genome.Id, tconst['genome_id'])
+
     def testGetGenomeById(self):
         g = self.api.getGenomeById(tconst['genome_id'])
         self.assertEqual(g.Id, tconst['genome_id'])
@@ -1799,16 +1804,16 @@ class TestAPIUtilityMethods(TestCase):
     '''
     Tests utility methods of the API object
     '''
-    def setUp(self):                            
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        
+
     def test_validateQueryParametersDefault(self):
         self.assertEqual(self.api._validateQueryParameters(None), {})
-        
+
     def test_validateQueryParameters(self):
         queryPars = {'Limit':10}
         self.assertEqual(self.api._validateQueryParameters( qp(queryPars) ), queryPars)
-    
+
     def test_validateQueryParametersException(self):
         with self.assertRaises(QueryParameterException):
             self.api._validateQueryParameters({'Limit':10})
@@ -1817,12 +1822,12 @@ class TestQueryParametersMethods(TestCase):
     '''
     Tests QueryParameters methods
     '''
-    def testGetParameterDictAndValidate(self):        
+    def testGetParameterDictAndValidate(self):
         queryp = qp({'Limit':1}, ['Limit'])
-        passed = queryp.getParameterDict()        
+        passed = queryp.getParameterDict()
         self.assertEqual(passed, {'Limit':1})
         self.assertEqual(queryp.validate(), None)
-        
+
     def testNoDictException(self):
         with self.assertRaises(QueryParameterException):
             queryp = qp('test')
@@ -1831,14 +1836,14 @@ class TestQueryParametersMethods(TestCase):
         queryp = qp({'Limit':1}, ['I am required'])
         with self.assertRaises(UndefinedParameterException):
             queryp.validate()
-        
+
     def testValidateUnknownParameterException(self):
         queryp = qp({'Crazy New Parameter':66})
         with self.assertRaises(UnknownParameterException):
             queryp.validate()
-    
+
     def testValidateIllegalValueForKnownQpKeyException(self):
-        queryp = qp({'SortBy': 'abc'})        
+        queryp = qp({'SortBy': 'abc'})
         with self.assertRaises(IllegalParameterException):
             queryp.validate()
 
@@ -1860,40 +1865,40 @@ class TestAPIOAuthMethods(TestCase):
     '''
     Tests API Oauth methods
     '''
-    def setUp(self):                            
+    def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        
+
     def testGetAccess_Device(self):
         proj = self.api.getProjectById(tconst['project_id'])
         resp = self.api.getAccess(proj, accessType='browse')
         self.assertTrue('device_code' in resp)
 
-    def testGetAccess_DeviceModelNotSupportedException(self):        
+    def testGetAccess_DeviceModelNotSupportedException(self):
         with self.assertRaises(ModelNotSupportedException):
-            self.api.getAccess("test")        
-    
+            self.api.getAccess("test")
+
     def testGetAccess_Web(self):
         proj = self.api.getProjectById(tconst['project_id'])
         url = self.api.getAccess(proj, accessType='browse', web=True, redirectURL='http://www.basespacepy.tv', state='working')
         self.assertTrue(url.startswith('http'))
-    
+
     def testGetVerificationCode(self):
         resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
         self.assertTrue('device_code' in resp)
-    
+
     def testGetWebVerificationCode(self):
         url = self.api.getWebVerificationCode('browse project ' + tconst['project_id'], redirectURL='http://www.basespacepy.tv')
         self.assertTrue(url.startswith('http'))
-        self.assertTrue('state=' in url)        
-    
+        self.assertTrue('state=' in url)
+
     def testGetWebVerificationCode_WithStateParam(self):
         url = self.api.getWebVerificationCode('browse project ' + tconst['project_id'], redirectURL='http://www.basespacepy.tv', state='working')
         self.assertTrue(url.startswith('http'))
         self.assertTrue('state=working' in url)
-    
+
     def testObtainAccessToken_DeviceApp(self):
         resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
-        webbrowser.open(resp['verification_with_code_uri'])        
+        webbrowser.open(resp['verification_with_code_uri'])
         time.sleep(25) # wait for user to accept oauth request
         self.assertTrue(isinstance(self.api.obtainAccessToken(resp['device_code']), str))
 
@@ -1901,15 +1906,15 @@ class TestAPIOAuthMethods(TestCase):
     def testObtainAccessToken_WebApp(self):
         with self.assertRaises(Exception):
             self.api.obtainAccessToken('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')
-            
 
-    def testObtainAccessToken_WebAppRedirectURIException(self):        
+
+    def testObtainAccessToken_WebAppRedirectURIException(self):
         with self.assertRaises(OAuthException):
             self.api.obtainAccessToken('123456', grantType='authorization_code', redirect_uri=None)
-            
+
     def testUpdatePrivileges_DeviceApp(self):
         resp = self.api.getVerificationCode('browse project ' + tconst['project_id'])
-        webbrowser.open(resp['verification_with_code_uri'])        
+        webbrowser.open(resp['verification_with_code_uri'])
         time.sleep(25) # wait for user to accept oauth request
         origToken = self.api.getAccessToken()
         self.api.updatePrivileges(resp['device_code'])
@@ -1919,15 +1924,15 @@ class TestAPIOAuthMethods(TestCase):
     @skip("Not sure how to test, since must parse auth code from redirect url - use django.test assertRedirects()?")
     def testUpdatePrivileges_WebApp(self):
         with self.assertRaises(Exception):
-            self.api.updatePrivileges('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')            
+            self.api.updatePrivileges('123456', grantType='authorization_code', redirect_uri='http://www.basespacepy.tv')
 
 class TestBaseSpaceAPIMethods(TestCase):
     '''
     Tests BaseSpace API constructor and attributes; all methods tested in other testcases
     '''
     def setUp(self):
-        self.api = BaseSpaceAPI(profile='unit_tests')        
-        
+        self.api = BaseSpaceAPI(profile='unit_tests')
+
     def test__init__(self):
         creds = self.api._getLocalCredentials(profile='unit_tests')
         # self.assertEqual(creds['appSessionId'], self.api.appSessionId)
@@ -1943,9 +1948,9 @@ class TestBaseAPIMethods(TestCase):
     Tests Base API methods
     '''
     def setUp(self):
-        api = BaseSpaceAPI(profile='unit_tests')                                                    
+        api = BaseSpaceAPI(profile='unit_tests')
         self.bapi = BaseAPI(api.getAccessToken(), api.apiClient.apiServerAndVersion)
-        
+
     def test__init__(self):
         accessToken = "123"
         apiServerAndVersion = "http://api.tv"
@@ -1957,8 +1962,8 @@ class TestBaseAPIMethods(TestCase):
 
     def test__singleRequest__(self):
         # get current user
-        resourcePath = '/users/current'        
-        method = 'GET'        
+        resourcePath = '/users/current'
+        method = 'GET'
         queryParams = {}
         headerParams = {}
         user = self.bapi.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
@@ -1966,42 +1971,42 @@ class TestBaseAPIMethods(TestCase):
 
     def test__singleRequest__WithPostData(self):
         # create a project
-        resourcePath = '/projects/'        
+        resourcePath = '/projects/'
         method = 'POST'
         queryParams = {}
         headerParams = {}
-        postData = { 'Name': tconst['create_project_name'] }            
-        proj = self.bapi.__singleRequest__(ProjectResponse.ProjectResponse, 
+        postData = { 'Name': tconst['create_project_name'] }
+        proj = self.bapi.__singleRequest__(ProjectResponse.ProjectResponse,
             resourcePath, method, queryParams, headerParams, postData=postData)
         self.assertEqual(proj.Name, tconst['create_project_name'])
-    
+
     def test__singleRequest__WithForcePost(self):
         # initiate a multipart upload -- requires a POST with no post data ('force post')
-        api = BaseSpaceAPI(profile='unit_tests')                                                    
-        proj = api.createProject(tconst['create_project_name'])                        
-        ar = proj.createAppResult(api, "test __singleResult__WithForcePost", "test __singleResult__WithForcePost", appSessionId="") 
-        resourcePath = '/appresults/{Id}/files'        
+        api = BaseSpaceAPI(profile='unit_tests')
+        proj = api.createProject(tconst['create_project_name'])
+        ar = proj.createAppResult(api, "test __singleResult__WithForcePost", "test __singleResult__WithForcePost", appSessionId="")
+        resourcePath = '/appresults/{Id}/files'
         method = 'POST'
         resourcePath = resourcePath.replace('{Id}', ar.Id)
         queryParams = {}
         queryParams['name']          = "test file name"
         queryParams['directory']     = "test directory"
-        queryParams['multipart']     = 'true' 
+        queryParams['multipart']     = 'true'
         headerParams                 = {}
-        headerParams['Content-Type'] = 'text/plain'                        
-        postData                     = None        
+        headerParams['Content-Type'] = 'text/plain'
+        postData                     = None
         file = self.bapi.__singleRequest__(FileResponse.FileResponse, resourcePath, method,
             queryParams, headerParams, postData=postData, forcePost=1)
-        self.assertTrue(hasattr(file, 'Id'), 'Successful force post should return file object with Id attribute here')                            
+        self.assertTrue(hasattr(file, 'Id'), 'Successful force post should return file object with Id attribute here')
 
     @skip("Not sure how to test this, requires no response from api server")
     def test__singleRequest__NoneResponseException(self):
         pass
-    
+
     def test__singleRequest__ErrorResponseException(self):
         # malformed resoucePath, BadRequest Error and Message in response
-        resourcePath = '/users/curren'        
-        method = 'GET'        
+        resourcePath = '/users/curren'
+        method = 'GET'
         queryParams = {}
         headerParams = {}
         with self.assertRaises(ServerResponseException):
@@ -2009,8 +2014,8 @@ class TestBaseAPIMethods(TestCase):
 
     def test__singleRequest__UnrecognizedPathResponseException(self):
         # malformed resoucePath, Message in response is 'not recognized path' (no error code)
-        resourcePath = '/users/current/run'        
-        method = 'GET'        
+        resourcePath = '/users/current/run'
+        method = 'GET'
         queryParams = {}
         headerParams = {}
         with self.assertRaises(ServerResponseException):
@@ -2018,8 +2023,8 @@ class TestBaseAPIMethods(TestCase):
 
     def test__listRequest__(self):
         # get current user
-        resourcePath = '/users/current/runs'        
-        method = 'GET'        
+        resourcePath = '/users/current/runs'
+        method = 'GET'
         queryParams = {}
         headerParams = {}
         runs = self.bapi.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
@@ -2029,14 +2034,14 @@ class TestBaseAPIMethods(TestCase):
     @skip("Not sure how to test this, requires no response from api server")
     def test__listRequest__NoneResponseException(self):
         pass
-    
+
     def test__listRequest__ErrorResponseException(self):
         # Unauthorized - use nonsense acccess token
-        api = BaseSpaceAPI(profile='unit_tests')                                                    
+        api = BaseSpaceAPI(profile='unit_tests')
         bapi = BaseAPI(AccessToken="123123123123123123", apiServerAndVersion=api.apiClient.apiServerAndVersion)
 
-        resourcePath = '/users/current/uns'        
-        method = 'GET'        
+        resourcePath = '/users/current/uns'
+        method = 'GET'
         queryParams = {}
         headerParams = {}
         with self.assertRaises(ServerResponseException):
@@ -2044,8 +2049,8 @@ class TestBaseAPIMethods(TestCase):
 
     def test__listRequest__UnrecognizedPathResponseException(self):
         # malformed resoucePath, not recognized path message
-        resourcePath = '/users/current/uns'        
-        method = 'GET'        
+        resourcePath = '/users/current/uns'
+        method = 'GET'
         queryParams = {}
         headerParams = {}
         with self.assertRaises(ServerResponseException):
@@ -2056,7 +2061,7 @@ class TestBaseAPIMethods(TestCase):
         api = BaseSpaceAPI(profile='unit_tests')
         scope = 'browse project ' + tconst['project_id']
         postData = [('client_id', api.key), ('scope', scope),('response_type', 'device_code')]
-        resp = self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServerAndVersion + deviceURL)        
+        resp = self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServerAndVersion + deviceURL)
         self.assertTrue('device_code' in resp)
 
     @skip("Not sure how to test this, requires no response from api server")
@@ -2070,19 +2075,19 @@ class TestBaseAPIMethods(TestCase):
         scope = 'browse project ' + tconst['project_id']
         postData = [('client_id', 'gibberish'), ('scope', scope),('response_type', 'device_code')]
         with self.assertRaises(ServerResponseException):
-            self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServerAndVersion + deviceURL)        
+            self.bapi.__makeCurlRequest__(postData, api.apiClient.apiServerAndVersion + deviceURL)
 
     def testGetTimeout(self):
         self.assertEqual(self.bapi.getTimeout(), 10)
-        
+
     def testSetTimeout(self):
-        self.bapi.setTimeout(20) 
+        self.bapi.setTimeout(20)
         self.assertEqual(self.bapi.apiClient.timeout, 20)
-        
+
     def testGetAccessToken(self):
         api = BaseSpaceAPI(profile='unit_tests')
         self.assertEqual(self.bapi.getAccessToken(), api.apiClient.apiKey)
-        
+
     def testSetAccessToken(self):
         self.bapi.setAccessToken("abc")
         self.assertEqual(self.bapi.getAccessToken(), "abc")
@@ -2093,197 +2098,197 @@ class TestAPIClientMethods(TestCase):
     '''
     def setUp(self):
         self.api = BaseSpaceAPI(profile='unit_tests')
-        self.apiClient = APIClient(self.api.apiClient.apiKey, self.api.apiClient.apiServerAndVersion)                                                    
-    
+        self.apiClient = APIClient(self.api.apiClient.apiKey, self.api.apiClient.apiServerAndVersion)
+
     def test__init__(self):
         accessToken = "abc"
         apiServerAndVersion = "http://basesinspaces.tv"
         timeout = 20
         apiClient = APIClient(AccessToken=accessToken, apiServerAndVersion=apiServerAndVersion, timeout=timeout)
-        self.assertEqual(accessToken, apiClient.apiKey)                                                    
+        self.assertEqual(accessToken, apiClient.apiKey)
         self.assertEqual(apiServerAndVersion, apiClient.apiServerAndVersion)
         self.assertEqual(timeout, apiClient.timeout)
 
     def test__forcePostCall__(self):
         # initiate a multipart upload -- requires a POST with no post data ('force post')
-        # all method params are required for success in this example - resourcePath, headerParams, and postData(queryParams                                                        
-        proj = self.api.createProject(tconst['create_project_name'])                        
-        ar = proj.createAppResult(self.api, "test__forcePostCall__", "test__forcePostCall__", appSessionId="") 
-        
+        # all method params are required for success in this example - resourcePath, headerParams, and postData(queryParams
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = proj.createAppResult(self.api, "test__forcePostCall__", "test__forcePostCall__", appSessionId="")
+
         resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{Id}', ar.Id)
         queryParams = {}
         queryParams['name'] = "test file name"
         queryParams['directory'] = "test directory"
-        queryParams['multipart'] = 'true' 
+        queryParams['multipart'] = 'true'
         headerParams = {}
         headerParams['Content-Type'] = 'text/plain'
         # normally added by callAPI()
-        headerParams['Authorization'] = 'Bearer ' + self.apiClient.apiKey                                    
+        headerParams['Authorization'] = 'Bearer ' + self.apiClient.apiKey
 
-        jsonResp = self.apiClient.__forcePostCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, postData=queryParams, headers=headerParams)    
+        jsonResp = self.apiClient.__forcePostCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, postData=queryParams, headers=headerParams)
         dictResp = json.loads(jsonResp)
-        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
-        self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))        
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))
+        self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))
 
     def test__putCall__(self):
         # upload a part of a multipart upload (the only PUT call in BaseSpacePy, for now)
         testDir = "test__putCall__"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "test__putCall__", "test__putCall__", appSessionId="")
         file = self.api.__initiateMultipartFileUpload__(
             resourceType = 'appresults',
             resourceId = ar.Id,
-            fileName = os.path.basename(tconst['file_small_upload']),            
+            fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType = tconst['file_small_upload_content_type'])
         with open(tconst['file_small_upload']) as fp:
             out = fp.read()
             md5 = hashlib.md5(out).digest().encode('base64')
-                        
+
         method                       = 'PUT'
         resourcePath                 = '/files/{Id}/parts/{partNumber}'
         resourcePath                 = resourcePath.replace('{Id}', file.Id)
-        resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
+        resourcePath                 = resourcePath.replace('{partNumber}', str(1))
         headerParams                 = {'Content-MD5': md5}
         data                         = tconst['file_small_upload_contents']
         putResp = self.apiClient.__putCall__(resourcePath=self.apiClient.apiServerAndVersion + resourcePath, headers=headerParams, data=data)
-        #print "RESPONSE is: " + putResp        
+        #print("RESPONSE is: " + putResp)
         jsonResp =  putResp.split()[-1] # normally done in callAPI()
         dictResp = json.loads(jsonResp)
-        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
-        self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))                                                                    
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))
+        self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))
 
-    def testCallAPI_GET(self):   
-        # get current user uses GET                                 
-        resourcePath = '/users/current'        
-        method = 'GET'        
+    def testCallAPI_GET(self):
+        # get current user uses GET
+        resourcePath = '/users/current'
+        method = 'GET'
         queryParams = {}
         #headerParams = {}
         dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)#, headerParams=None, forcePost=False)
-        self.assertTrue('Response' in dictResp, 'response is: ' + str(dictResp))       
-        self.assertTrue('Id' in dictResp['Response'])                                                                    
-        
+        self.assertTrue('Response' in dictResp, 'response is: ' + str(dictResp))
+        self.assertTrue('Id' in dictResp['Response'])
+
     @skip('There are no GET calls in the BaseSpace API that require headerParams')
     def testCallAPI_GETwithHeaderParams(self):
         pass
-    
+
     def testCallAPI_POST(self):
         # create a project uses POST
-        resourcePath            = '/projects/'        
+        resourcePath            = '/projects/'
         method                  = 'POST'
         queryParams             = {}
         #headerParams            = {}
         postData                = {}
-        postData['Name']        = tconst['create_project_name']        
+        postData['Name']        = tconst['create_project_name']
         dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData)#, headerParams=None, forcePost=False)
         self.assertTrue('Response' in dictResp)
         self.assertTrue('Id' in dictResp['Response'])
 
     def testCallAPI_POSTwithHeaderAndQueryParams(self):
-        # single part file upload uses POST with required qp and hdrs        
-        proj = self.api.createProject(tconst['create_project_name'])                        
-        ar = proj.createAppResult(self.api, "test upload", "test upload", appSessionId="")                        
+        # single part file upload uses POST with required qp and hdrs
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = proj.createAppResult(self.api, "test upload", "test upload", appSessionId="")
         testDir = "testCallAPI_POSTwithHeaderAndQueryParams"
         fileName = os.path.basename(tconst['file_small_upload'])
         localPath=tconst['file_small_upload']
-        
+
         method = 'POST'
-        resourcePath = '/appresults/{Id}/files'        
+        resourcePath = '/appresults/{Id}/files'
         resourcePath                 = resourcePath.replace('{Id}', ar.Id)
         queryParams                  = {}
         queryParams['name']          = fileName
-        queryParams['directory']     = testDir 
+        queryParams['directory']     = testDir
         headerParams                 = {}
-        headerParams['Content-Type'] = tconst['file_small_upload_content_type']                
+        headerParams['Content-Type'] = tconst['file_small_upload_content_type']
         postData                     = open(localPath).read()
-        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData, headerParams=headerParams)#, forcePost=False)                
+        dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData, headerParams=headerParams)#, forcePost=False)
         self.assertTrue('Response' in dictResp)
-        self.assertTrue('Id' in dictResp['Response'])        
+        self.assertTrue('Id' in dictResp['Response'])
         self.assertEqual(dictResp['Response']['Path'], os.path.join(testDir, fileName))
 
     def testCallAPI_ForcePOST(self):
         # initiate a multipart upload -- requires a POST with no post data ('force post')
-        # all method params are required for success in this example - resourcePath, headerParams, and postData(queryParams                                                        
-        proj = self.api.createProject(tconst['create_project_name'])                        
-        ar = proj.createAppResult(self.api, "test__forcePostCall__", "test__forcePostCall__", appSessionId="") 
-        
+        # all method params are required for success in this example - resourcePath, headerParams, and postData(queryParams
+        proj = self.api.createProject(tconst['create_project_name'])
+        ar = proj.createAppResult(self.api, "test__forcePostCall__", "test__forcePostCall__", appSessionId="")
+
         method = 'POST'
         resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{Id}', ar.Id)
         queryParams = {}
         queryParams['name'] = "test file name"
         queryParams['directory'] = "test directory"
-        queryParams['multipart'] = 'true' 
+        queryParams['multipart'] = 'true'
         headerParams = {}
         headerParams['Content-Type'] = 'text/plain'
         postData = None
         dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData, headerParams=headerParams, forcePost=True)
-        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
-        self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))        
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))
+        self.assertTrue('Id' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))
 
     def testCallAPI_PUT(self):
         # upload a part of a multipart upload (the only PUT call in BaseSpacePy, for now)
         testDir = "testCallAPI_PUT"
-        proj = self.api.createProject(tconst['create_project_name'])                        
+        proj = self.api.createProject(tconst['create_project_name'])
         ar = proj.createAppResult(self.api, "testCallAPI_PUT", "testCallAPI_PUT", appSessionId="")
         file = self.api.__initiateMultipartFileUpload__(
             resourceType = 'appresults',
             resourceId = ar.Id,
-            fileName = os.path.basename(tconst['file_small_upload']),            
+            fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType = tconst['file_small_upload_content_type'])
         with open(tconst['file_small_upload']) as fp:
             out = fp.read()
             md5 = hashlib.md5(out).digest().encode('base64')
-                        
+
         method                       = 'PUT'
         resourcePath                 = '/files/{Id}/parts/{partNumber}'
         resourcePath                 = resourcePath.replace('{Id}', file.Id)
-        resourcePath                 = resourcePath.replace('{partNumber}', str(1))        
+        resourcePath                 = resourcePath.replace('{partNumber}', str(1))
         headerParams                 = {'Content-MD5': md5}
         queryParams                  = {} # not used for PUT calls
         data                         = tconst['file_small_upload_contents']
         dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=data, headerParams=headerParams)
-        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))       
-        self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))                                                                    
+        self.assertTrue('Response' in dictResp, 'Successful force post should return json with Response attribute: ' + str(dictResp))
+        self.assertTrue('ETag' in dictResp['Response'], 'Successful force post should return json with Response with Id attribute: ' + str(dictResp))
 
-    def testCallAPI_DELETE(self):        
+    def testCallAPI_DELETE(self):
         method                       = 'DELETE'
-        resourcePath                 = ''        
-        queryParams                  = {}        
+        resourcePath                 = ''
+        queryParams                  = {}
         with self.assertRaises(NotImplementedError):
             dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)
 
     def testCallAPI_UnrecognizedRESTmethodException(self):
         method                       = 'TAKEOVERTHEWORLD'
-        resourcePath                 = ''        
-        queryParams                  = {}        
+        resourcePath                 = ''
+        queryParams                  = {}
         with self.assertRaises(RestMethodException):
             dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)
 
     def testCallAPI_HandleHttpError_ForGET(self):
-        # bad access token throws 401 Error and HTTPError exception by urllib2; get current user uses GET                                 
+        # bad access token throws 401 Error and HTTPError exception by urllib2; get current user uses GET
         self.apiClient.apiKey = 'badtoken'
-        resourcePath = '/users/current'        
-        method = 'GET'        
+        resourcePath = '/users/current'
+        method = 'GET'
         queryParams = {}
         dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=None)
-        self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))       
+        self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))
         self.assertTrue('ErrorCode' in dictResp['ResponseStatus'])
         self.assertTrue('Message' in dictResp['ResponseStatus'])
         self.assertTrue('Unrecognized access token' in dictResp['ResponseStatus']['Message'])
 
     def testCallAPI_HandleHttpError_ForPOST(self):
-        # bad access token throws 401 Error and HTTPError exception by urllib2;  create a project uses POST                                 
-        self.apiClient.apiKey = 'badtoken'        
-        resourcePath            = '/projects/'        
+        # bad access token throws 401 Error and HTTPError exception by urllib2;  create a project uses POST
+        self.apiClient.apiKey = 'badtoken'
+        resourcePath            = '/projects/'
         method                  = 'POST'
         queryParams             = {}
         postData                = {}
-        postData['Name']        = tconst['create_project_name']        
+        postData['Name']        = tconst['create_project_name']
         dictResp = self.apiClient.callAPI(resourcePath, method, queryParams, postData=postData)
-        self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))       
+        self.assertTrue('ResponseStatus' in dictResp, 'response is: ' + str(dictResp))
         self.assertTrue('ErrorCode' in dictResp['ResponseStatus'])
         self.assertTrue('Message' in dictResp['ResponseStatus'])
         self.assertTrue('Unrecognized access token' in dictResp['ResponseStatus']['Message'])
@@ -2297,7 +2302,7 @@ class TestAPIClientMethods(TestCase):
         objClass = str
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out, obj)
-        
+
     def testDeserialize_ClassObjClass_Integer(self):
         obj = 123
         objClass = int
@@ -2315,7 +2320,7 @@ class TestAPIClientMethods(TestCase):
         objClass = float
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out, obj)
-        
+
     def testDeserialize_StringObjClass_String(self):
         obj = "test"
         objClass = 'str'
@@ -2347,7 +2352,7 @@ class TestAPIClientMethods(TestCase):
         self.assertEqual(out.Id, "123")
 
     # not testing passing in an unknown class
-    
+
     def testDeserialize_StringObjClass_Project(self):
         obj = {"Id":"123"}
         objClass = "Project"
@@ -2362,23 +2367,23 @@ class TestAPIClientMethods(TestCase):
 
     # not testing passing in an unknown class
 
-    def testDeserialize_ClassObjClass_DynamicType(self):        
+    def testDeserialize_ClassObjClass_DynamicType(self):
         obj = { 'ResponseStatus': 'test',
                 'Response': { # DynamicType
-                    # MultiValueAppResultList                             
-                    'Type': 'appresult[]',                                     
+                    # MultiValueAppResultList
+                    'Type': 'appresult[]',
                     'DisplayedCount': 10,
-                    },               
+                    },
                 'Notifications': ''
               }
         objClass = MultiValuePropertyResponse.MultiValuePropertyResponse
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.Response.DisplayedCount, 10)
 
-    # not testing passing in an unrecognized dynamic type - should warn    
-        
+    # not testing passing in an unrecognized dynamic type - should warn
+
     def testDeserialize_ClassObjClass_List(self):
-        obj = { 'CHROM': 'chr3',                 
+        obj = { 'CHROM': 'chr3',
                 'ID': ['1', '2', '3'] }  # 'list<Str>'
         objClass = Variant.Variant
         out = self.apiClient.deserialize(obj, objClass)
@@ -2388,12 +2393,12 @@ class TestAPIClientMethods(TestCase):
         obj = { 'Items': [  # 'list<DynamicType>',
                           {'Type': 'string', 'Name': 'teststring'}, # PropertyString
                           {'Type': 'project', 'Name': 'testproject'}, # PropertyProject
-                          ], }                             
+                          ], }
         objClass = PropertyList.PropertyList
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.Items[0].Name, 'teststring')
         self.assertEqual(out.Items[1].Name, 'testproject')
-        
+
     def testDeserialize_ClassObjClass_ListOfLists(self):
         obj = { 'Items': [  #'listoflists<PropertyMapKeyValues>',
                           [ {'Key': 'testA1'}, {'Key': 'testA2'}], # PropertyMapKeyValues
@@ -2405,13 +2410,13 @@ class TestAPIClientMethods(TestCase):
         self.assertEqual(out.Items[1][1].Key, 'testB2')
 
     def testDeserialize_ClassObjClass_Dict(self):
-        obj = { 'INFO': 'test' } # dict    
+        obj = { 'INFO': 'test' } # dict
         objClass = Variant.Variant
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.INFO, 'test')
-    
+
     def testDeserialize_ClassObjClass_Datetime(self):
-        obj = { 'DateCreated': '2013-10-03T19:40:26.0000000' } # datetime    
+        obj = { 'DateCreated': '2013-10-03T19:40:26.0000000' } # datetime
         objClass = Run.Run
         out = self.apiClient.deserialize(obj, objClass)
         self.assertEqual(out.DateCreated.year, 2013)
@@ -2429,7 +2434,7 @@ class TestBillingAPIMethods(TestCase):
     @skip('Test not written yet')
     def test__init__(self):
         pass
-    
+
 class TestQueryParameterPurchasedProductMethods(TestCase):
     '''
     Tests QueryParameterPurchasedProduct methods
@@ -2439,12 +2444,12 @@ class TestQueryParameterPurchasedProductMethods(TestCase):
         pass
 
 
-#if __name__ == '__main__':   
+#if __name__ == '__main__':
 #    main()         # unittest.main()
 large_file_transfers = TestSuite([
     TestLoader().loadTestsFromTestCase( TestAPIFileUploadMethods_LargeFiles ),
     TestLoader().loadTestsFromTestCase( TestAPIFileDownloadMethods_LargeFiles ),
-    TestLoader().loadTestsFromTestCase( TestMultipartFileTransferMethods ), ])                                  
+    TestLoader().loadTestsFromTestCase( TestMultipartFileTransferMethods ), ])
 
 small_file_transfers = TestSuite([
     TestLoader().loadTestsFromTestCase(TestFileDownloadMethods),
@@ -2457,7 +2462,7 @@ runs_users_files = TestSuite([
     TestLoader().loadTestsFromTestCase(TestUserMethods),
     TestLoader().loadTestsFromTestCase(TestAPIUserMethods),
     TestLoader().loadTestsFromTestCase(TestFileMethods),
-    TestLoader().loadTestsFromTestCase(TestAPIFileMethods), ])                                                      
+    TestLoader().loadTestsFromTestCase(TestAPIFileMethods), ])
 
 samples_appresults_projects = TestSuite([
     TestLoader().loadTestsFromTestCase(TestSampleMethods),
@@ -2502,20 +2507,20 @@ if __name__ == "__main__":
 
     if(len(sys.argv) == 1):
         # to test all test cases:
-        tests.extend([ 
-              small_file_transfers, 
-              runs_users_files, 
+        tests.extend([
+              small_file_transfers,
+              runs_users_files,
               samples_appresults_projects,
-              appsessions, 
+              appsessions,
               cred_genome_util_lists,
-              cov_variant, 
+              cov_variant,
               basespaceapi_baseapi_apiclient,
               billing_qppp,
         ])
         #tests.append(oauth) # these tests will open a web browser and clicking 'Accept' (also requires BaseSpace login)
         tests.append(large_file_transfers) # these tests may take tens of minutes to complete
     else:
-        # to test individual test cases: 
+        # to test individual test cases:
         for t in sys.argv[1:]:
             tests.append( TestLoader().loadTestsFromTestCase( eval(t) ) )
     TextTestRunner(verbosity=2).run( TestSuite(tests) )

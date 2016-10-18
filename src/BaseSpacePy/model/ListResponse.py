@@ -1,6 +1,8 @@
 
 import json
-from StringIO import StringIO
+
+from six import StringIO
+
 
 class ListResponse(object):
 

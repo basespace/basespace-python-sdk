@@ -5,7 +5,7 @@ Copyright 2012 Illumina
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
- 
+
     Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,14 +16,14 @@ limitations under the License.
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import os
 """
-This script demonstrates how to access Samples and AppResults from a projects and how to work with the available 
-file data for such instances. 
+This script demonstrates how to access Samples and AppResults from a projects and how to work with the available
+file data for such instances.
 """
 
 """
-NOTE: The coverage and variants API calls below require access to a public 
+NOTE: The coverage and variants API calls below require access to a public
 dataset. Before running the example, first go to cloud-hoth.illumina.com,
-login, click on Public Data, select the dataset named 'MiSeq B. cereus demo 
+login, click on Public Data, select the dataset named 'MiSeq B. cereus demo
 data', and click the Import button for the Project named 'BaseSpaceDemo'.
 """
 
@@ -51,40 +51,40 @@ myProjects      = myAPI.getProjectByUser('current')
 
 # Let's list all the AppResults and samples for these projects
 for singleProject in myProjects:
-    print "# " + str(singleProject)
+    print("# " + str(singleProject))
     appResults = singleProject.getAppResults(myAPI)
-    print "    The App results for project " + str(singleProject) + " are \n\t" + str(appResults)
+    print("    The App results for project " + str(singleProject) + " are \n\t" + str(appResults))
     samples = singleProject.getSamples(myAPI)
-    print "    The samples for project " + str(singleProject) + " are \n\t" + str(samples)
+    print("    The samples for project " + str(singleProject) + " are \n\t" + str(samples))
 #
-## we'll take a further look at the files belonging to the sample and 
-##analyses from the last project in the loop above 
+## we'll take a further look at the files belonging to the sample and
+##analyses from the last project in the loop above
 for a in appResults:
-    print "# " + a.Id
+    print("# " + a.Id)
     ff = a.getFiles(myAPI)
-    print ff
+    print(ff)
 for s in samples:
-    print "Sample " + str(s)
+    print("Sample " + str(s))
     ff = s.getFiles(myAPI)
-    print ff
+    print(ff)
 
 
-## Now let's do some work with files 
-## we'll grab a BAM by id and get the coverage for an interval + accompanying meta-data 
+## Now let's do some work with files
+## we'll grab a BAM by id and get the coverage for an interval + accompanying meta-data
 myBam = myAPI.getFileById('9895890')
-print myBam
+print(myBam)
 cov     = myBam.getIntervalCoverage(myAPI,'chr','1','100')
-print cov 
+print(cov)
 try:
    covMeta = myBam.getCoverageMeta(myAPI,'chr')
 except Exception as e:
-    print "Coverage metadata may not be available for this BAM file: %s" % str(e)
+    print("Coverage metadata may not be available for this BAM file: %s" % str(e))
 else:
-    print covMeta
+    print(covMeta)
 #
 ## and a vcf file
 myVCF = myAPI.getFileById('9895892')
 varMeta = myVCF.getVariantMeta(myAPI)
-print varMeta
-var     = myVCF.filterVariant(myAPI,'chr','1', '25000') 
-print var
+print(varMeta)
+var     = myVCF.filterVariant(myAPI,'chr','1', '25000')
+print(var)

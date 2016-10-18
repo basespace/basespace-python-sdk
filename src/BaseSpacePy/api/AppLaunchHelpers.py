@@ -428,7 +428,7 @@ class LaunchSpecification(object):
             raise LaunchSpecificationException(
                 "Compulsory variable(s) missing! (%s)" % str(required_vars - supplied_var_names))
         if supplied_var_names - self.get_variable_requirements():
-            print "warning! unused variable(s) specified: (%s)" % str(supplied_var_names - self.get_variable_requirements())
+            print("warning! unused variable(s) specified: (%s)" % str(supplied_var_names - self.get_variable_requirements()))
         all_vars = copy.copy(self.defaults)
         all_vars.update(user_supplied_vars)
         self.resolve_list_variables(all_vars)
@@ -457,7 +457,7 @@ class LaunchSpecification(object):
         dump all properties with their type and any default value
         for verbose usage information output
         """
-        print self.format_property_information()
+        print(self.format_property_information())
 
     def format_minimum_requirements(self):
         minimum_requirements = self.get_minimum_requirements()
