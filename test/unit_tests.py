@@ -2521,4 +2521,6 @@ if __name__ == "__main__":
         # to test individual test cases:
         for t in sys.argv[1:]:
             tests.append( TestLoader().loadTestsFromTestCase( eval(t) ) )
-    TextTestRunner(verbosity=2).run( TestSuite(tests) )
+    ret = TextTestRunner(verbosity=2).run( TestSuite(tests) )
+    exitcode = not ret.wasSuccessful()
+    sys.exit(exitcode)
