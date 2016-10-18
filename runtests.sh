@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 mkdir ~/.basespace
 
 cp test/dotbasespace/*.bash ~/.basespace
