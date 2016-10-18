@@ -229,7 +229,8 @@ class LaunchSpecification(object):
     def process_parameter(self, param, varname):
         # if option is prefixed with an @, it's a file (or process substitution with <() )
         # so we should read inputs from there
-        if param.startswith("@"):
+        property_type = self.get_property_bald_type(varname)
+        if param.startswith("@") and property_type != "string":
             assert self.is_list_property(varname), "cannot specify non-list parameter with file"
             with open(param[1:]) as fh:
                 processed_param = [line.strip() for line in fh]
