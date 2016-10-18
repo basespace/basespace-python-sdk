@@ -219,8 +219,6 @@ class TestAPIFileUploadMethods_SmallFiles(TestCase):
             contentType=tconst['file_small_upload_content_type'])
         with open(tconst['file_small_upload']) as fp:
             out = fp.read()
-            # md5 = hashlib.md5(out).digest().encode('base64')
-            # import pdb;pdb.set_trace()
         md5 = base64.b64encode(hashlib.md5(out.encode('utf-8')).digest())
         response = self.api.__uploadMultipartUnit__(
             Id = file.Id,
