@@ -1,7 +1,10 @@
-INTRODUCTION	
+![Build Status](https://api.travis-ci.org/dtenenba/basespace-python-sdk.svg?branch=develop)
+
+
+INTRODUCTION
 =========================================
 
-BaseSpacePy is a Python based SDK to be used in the development of Apps and scripts for working with Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis. 
+BaseSpacePy is a Python based SDK to be used in the development of Apps and scripts for working with Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis.
 
 The primary purpose of the SDK is to provide an easy-to-use Python environment enabling developers to authenticate a user, retrieve data, and upload data/results from their own analysis to BaseSpace.
 
@@ -39,7 +42,7 @@ If you do not have root access, you may use the --prefix to specify the install 
 
 	python setup.py install --prefix=/folder/in/my/pythonpath
 
-For more install options type: 
+For more install options type:
 
 	python setup.py --help
 
@@ -53,7 +56,7 @@ or add it to the PYTHONPATH at the top of your Python scripts using BaseSpacePy:
 	sys.path.append('/my/path/basespace-python-sdk/src')
 	import BaseSpacePy
 
-To test that everything is working as expected, launch a Python prompt and try importing 'BaseSpacePy': 
+To test that everything is working as expected, launch a Python prompt and try importing 'BaseSpacePy':
 
 	mkallberg@ubuntu:~/$ python
 	>>> import BaseSpacePy
@@ -115,7 +118,7 @@ Update to support changes in BaseSpace REST specification version v1pre3. Specif
 
 v 0.1
 -----------------------------------------
- 
+
 Initial release of BaseSpacePy
 
 COPYING / LICENSE
