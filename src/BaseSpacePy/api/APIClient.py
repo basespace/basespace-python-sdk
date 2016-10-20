@@ -137,13 +137,14 @@ class APIClient:
             if not forcePost:
                 if data and not len(data):
                     data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
-                data = data.encode('utf-8')
+                if isinstance(data, unicode):
+                    data = data.encode('utf-8')
                 request = urllib.request.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:
                 response = self.__forcePostCall__(forcePostUrl, sentQueryParams, headers)
             if method in ['PUT', 'DELETE']:
                 if method == 'DELETE':
-                    raise NotImplementedError("DELETE REST API calls aren't currently supported")
+                    raise NotImplementedError('DELETE REST API calls aren\'t currently supported')
                 response = self.__putCall__(url, headers, data)
                 response =  response.split()[-1] # discard upload status msg (from curl put?)
         else:
