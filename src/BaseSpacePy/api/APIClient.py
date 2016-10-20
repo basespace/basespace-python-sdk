@@ -137,7 +137,8 @@ class APIClient:
             if not forcePost:
                 if data and not len(data):
                     data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
-                if isinstance(data, unicode):
+                # if isinstance(data, unicode):
+                if data and six.PY3:
                     data = data.encode('utf-8')
                 request = urllib.request.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:
