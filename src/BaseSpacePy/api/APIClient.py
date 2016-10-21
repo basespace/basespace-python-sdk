@@ -4,8 +4,6 @@ import os
 import re
 import io
 import json
-from subprocess import *
-import subprocess
 import dateutil.parser
 from warnings import warn
 from BaseSpacePy.model import *
