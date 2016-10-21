@@ -2,7 +2,10 @@
 import sys
 import os
 import re
+import urllib
+import urllib2
 import io
+import cStringIO
 import json
 from subprocess import *
 import subprocess
@@ -10,11 +13,6 @@ import dateutil.parser
 from warnings import warn
 from BaseSpacePy.model import *
 from BaseSpacePy.api.BaseSpaceException import RestMethodException, ServerResponseException
-
-
-import six
-from six import moves
-from six.moves import urllib
 
 
 class APIClient:
@@ -48,7 +46,7 @@ class APIClient:
             pass
         import logging
         logging.getLogger("requests").setLevel(logging.WARNING)
-        encodedPost =  urllib.parse.urlencode(postData)
+        encodedPost =  urllib.urlencode(postData)
         resourcePath = "%s?%s" % (resourcePath, encodedPost)
         response = requests.post(resourcePath, data=json.dumps(postData), headers=headers)
         return response.text
@@ -66,7 +64,7 @@ class APIClient:
         # cmd = 'curl -H "x-access-token:' + self.apiKey + '" -H "Content-MD5:' + headers['Content-MD5'].strip() +'" -T "'+ transFile +'" -X PUT ' + resourcePath
         # p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         # output = p.stdout.read()
-        # print(output)
+        # print output
         # return output
         import requests
         put_headers = {
@@ -103,10 +101,10 @@ class APIClient:
         if self.userAgent:
             headers['User-Agent'] = self.userAgent
         if headerParams:
-            for param, value in six.iteritems(headerParams):
+            for param, value in headerParams.iteritems():
                 headers[param] = value
         # specify the content type
-        if not 'Content-Type' in headers and not method=='PUT' and not forcePost:
+        if not headers.has_key('Content-Type') and not method=='PUT' and not forcePost:
             headers['Content-Type'] = 'application/json'
         # include access token in header
         headers['Authorization'] = 'Bearer ' + self.apiKey
@@ -116,20 +114,20 @@ class APIClient:
             if queryParams:
                 # Need to remove None values, these should not be sent
                 sentQueryParams = {}
-                for param, value in six.iteritems(queryParams):
+                for param, value in queryParams.iteritems():
                     if value != None:
                         sentQueryParams[param] = value
-                url = url + '?' + urllib.parse.urlencode(sentQueryParams)
-            request = urllib.request.Request(url=url, headers=headers)
+                url = url + '?' + urllib.urlencode(sentQueryParams)
+            request = urllib2.Request(url=url, headers=headers)
         elif method in ['POST', 'PUT', 'DELETE']:
             if queryParams:
                 # Need to remove None values, these should not be sent
                 sentQueryParams = {}
-                for param, value in six.iteritems(queryParams):
+                for param, value in queryParams.iteritems():
                     if value != None:
                         sentQueryParams[param] = value
                 forcePostUrl = url
-                url = url + '?' + urllib.parse.urlencode(sentQueryParams)
+                url = url + '?' + urllib.urlencode(sentQueryParams)
             data = postData
             if data:
                 if type(postData) not in [str, int, float, bool]:
@@ -137,9 +135,7 @@ class APIClient:
             if not forcePost:
                 if data and not len(data):
                     data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
-                if data and six.PY3:
-                    data = data.encode('utf-8')
-                request = urllib.request.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
+                request = urllib2.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:
                 response = self.__forcePostCall__(forcePostUrl, sentQueryParams, headers)
             if method in ['PUT', 'DELETE']:
@@ -153,10 +149,10 @@ class APIClient:
         # Make the request
         if not forcePost and not method in ['PUT', 'DELETE']: # the normal case
             try:
-             response = urllib.request.urlopen(request, timeout=self.timeout).read().decode('utf-8')
-            except urllib.error.HTTPError as e:
-                response = e.read().decode('utf-8') # treat http error as a response (handle in caller)
-            except urllib.error.URLError as e:
+             response = urllib2.urlopen(request, timeout=self.timeout).read()
+            except urllib2.HTTPError as e:
+                response = e.read() # treat http error as a response (handle in caller)
+            except urllib2.URLError as e:
                 raise ServerResponseException('URLError: ' + str(e))
         try:
             data = json.loads(response)
@@ -195,7 +191,7 @@ class APIClient:
         # For dynamic types, substitute real class after looking up 'Type' value.
         # For lists, deserialize all members of a list, including lists of lists (though not list of list of list...).
         # For datetimes, convert to a readable output string
-        for attr, attrType in six.iteritems(instance.swaggerTypes):
+        for attr, attrType in instance.swaggerTypes.iteritems():
             if attr in obj:
                 value = obj[attr]
                 if attrType in ['str', 'int', 'float', 'bool']:
@@ -203,7 +199,7 @@ class APIClient:
                     try:
                         value = attrType(value)
                     except UnicodeEncodeError:
-                        value = six.text_type(value)
+                        value = unicode(value)
                     setattr(instance, attr, value)
                 elif attrType == 'DynamicType':
                     try:
