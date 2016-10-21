@@ -2140,9 +2140,9 @@ class TestAPIClientMethods(TestCase):
             fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType = tconst['file_small_upload_content_type'])
-        with open(tconst['file_small_upload']) as fp:
+        with open(tconst['file_small_upload'], "rb") as fp:
             out = fp.read()
-            md5 = hashlib.md5(out).digest().encode('base64')
+            md5 = base64.b64encode(hashlib.md5(out).digest())
 
         method                       = 'PUT'
         resourcePath                 = '/files/{Id}/parts/{partNumber}'
@@ -2236,9 +2236,9 @@ class TestAPIClientMethods(TestCase):
             fileName = os.path.basename(tconst['file_small_upload']),
             directory = testDir,
             contentType = tconst['file_small_upload_content_type'])
-        with open(tconst['file_small_upload']) as fp:
+        with open(tconst['file_small_upload'], "rb") as fp:
             out = fp.read()
-            md5 = hashlib.md5(out).digest().encode('base64')
+            md5 = base64.b64encode(hashlib.md5(out).digest())
 
         method                       = 'PUT'
         resourcePath                 = '/files/{Id}/parts/{partNumber}'
