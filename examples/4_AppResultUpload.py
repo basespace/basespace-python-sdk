@@ -14,7 +14,6 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
-import os
 
 """
 This script demonstrates how to create a new AppResults object, change its state

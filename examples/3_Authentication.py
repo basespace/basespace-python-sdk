@@ -12,11 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import six
-if six.PY2:
-    from __future__ import print_function
+from __future__ import print_function
 
-import sys
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
 import time
 import webbrowser

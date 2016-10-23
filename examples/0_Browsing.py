@@ -14,7 +14,6 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
-import os
 
 """
 This script demonstrates basic browsing of BaseSpace objects once an access-token

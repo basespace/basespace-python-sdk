@@ -15,6 +15,10 @@ cd ..
 cat test/dotbasespace/unit_tests.cfg | sed "s/__ACCESS_TOKEN__/$ACCESS_TOKEN/" > ~/.basespace/unit_tests.cfg
 cp ~/.basespace/unit_tests.cfg ~/.basespace/default.cfg
 
+pip install pyflakes
+
+find .  \( -path ./doc -o -path ./src/build \) -prune -o -name '*.py' -print | xargs pyflakes || true
+
 
 python test/unit_tests.py
 

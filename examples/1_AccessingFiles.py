@@ -14,7 +14,6 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
-import os
 """
 This script demonstrates how to access Samples and AppResults from a projects and how to work with the available
 file data for such instances.

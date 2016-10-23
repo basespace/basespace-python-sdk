@@ -14,8 +14,6 @@ limitations under the License.
 """
 
 from BaseSpacePy.api.BaseSpaceAPI import BaseSpaceAPI
-import webbrowser
-import time
 
 """
 This script demonstrates how to retrieve the AppSession object produced
