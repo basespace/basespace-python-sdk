@@ -130,13 +130,14 @@ class APIClient:
                 url = url + '?' + urllib.parse.urlencode(sentQueryParams)
             data = postData
             if data:
-                if type(postData) not in [str, int, float, bool]:
+                if type(postData) not in [str, int, float, bool, bytes]:
                     data = json.dumps(postData)
             if not forcePost:
                 if data and not len(data):
                     data='\n' # temp fix, in case is no data in the file, to prevent post request from failing
                 if data and six.PY3:
-                    data = data.encode('utf-8')
+                    if type(data) is str:
+                        data = data.encode()
                 request = urllib.request.Request(url=url, headers=headers, data=data)#,timeout=self.timeout)
             else:
                 response = self.__forcePostCall__(forcePostUrl, sentQueryParams, headers)

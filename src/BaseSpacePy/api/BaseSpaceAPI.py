@@ -1309,11 +1309,8 @@ class BaseSpaceAPI(BaseAPI):
         :raises DownloadFailedException: if downloaded file size doesn't match the size in BaseSpace
         :returns: None
         '''
-        logging.debug("in __downloadFile__")
         if byteRange is None:
             byteRange = []
-        if byteRange is not None:
-            logging.debug("byteRange is not none!")
         resourcePath = '/files/{Id}/content'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
@@ -1354,8 +1351,6 @@ class BaseSpaceAPI(BaseAPI):
         # check that actual downloaded byte size is correct
         if len(byteRange):
             expSize = byteRange[1] - byteRange[0] + 1
-            logging.debug("len is %d, first is %d, last is %d", len(byteRange), byteRange[0], byteRange[1])
-            logging.debug("totRead: %s, expSize: %s", totRead, expSize)
             if totRead != expSize:
                 raise DownloadFailedException("Ranged download size is not as expected: %d vs %d" % (totRead, expSize))
         else:

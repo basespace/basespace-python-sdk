@@ -4,10 +4,12 @@ import os
 import math
 import multiprocessing
 import shutil
+import io
 import signal
 import hashlib
 from subprocess import call
 import logging
+import base64
 from BaseSpacePy.api.BaseSpaceException import MultiProcessingTaskFailedException
 
 from six.moves import queue
@@ -42,10 +44,10 @@ class UploadTask(object):
         try:
             fname = os.path.basename(self.local_path)
             chunk_data = ""
-            with open(self.local_path) as fh:
+            with io.open(self.local_path, "rb") as fh:
                 fh.seek(self.piece * self.chunk_size)
                 chunk_data = fh.read(self.chunk_size)
-            self.md5 = hashlib.md5(chunk_data).digest().encode('base64')
+            self.md5 = base64.b64encode(hashlib.md5(chunk_data).digest())
             try:
                 res = self.api.__uploadMultipartUnit__(self.bs_file_id,self.piece+1,self.md5,chunk_data)
             except Exception as e:
@@ -53,7 +55,7 @@ class UploadTask(object):
                 self.err_msg = str(e)
             else:
                 # ETag contains hex encoded MD5 of part data on success
-                if res and 'ETag' in res['Response']:                
+                if res and 'ETag' in res['Response']:
                     self.success = True
                 else:
                     self.success = False
@@ -307,11 +309,9 @@ class MultipartUpload(object):
         '''
         Determine number of file pieces to upload, add upload tasks to work queue
         '''
-        from math import ceil
         total_size = os.path.getsize(self.local_path)
         # round up to get a number of chunks that will be enough for the whole file
-        fileCount = int(ceil(total_size/float(self.part_size*1024*1024)))
-
+        fileCount = int(math.ceil(total_size/float(self.part_size*1024*1024)))
         chunk_size = self.part_size*1024*1024
         assert chunk_size * fileCount > total_size
 
@@ -401,7 +401,7 @@ class MultipartDownload(object):
         self.file_name = self.bs_file.Name
         total_bytes = self.bs_file.Size
         part_size_bytes = self.part_size * (1024**2)
-        self.file_count = int(math.ceil(total_bytes/part_size_bytes)) + 1
+        self.file_count = int(math.ceil(total_bytes/float(part_size_bytes)))
 
         file_name = self.file_name
         if not self.temp_dir:
