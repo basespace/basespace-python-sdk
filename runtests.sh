@@ -21,6 +21,8 @@ echo
 echo "Static analysis warnings from pyflakes:"
 echo
 # exclude doc directory because those files are auto-generated
+# the "|| true" at the end causes CI not to fail. In future
+# you could remove that if you want pyflakes warnings to break the build.
 find .  \( -path ./doc -o -path ./src/build \) -prune -o -name '*.py' -print | xargs pyflakes || true
 
 # TODO add stricter flake8 checking here
