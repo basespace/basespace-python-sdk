@@ -17,7 +17,19 @@ cp ~/.basespace/unit_tests.cfg ~/.basespace/default.cfg
 
 pip install pyflakes
 
+echo
+echo "Static analysis warnings from pyflakes:"
+echo
+# exclude doc directory because those files are auto-generated
 find .  \( -path ./doc -o -path ./src/build \) -prune -o -name '*.py' -print | xargs pyflakes || true
+
+# TODO add stricter flake8 checking here
+# (checks for proper formatting of code in compliance with PEP8)
+
+
+echo
+echo "Unit test output:"
+echo
 
 
 python test/unit_tests.py
