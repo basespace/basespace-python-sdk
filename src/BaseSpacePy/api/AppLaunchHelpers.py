@@ -339,7 +339,7 @@ class LaunchSpecification(object):
                         if sample_attributes and bald_type == "sample":
                             one_sample_attributes = self.make_sample_attribute_entry(one_val, wrapped_value,
                                                                                      sample_attributes)
-                            all_sample_attributes["items"].append(one_sample_attributes)
+                            all_sample_attributes["itemsmap"].append(one_sample_attributes)
                 else:
                     processed_value = "%s/%ss/%s" % (api_version, bald_type, property_value)
                     if sample_attributes and bald_type == "sample":
