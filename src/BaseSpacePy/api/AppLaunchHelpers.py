@@ -322,7 +322,7 @@ class LaunchSpecification(object):
             all_sample_attributes = {
                 "Type": "map[]",
                 "Name": "Input.sample-id.attributes",
-                "items": []
+                "itemsmap": []
             }
         for property_ in populated_properties:
             property_name = self.clean_name(property_["Name"])
