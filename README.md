@@ -1,4 +1,6 @@
-[![Build Status][https://img.shields.io/travis/dtenenba/basespace-python-sdk.svg?style=flat&branch=develop]](https://travis-ci.org/dtenenba/basespace-python-sdk)
+[![Build Status][travis-image]](https://travis-ci.org/dtenenba/basespace-python-sdk)
+
+[travis-image]: https://img.shields.io/travis/dtenenba/basespace-python-sdk.svg?style=flat&branch=develop
 
 INTRODUCTION
 =========================================
