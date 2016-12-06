@@ -26,6 +26,7 @@ from BaseSpaceException import ServerResponseException
 BS_ENTITIES = ["sample", "project", "appresult", "file"]
 BS_ENTITY_LIST_NAMES = ["Samples", "Projects", "AppResults", "Files"]
 
+
 class AppSessionMetaData(object):
     """
     Class to help extract information from an appsession.
@@ -38,7 +39,6 @@ class AppSessionMetaData(object):
     __metaclass__ = abc.ABCMeta
 
     SKIP_PROPERTIES = ["app-session-name", "attributes", "columns", "num-columns", "rowcount", "IsMultiNode"]
-
 
     def __init__(self, appsession_metadata):
         """
@@ -65,6 +65,31 @@ class AppSessionMetaData(object):
             else:
                 all_names.add(property_basename)
         return duplicate_names
+
+    @staticmethod
+    def _get_map_underlying_types(content):
+        """
+        Takes the content present in an existing appsession map type
+        and converts this into the underlying columns with their name and type
+        :param content: the raw content of the appsession we are deriving from
+        :return: a list of generic columns with name and type
+        """
+        # this should return a list of strings for a single row of the raw table
+        # this only gets us the names - we need to look up types later :(
+        first_row = content[0]
+        columns = [".".join(column.split(".")[:-1]) for column in first_row.Values]
+        return columns
+
+    @staticmethod
+    def _get_owning_map(all_properties, property_name):
+        # look for the property name without its suffix, since for an underlying property this will be eg. "row1"
+        property_name = ".".join(property_name.split(".")[:-1])
+        for property_ in all_properties:
+            if property_["Type"] == "map":
+                if property_name in property_["ColumnTypes"]:
+                    return property_
+        # if we didn't find a map with this property, return None
+        return None
 
     def get_refined_appsession_properties(self):
         """
@@ -93,6 +118,28 @@ class AppSessionMetaData(object):
                 "Name": property_name,
                 "Type": property_type,
             }
+            # this sets up the map, but we need to see examples of the columns in other properties to get the types
+            if property_type == "map":
+                content = self.unpack_bs_property(as_property, "Content")
+                columns = self._get_map_underlying_types(content)
+                this_property["ColumnNames"] = columns
+                # set a dict with an empty target that will be filled in later
+                this_property["ColumnTypes"] = dict((column, None) for column in columns)
+                properties.append(this_property)
+                continue
+            # check to see whether this property is part of an existing map property
+            owning_map = self._get_owning_map(properties, property_name)
+            if owning_map:
+                # if this property is part of a map, the last part of the name will be its row
+                # eg. Input.sample-experiments.happy-id.row1
+                # we should remove that suffix
+                property_name = ".".join(property_name.split(".")[:-1])
+                if owning_map["ColumnTypes"][property_name]:
+                    assert owning_map["ColumnTypes"][property_name] == property_type
+                else:
+                    owning_map["ColumnTypes"][property_name] = property_type
+                # if we are just using the property to grab types for a map, we shouldn't record it anywhere else
+                continue
             properties.append(this_property)
             bald_type = property_type.translate(None, "[]")
             if bald_type in BS_ENTITIES:
@@ -197,6 +244,24 @@ class LaunchSpecification(object):
         self.property_lookup = dict((self.clean_name(property_["Name"]), property_) for property_ in self.properties)
         self.defaults = defaults
 
+    def get_map_underlying_names_by_type(self, map_name, underlying_type):
+        map_property = self.property_lookup[map_name]
+        return [varname for varname, vartype in map_property["ColumnTypes"].iteritems() if vartype == underlying_type]
+
+    def get_map_position_by_underlying_name(self, map_name, underlying_name):
+        map_property = self.property_lookup[map_name]
+        return map_property["ColumnNames"].index(underlying_name)
+
+    def get_map_underlying_name_and_type_by_position(self, map_name, position):
+        map_property = self.property_lookup[map_name]
+        underlying_name = map_property["ColumnNames"][position]
+        underlying_type = map_property["ColumnTypes"][underlying_name]
+        return underlying_name, underlying_type
+
+    def get_map_underlying_types(self, map_name):
+        map_property = self.property_lookup[map_name]
+        return map_property["ColumnTypes"].values()
+
     def clean_name(self, parameter_name):
         """
         strip off the Input. prefix, which is needed by the launch payload but gets in the way otherwise
@@ -229,14 +294,20 @@ class LaunchSpecification(object):
     def process_parameter(self, param, varname):
         # if option is prefixed with an @, it's a file (or process substitution with <() )
         # so we should read inputs from there
+        # for properties with type map this is probably going to be prone to error :(
         property_type = self.get_property_bald_type(varname)
         if param.startswith("@") and property_type != "string":
             assert self.is_list_property(varname), "cannot specify non-list parameter with file"
             with open(param[1:]) as fh:
-                processed_param = [line.strip() for line in fh]
+                if property_type == "map":
+                    processed_param = [line.strip().split(",") for line in fh]
+                else:
+                    processed_param = [line.strip() for line in fh]
         else:
             if self.is_list_property(varname):
                 processed_param = param.split(",")
+            elif property_type == "map":
+                processed_param = [row.split(",") for row in param.split("::")]
             else:
                 processed_param = param
         return processed_param
@@ -253,7 +324,8 @@ class LaunchSpecification(object):
             if self.is_list_property(varname) and not isinstance(varval, list):
                 var_dict[varname] = [varval]
                 # raise AppLaunchException("non-list property specified for list parameter")
-            if not self.is_list_property(varname) and isinstance(varval, list):
+            # if they've supplied a list, it must be for a list or map property
+            if (not self.is_list_property(varname) and self.get_property_type(varname) != "map") and isinstance(varval, list):
                 raise LaunchSpecificationException("list property specified for non-list parameter")
 
     @staticmethod
@@ -330,6 +402,7 @@ class LaunchSpecification(object):
             bald_type = str(property_type).translate(None, "[]")
             property_value = var_dict[property_name]
             processed_value = ""
+            map_properties = []
             if bald_type in BS_ENTITIES:
                 if "[]" in property_type:
                     processed_value = []
@@ -346,14 +419,39 @@ class LaunchSpecification(object):
                         one_sample_attributes = self.make_sample_attribute_entry(property_value, processed_value,
                                                                                  sample_attributes)
                         sample_attributes["Items"].append(one_sample_attributes)
+            if bald_type == "map":
+                # for each argument, create one entry in the property list for each column
+                for rownum, row in enumerate(property_value):
+                    for colnum, value in enumerate(row):
+                        underlying_name, underlying_type = self.get_map_underlying_name_and_type_by_position(property_name, colnum)
+                        if underlying_type in BS_ENTITIES:
+                            wrapped_value = "%s/%ss/%s" % (api_version, underlying_type, value)
+                        else:
+                            wrapped_value = value
+                        assembled_args = {
+                            "Type" : underlying_type,
+                            "Name" : "%s.row%d" % (underlying_name, rownum+1),
+                            "Content" : wrapped_value
+                        }
+                        map_properties.append(assembled_args)
+                rowcount_entry = {
+                    "Type" : "string",
+                    "Name" : "%s.rowcount" % (property_name),
+                    "Content" : len(property_value)
+                }
+                map_properties.append(rowcount_entry)
+                # also create an entry for the number of columns
             if not processed_value:
                 processed_value = property_value
             if "[]" in property_type:
                 property_["items"] = processed_value
             else:
                 property_["Content"] = processed_value
+        populated_properties.extend(map_properties)
         if sample_attributes:
             populated_properties.append(all_sample_attributes)
+        # remove map properties, which aren't needed for launch
+        populated_properties = [property_ for property_ in populated_properties if property_["Type"] != "map"]
         return populated_properties
 
     def get_variable_requirements(self):
@@ -392,6 +490,11 @@ class LaunchSpecification(object):
         """
         return str(self.get_property_type(property_name)).translate(None, "[]")
 
+    def get_underlying_map_type(self, map_property_name, position):
+        map_property = self.property_lookup[map_property_name]
+        underlying_property_name = map_property["ColumnNames"][position]
+        return map_property["ColumnTypes"][underlying_property_name]
+
     def is_list_property(self, property_name):
         """
         is a given property a list property
@@ -429,7 +532,8 @@ class LaunchSpecification(object):
             raise LaunchSpecificationException(
                 "Compulsory variable(s) missing! (%s)" % str(required_vars - supplied_var_names))
         if supplied_var_names - self.get_variable_requirements():
-            print "warning! unused variable(s) specified: (%s)" % str(supplied_var_names - self.get_variable_requirements())
+            print "warning! unused variable(s) specified: (%s)" % str(
+                supplied_var_names - self.get_variable_requirements())
         all_vars = copy.copy(self.defaults)
         all_vars.update(user_supplied_vars)
         self.resolve_list_variables(all_vars)
@@ -451,7 +555,10 @@ class LaunchSpecification(object):
 
     def format_property_information(self):
         header = ["\t".join(["Name", "Type", "Default"])]
-        return "\n".join(header + [ "\t".join(line) for line in self.property_information_generator() ])
+        return "\n".join(header + ["\t".join(line) for line in self.property_information_generator()])
+
+    def format_map_types(self, property_name):
+        return ",".join(self.get_map_underlying_types(property_name))
 
     def dump_property_information(self):
         """
@@ -462,8 +569,15 @@ class LaunchSpecification(object):
 
     def format_minimum_requirements(self):
         minimum_requirements = self.get_minimum_requirements()
-        description = ["%s (%s)" % (varname, self.get_property_type(varname)) for varname in minimum_requirements]
-        return " ".join(description)
+        descriptions = []
+        for varname in minimum_requirements:
+            property_type = self.get_property_type(varname)
+            if property_type == "map":
+                description = "%s (%s[%s])" % (varname, property_type, self.format_map_types(varname))
+            else:
+                description = "%s (%s)" % (varname, property_type)
+            descriptions.append(description)
+        return " ".join(descriptions)
 
 
 class LaunchPayload(object):
@@ -476,9 +590,9 @@ class LaunchPayload(object):
     """
 
     ENTITY_TYPE_TO_METHOD_NAME = {
-        "sample" : "getSampleById",
-        "appresult" : "getAppResultById",
-        "project" : "getProjectById"
+        "sample": "getSampleById",
+        "appresult": "getAppResultById",
+        "project": "getProjectById"
     }
 
     def __init__(self, launch_spec, args, configoptions, api, disable_consistency_checking=True):
@@ -501,10 +615,47 @@ class LaunchPayload(object):
         if len(varnames) != len(self._args):
             raise LaunchSpecificationException("Number of arguments does not match specification")
 
+    def _arg_entry_to_name(self, entry, entity_type):
+        # if the argument contains a path separator, it must be a valid BaseMount path
+        # otherwise, an exception will be raised by BaseMountInterface
+        if os.path.sep in entry:
+            bmi = BaseMountInterface(entry)
+            return bmi.name
+        # if this is not a BaseMount path, try to resolve an entity name using the API
+        # note we're relying on the regular naming of the API to provide the right method name
+        # if this throws an exception, it's up to the caller to catch and handle
+        entry = entry.strip('"')
+        method = getattr(self._api, self.ENTITY_TYPE_TO_METHOD_NAME[entity_type])
+        return method(entry).Name
+
     def _find_all_entity_names(self, entity_type):
         """
         get all the entity names for a particular entity type
         used to make useful launch names
+
+        doing this for map types is pretty complicated. Imagine a map type defined like this:
+
+        {
+        "Name": "Input.sample-experiments",
+        "Type": "map",
+        "ColumnTypes": {
+          "sample-experiments.happy-id": "appresult",
+          "sample-experiments.result-label": "string"
+        },
+        "ColumnNames": [
+          "sample-experiments.happy-id",
+          "sample-experiments.result-label"
+        ]
+        }
+
+        and a map call like this:
+
+        [ [ "124124", "first" ] ,  [ "124127", "second" ] ]
+
+        then we want to look up the entity names of "124124" and "124127" based on their types
+        we get the type by looking up the variable in the position where the map call has been made
+        and then using that type definition to see where we can find the appropriate IDs in the underlying map
+
         :param entity_type: the entity type to look for
         :return: list of entity names
         """
@@ -512,23 +663,33 @@ class LaunchPayload(object):
         varnames = self._launch_spec.get_minimum_requirements()
         for i, varname in enumerate(varnames):
             arg = self._args[i]
-            if self._launch_spec.get_property_bald_type(varname) == entity_type:
+            this_type = self._launch_spec.get_property_bald_type(varname)
+            if this_type == entity_type:
                 if not self._launch_spec.is_list_property(varname):
                     arg = [arg]
                 for entry in arg:
-                    # if the argument contains a path separator, it must be a valid BaseMount path
-                    # otherwise, an exception will be raised by BaseMountInterface
-                    if os.path.sep in entry:
-                        bmi = BaseMountInterface(entry)
-                        entity_names.append(bmi.name)
-                    # if this is not a BaseMount path, try to resolve an entity name using the API
-                    # note we're relying on the regular naming of the API to provide the right method name
-                    entry = entry.strip('"')
                     try:
-                        method = getattr(self._api, self.ENTITY_TYPE_TO_METHOD_NAME[entity_type])
-                        entity_names.append(method(entry).Name)
+                        name = self._arg_entry_to_name(entry, this_type)
+                        entity_names.append(name)
+                    # if we were unable to find a name, just press on
                     except (AttributeError, ServerResponseException):
                         pass
+            if this_type == "map":
+                # from the type we're after, get the variable name.
+                underlying_names = self._launch_spec.get_map_underlying_names_by_type(varname, entity_type)
+                # Use this to get the parameter positions.
+                varpositions = [self._launch_spec.get_map_position_by_underlying_name(varname, underlying_name)
+                                 for underlying_name in underlying_names]
+                # Use this to get the specifics for this call
+                for entry in arg:
+                    for position in varpositions:
+                        try:
+                            name = self._arg_entry_to_name(entry[position], entity_type)
+                            entity_names.append(name)
+                        # if we were unable to find a name, just press on
+                        except (AttributeError, ServerResponseException):
+                            pass
+
 
         return entity_names
 
@@ -561,17 +722,16 @@ class LaunchPayload(object):
         else:
             return True
 
-    def preprocess_arg(self, param_name, varval):
+    def preprocess_arg(self, param_type, varval):
         """
         Checks if a value for a parameter looks like a BaseMount path and tries to convert it into a BaseSpace ID
 
-        :param param_name: name of the parameter
+        :param param_type: type of the parameter
         :param varval: value of parameter
 
         :return basespaceid
         """
-        spec_type = self._launch_spec.get_property_bald_type(param_name)
-        if spec_type == "string":
+        if param_type == "string":
             return varval
         if os.path.sep in varval:
             # if the argument contains a path separator, it must be a valid BaseMount path
@@ -584,9 +744,9 @@ class LaunchPayload(object):
                 raise LaunchSpecificationException(
                     "Access tokens between launch configuration and referenced BaseMount path do not match: %s" % varval)
             basemount_type = bmi.type
-            if spec_type != basemount_type:
+            if param_type != basemount_type:
                 raise LaunchSpecificationException(
-                    "wrong type of BaseMount path selected: %s needs to be of type %s" % (varval, spec_type))
+                    "wrong type of BaseMount path selected: %s needs to be of type %s" % (varval, param_type))
             bid = bmi.id
         else:
             # strip off quotes, which will be what comes in from bs list samples -f csv
@@ -608,9 +768,26 @@ class LaunchPayload(object):
         for i, param_name in enumerate(params):
             arg = self._args[i]
             if isinstance(arg, list):
-                arg_map[param_name] = [self.preprocess_arg(param_name, arg_part) for arg_part in arg]
+                if isinstance(arg[0], list):
+                    preprocessed_rows = []
+                    # for each row
+                    for row in arg:
+                    # for each column
+                        preprocessed_row = []
+                        for position, column_value in enumerate(row):
+                            # look up type
+                            underlying_type = self._launch_spec.get_underlying_map_type(param_name, position)
+                            # convert
+                            preprocessed_arg = self.preprocess_arg(underlying_type, column_value)
+                            preprocessed_row.append(preprocessed_arg)
+                        preprocessed_rows.append(preprocessed_row)
+                    arg_map[param_name] = preprocessed_rows
+                else:
+                    param_type = self._launch_spec.get_property_bald_type(param_name)
+                    arg_map[param_name] = [self.preprocess_arg(param_type, arg_part) for arg_part in arg]
             else:
-                arg_map[param_name] = self.preprocess_arg(param_name, arg)
+                param_type = self._launch_spec.get_property_bald_type(param_name)
+                arg_map[param_name] = self.preprocess_arg(param_type, arg)
         return arg_map
 
     def get_all_variables(self):
