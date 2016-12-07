@@ -1,10 +1,6 @@
 
 from pprint import pprint
-import urllib2
 import shutil
-import urllib
-import httplib
-import cStringIO
 import json
 import os
 import inspect
@@ -13,6 +9,11 @@ from BaseSpacePy.api.APIClient import APIClient
 from BaseSpacePy.api.BaseSpaceException import *
 from BaseSpacePy.model import *
 from itertools import chain
+from six import moves
+from six.moves import urllib
+
+from six.moves import http_client
+
 
 class BaseAPI(object):
     '''
@@ -23,7 +24,7 @@ class BaseAPI(object):
         '''
         :param AccessToken: the current access token
         :param apiServerAndVersion: the api server URL with api version
-        :param timeout: (optional) the timeout in seconds for each request made, default 10 
+        :param timeout: (optional) the timeout in seconds for each request made, default 10
         :param verbose: (optional) prints verbose output, default False
         '''
         self.apiClient = APIClient(AccessToken, apiServerAndVersion, userAgent=userAgent, timeout=timeout)
@@ -33,17 +34,17 @@ class BaseAPI(object):
         try:
             prefix   = " " * len(label)
             var_list = json.dumps(var,indent=4).split('\n')  # ,ensure_ascii=False
-            print label + var_list[0]
+            print(label + var_list[0])
             if len(var_list)>1:
-                print "\n".join( [prefix + s for s in var_list[1:]] )
+                print("\n".join( [prefix + s for s in var_list[1:]] ))
         except UnicodeDecodeError:
-            pass  # we could disable ascii-enforcing, as shown above, but 
+            pass  # we could disable ascii-enforcing, as shown above, but
                   # this will massively increase the volume of logs
 
     def __singleRequest__(self, myModel, resourcePath, method, queryParams, headerParams, postData=None, forcePost=False):
         '''
         Call a REST API and deserialize response into an object, handles errors from server.
-        
+
         :param myModel: a Response object that includes a 'Response' swaggerType key with a value for the model type to return
         :param resourcePath: the api url path to call (without server and version)
         :param method: the REST method type, eg. GET
@@ -56,27 +57,27 @@ class BaseAPI(object):
         :raises ServerResponseException: if server returns an error or has no response
         :returns: an instance of the Response model from the provided myModel
         '''
-        if self.verbose: 
-            print ""
-            print "* " + inspect.stack()[1][3] + "  (" + str(method) + ")"  # caller
-            print '    # Path:      ' + str(resourcePath)
-            print '    # QPars:     ' + str(queryParams)
-            print '    # Hdrs:      ' + str(headerParams)
-            print '    # forcePost: ' + str(forcePost)
+        if self.verbose:
+            print("")
+            print("* " + inspect.stack()[1][3] + "  (" + str(method) + ")")  # caller
+            print('    # Path:      ' + str(resourcePath))
+            print('    # QPars:     ' + str(queryParams))
+            print('    # Hdrs:      ' + str(headerParams))
+            print('    # forcePost: ' + str(forcePost))
             self.__json_print__('    # postData:  ',postData)
         response = self.apiClient.callAPI(resourcePath, method, queryParams, postData, headerParams, forcePost=forcePost)
         if self.verbose:
             self.__json_print__('    # Response:  ',response)
-        if not response: 
+        if not response:
             raise ServerResponseException('No response returned')
-        if response.has_key('ResponseStatus'):
-            if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ResponseStatus' in response:
+            if 'ErrorCode' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
-            elif response['ResponseStatus'].has_key('Message'):
+            elif 'Message' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['Message']))
-        elif response.has_key('ErrorCode'):
+        elif 'ErrorCode' in response:
             raise ServerResponseException(response["MessageFormatted"])
-                 
+
         responseObject = self.apiClient.deserialize(response, myModel)
         if hasattr(responseObject, "Response"):
             return responseObject.Response
@@ -98,15 +99,15 @@ class BaseAPI(object):
         :param headerParams: a dictionary of header parameters
         :param sort: sort the outputs from the API to prevent race-conditions
 
-        :raises ServerResponseException: if server returns an error or has no response        
+        :raises ServerResponseException: if server returns an error or has no response
         :returns: a list of instances of the provided model
         '''
-        if self.verbose: 
-            print ""
-            print "* " + inspect.stack()[1][3] + "  (" + str(method) + ")"  # caller
-            print '    # Path:      ' + str(resourcePath)
-            print '    # QPars:     ' + str(queryParams)
-            print '    # Hdrs:      ' + str(headerParams)
+        if self.verbose:
+            print("")
+            print("* " + inspect.stack()[1][3] + "  (" + str(method) + ")")  # caller
+            print('    # Path:      ' + str(resourcePath))
+            print('    # QPars:     ' + str(queryParams))
+            print('    # Hdrs:      ' + str(headerParams))
         number_received = 0
         total_number = None
         responses = []
@@ -125,9 +126,9 @@ class BaseAPI(object):
                 self.__json_print__('    # Response:  ',response)
             if not response:
                 raise ServerResponseException('No response returned')
-            if response['ResponseStatus'].has_key('ErrorCode'):
+            if 'ErrorCode' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
-            elif response['ResponseStatus'].has_key('Message'):
+            elif 'Message' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['Message']))
 
             respObj = self.apiClient.deserialize(response, ListResponse.ListResponse)
@@ -161,7 +162,7 @@ class BaseAPI(object):
         if not r:
             raise ServerResponseException("No response from server")
         obj = json.loads(r.text)
-        if obj.has_key('error'):
+        if 'error' in obj:
             raise ServerResponseException(str(obj['error'] + ": " + obj['error_description']))
         return obj
 
@@ -174,21 +175,21 @@ class BaseAPI(object):
     def setTimeout(self, time):
         '''
         Specify the timeout in seconds for each request made
-        
+
         :param time: timeout in seconds
-        '''        
+        '''
         self.apiClient.timeout = time
-        
+
     def getAccessToken(self):
         '''
-        Returns the current access token. 
-        '''        
-        return self.apiClient.apiKey        
+        Returns the current access token.
+        '''
+        return self.apiClient.apiKey
 
     def setAccessToken(self, token):
         '''
         Sets the current access token.
-                
+
         :param token: an access token
         '''
-        self.apiClient.apiKey = token            
+        self.apiClient.apiKey = token

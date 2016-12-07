@@ -1,4 +1,4 @@
-
+import six
 from BaseSpacePy.api.BaseSpaceException import UndefinedParameterException,UnknownParameterException,IllegalParameterException
 
 legal    = { 'Tags':[], 'ProductIds':[] }
@@ -11,20 +11,20 @@ class QueryParametersPurchasedProduct(object):
         if pars is None:
             pars = {}
         self.passed = {}
-        for k in pars.keys():
+        for k in six.viewkeys(pars):
             self.passed[k] = pars[k]
         self.validate()
-        
+
     def __str__(self):
         return str(self.passed)
-    
+
     def __repr__(self):
         return str(self)
-    
+
     def getParameterDict(self):
         return self.passed
-    
+
     def validate(self):
-        for p in self.passed.keys():
-            if not legal.has_key(p): 
+        for p in six.viewkeys(self.passed):
+            if not p in legal:
                 raise UnknownParameterException(p)
