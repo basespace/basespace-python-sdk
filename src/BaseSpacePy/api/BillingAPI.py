@@ -1,9 +1,11 @@
 
-import urlparse
 from BaseSpacePy.api.BaseAPI import BaseAPI
 from BaseSpacePy.api.BaseSpaceException import * #@UnusedWildImport
 from BaseSpacePy.model import * #@UnusedWildImport
 from BaseSpacePy.model.QueryParametersPurchasedProduct import QueryParametersPurchasedProduct as qpp
+
+from six.moves import urllib
+
 
 class BillingAPI(BaseAPI):
     '''
@@ -18,7 +20,7 @@ class BillingAPI(BaseAPI):
         '''        
         self.appSessionId   = appSessionId        
         self.version        = version        
-        apiServerAndVersion = urlparse.urljoin(apiServer, version)        
+        apiServerAndVersion = urllib.parse.urljoin(apiServer, version)        
         super(BillingAPI, self).__init__(AccessToken, apiServerAndVersion)
 
     def createPurchase(self, products, appSessionId=''):

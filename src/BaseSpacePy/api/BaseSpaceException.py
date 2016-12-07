@@ -16,31 +16,31 @@ class IllegalParameterException(Exception):
         self.parameter = str(value) + ' is not well-defined, legal options are ' + str(legal)
     def __str__(self):
         return repr(self.parameter)
-    
+
 class WrongFiletypeException(Exception):
     def __init__(self, filetype):
         self.parameter = 'This data request is not available for file ' + str(filetype)
     def __str__(self):
         return repr(self.parameter)
-    
+
 class ServerResponseException(Exception):
     def __init__(self, value):
         self.parameter = 'Error with API server response: ' + value
     def __str__(self):
         return repr(self.parameter)
-    
+
 class ModelNotInitializedException(Exception):
     def __init__(self,value):
         self.parameter = 'The request cannot be completed as model has not been initialized - ' + value
     def __str__(self):
         return repr(self.parameter)
-    
+
 class ByteRangeException(Exception):
     def __init__(self, value):
         self.parameter = 'Byte-range invalid: ' + value
     def __str__(self):
         return repr(self.parameter)
-    
+
 class MultiProcessingTaskFailedException(Exception):
     def __init__(self, value):
         self.parameter = 'Multiprocessing task failed: ' + value
@@ -88,4 +88,9 @@ class RestMethodException(Exception):
         self.parameter = 'Problem with REST API method: ' + value
     def __str__(self):
         return repr(self.parameter)
-    
+
+class DownloadFailedException(Exception):
+    def __init__(self, value):
+        self.parameter = 'Download failed: ' + value
+    def __str__(self):
+        return repr(self.parameter)

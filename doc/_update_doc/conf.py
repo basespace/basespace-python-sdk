@@ -40,8 +40,8 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'BaseSpacePy'
-copyright = u'2014, Illumina'
+project = 'BaseSpacePy'
+copyright = '2014, Illumina'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -183,8 +183,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'BaseSpacePy.tex', u'BaseSpacePy Documentation',
-   u'Illumina', 'manual'),
+  ('index', 'BaseSpacePy.tex', 'BaseSpacePy Documentation',
+   'Illumina', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -213,8 +213,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'basespacepy', u'BaseSpacePy Documentation',
-     [u'Illumina'], 1)
+    ('index', 'basespacepy', 'BaseSpacePy Documentation',
+     ['Illumina'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -227,8 +227,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'BaseSpacePy', u'BaseSpacePy Documentation',
-   u'Illumina', 'BaseSpacePy', 'One line description of project.',
+  ('index', 'BaseSpacePy', 'BaseSpacePy Documentation',
+   'Illumina', 'BaseSpacePy', 'One line description of project.',
    'Miscellaneous'),
 ]
 

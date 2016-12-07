@@ -1,17 +1,11 @@
 
 from pprint import pprint
-import urllib2
 import shutil
-import urllib
-import httplib
-import cStringIO
 import json
 import os
 import re
 from tempfile import mkdtemp
 import socket
-import ConfigParser
-import urlparse
 import logging
 import getpass
 import requests
@@ -23,6 +17,13 @@ from BaseSpacePy.model.MultipartFileTransfer import MultipartUpload as mpu
 from BaseSpacePy.model.MultipartFileTransfer import MultipartDownload as mpd
 from BaseSpacePy.model.QueryParameters import QueryParameters as qp
 from BaseSpacePy.model import *
+import six
+from six import moves
+from six.moves import http_client
+from six.moves import urllib
+
+from six.moves import configparser
+
 
 # Uris for obtaining a access token, user verification code, and app trigger information
 tokenURL                   = '/oauthv2/token'
@@ -41,20 +42,20 @@ class BaseSpaceAPI(BaseAPI):
     '''
     def __init__(self, clientKey=None, clientSecret=None, apiServer=None, version='v1pre3', appSessionId='', AccessToken='', userAgent=None, timeout=10, verbose=0, profile='default'):
         '''
-        The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):        
-        
+        The following arguments are required in either the constructor or a config file (~/.basespacepy.cfg):
+
         :param clientKey: the client key of the user's app; required in constructor or config file
         :param clientSecret: the client secret of the user's app; required in constructor or config file
         :param apiServer: the URL of the BaseSpace api server; required in constructor or config file
         :param version: the version of the BaseSpace API; required in constructor or config file
         :param appSessionId: optional, though may be needed for AppSession-related methods
         :param AccessToken: optional, though will be needed for most methods (except to obtain a new access token)
-        :param timeout: optional, timeout period in seconds for api calls, default 10 
+        :param timeout: optional, timeout period in seconds for api calls, default 10
         :param profile: optional, name of profile in config file, default 'DEFAULT'
         '''
-        
+
         cred = self._setCredentials(clientKey, clientSecret, apiServer, version, appSessionId, AccessToken, profile)
-            
+
         self.appSessionId   = cred['appSessionId']
         self.key            = cred['clientKey']
         self.secret         = cred['clientSecret']
@@ -65,7 +66,7 @@ class BaseSpaceAPI(BaseAPI):
         # TODO this replacement won't work for all environments
         self.weburl         = cred['apiServer'].replace('api.','')
 
-        apiServerAndVersion = urlparse.urljoin(cred['apiServer'], cred['apiVersion'])
+        apiServerAndVersion = urllib.parse.urljoin(cred['apiServer'], cred['apiVersion'])
         super(BaseSpaceAPI, self).__init__(cred['accessToken'], apiServerAndVersion, userAgent, timeout, verbose)
 
     def _setCredentials(self, clientKey, clientSecret, apiServer, apiVersion, appSessionId, accessToken, profile):
@@ -80,7 +81,7 @@ class BaseSpaceAPI(BaseAPI):
         :param apiServer: the URL of the BaseSpace api server
         :param version: the version of the BaseSpace API
         :param appSessionId: the AppSession Id
-        :param AccessToken: an access token        
+        :param AccessToken: an access token
         :param profile: name of the config file
         :returns: dictionary with credentials from constructor, config file, or default (for optional args), in this priority order.
         '''
@@ -125,81 +126,81 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Returns credentials from local config file (~/.basespace/<configname>.cfg)
         If some or all credentials are missing, they aren't included the in the returned dict
-        
+
         :param profile: Profile name to use to find local config file
-        :returns: A dictionary with credentials from local config file 
+        :returns: A dictionary with credentials from local config file
         '''
         config_file = os.path.join(os.path.expanduser('~/.basespace'), "%s.cfg" % profile)
         if not os.path.exists(config_file):
             raise CredentialsException("Could not find config file: %s" % config_file)
         section_name = "DEFAULT"
-        cred = {}        
-        config = ConfigParser.SafeConfigParser()
+        cred = {}
+        config = configparser.SafeConfigParser()
         if config.read(config_file):
             cred['name'] = profile
             try:
                 cred['clientKey'] = config.get(section_name, "clientKey")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['clientSecret'] = config.get(section_name, "clientSecret")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['apiServer'] = config.get(section_name, "apiServer")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['apiVersion'] = config.get(section_name, "apiVersion")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
-            try: 
+            try:
                 cred['appSessionId'] = config.get(section_name, "appSessionId")
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 cred['accessToken'] = config.get(section_name, "accessToken")
-            except ConfigParser.NoOptionError:
-                pass            
+            except configparser.NoOptionError:
+                pass
         return cred
 
     def getAppSessionById(self, Id):
         '''
         Get metadata about an AppSession.
         Note that the client key and secret must match those of the AppSession's Application.
-        
+
         :param Id: The Id of the AppSession
         :returns: An AppSession instance
-        '''            
+        '''
         return self.getAppSession(Id=Id)
 
     def getAppSessionOld(self, Id=None):
         '''
-        Get metadata about an AppSession.         
-        Note that the client key and secret must match those of the AppSession's Application.    
-        
-        :param Id: an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used 
-        :returns: An AppSession instance                
+        Get metadata about an AppSession.
+        Note that the client key and secret must match those of the AppSession's Application.
+
+        :param Id: an AppSession Id; if not provided, the AppSession Id of the BaseSpaceAPI instance will be used
+        :returns: An AppSession instance
         '''
         if Id is None:
             Id = self.appSessionId
         if not Id:
             raise AppSessionException("An AppSession Id is required")
-        resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'        
-        resourcePath = resourcePath.replace('{AppSessionId}', Id)        
-        response = cStringIO.StringIO()
+        resourcePath = self.apiClient.apiServerAndVersion + '/appsessions/{AppSessionId}'
+        resourcePath = resourcePath.replace('{AppSessionId}', Id)
+        response = moves.cStringIO()
         import requests
         response = requests.get(resourcePath, auth=(self.key, self.secret))
         resp_dict = json.loads(response.text)
-        return self.__deserializeAppSessionResponse__(resp_dict) 
+        return self.__deserializeAppSessionResponse__(resp_dict)
 
     def getAppSession(self, Id=None, queryPars=None):
         if Id is None:
             Id = self.appSessionId
         if not Id:
             raise AppSessionException("An AppSession Id is required")
-        resourcePath = '/appsessions/{AppSessionId}'        
-        resourcePath = resourcePath.replace('{AppSessionId}', Id)        
+        resourcePath = '/appsessions/{AppSessionId}'
+        resourcePath = resourcePath.replace('{AppSessionId}', Id)
         method = 'GET'
         headerParams = {}
         queryParams = {}
@@ -214,58 +215,58 @@ class BaseSpaceAPI(BaseAPI):
 
     def __deserializeAppSessionResponse__(self, response):
         '''
-        Converts a AppSession response from the API server to an AppSession object.        
-        
+        Converts a AppSession response from the API server to an AppSession object.
+
         :param response: a dictionary (decoded from json) from getting an AppSession from the api server
-        :returns: An AppSession instance                
-        '''        
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                    
+        :returns: An AppSession instance
+        '''
+        if 'ErrorCode' in response['ResponseStatus']:
+            raise AppSessionException('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         tempApi = APIClient(AccessToken='', apiServerAndVersion=self.apiClient.apiServerAndVersion, userAgent=self.apiClient.userAgent)
-        res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)            
+        res = tempApi.deserialize(response, AppSessionResponse.AppSessionResponse)
         return res.Response.__deserializeReferences__(self)
 
     def getAppSessionPropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of an AppSession
-        
+
         :param Id: An AppSession Id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :returns: A PropertyList instance            
-        '''                
-        queryParams = self._validateQueryParameters(queryPars)            
+        :returns: A PropertyList instance
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appsessions/{Id}/properties'
         resourcePath = resourcePath.replace('{Id}',Id)
-        method = 'GET'        
-        headerParams = {}                
+        method = 'GET'
+        headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams)
 
     def getAppSessionPropertyByName(self, Id, name, queryPars=None):
         '''
         Returns the multi-value Property of the provided AppSession that has the provided Property name.
         Note - this method (and REST API) is supported for ONLY multi-value Properties.
-        
+
         :param Id: The AppSessionId
         :param name: Name of the multi-value property to retrieve
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :returns: A multi-value propertylist instance such as MultiValuePropertyAppResultsList (depending on the Property Type)        
+        :returns: A multi-value propertylist instance such as MultiValuePropertyAppResultsList (depending on the Property Type)
         '''
-        queryParams = self._validateQueryParameters(queryPars)                
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appsessions/{Id}/properties/{Name}/items'
         resourcePath = resourcePath.replace('{Id}', Id)
-        resourcePath = resourcePath.replace('{Name}', name)        
-        method = 'GET'        
+        resourcePath = resourcePath.replace('{Name}', name)
+        method = 'GET'
         headerParams = {}
         return self.__singleRequest__(MultiValuePropertyResponse.MultiValuePropertyResponse, resourcePath, method, queryParams, headerParams)
-                    
+
     def getAppSessionInputsById(self, Id, queryPars=None):
         '''
         Returns the input properties of an AppSession
-        
+
         :param Id: An AppSessionId
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :returns: a dictionary of input properties, keyed by input Name      
-        '''            
+        :returns: a dictionary of input properties, keyed by input Name
+        '''
         props = self.getAppSessionPropertiesById(Id, queryPars)
         inputs = {}
         for prop in props.Items:
@@ -278,13 +279,13 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Set the Status and StatusSummary of an AppSession in BaseSpace.
         Note - once Status is set to Completed or Aborted, no further changes can made.
-        
+
         :param Id: The id of the AppSession
         :param Status: The AppSession status string, must be one of: Running, Complete, NeedsAttention, TimedOut, Aborted
         :param Summary: The status summary string
         :returns: An updated AppSession instance
         '''
-        resourcePath = '/appsessions/{Id}'        
+        resourcePath = '/appsessions/{Id}'
         method = 'POST'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
@@ -311,7 +312,7 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         postData = {}
-        apiServerAndVersion = urlparse.urljoin(self.apiServer, "v2")
+        apiServerAndVersion = urllib.parse.urljoin(self.apiServer, "v2")
         v2api = BaseAPI(self.getAccessToken(), apiServerAndVersion)
         return v2api.__singleRequest__(AppSessionResponse.AppSessionResponse, resourcePath, method, queryParams,
                                   headerParams, postData=postData)
@@ -320,8 +321,8 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Converts API response into object instances for Projects, Samples, and AppResults.
         For other types, the input value is simply returned.
-        
-        (Currently called by Sample's getReferencedAppResults() and 
+
+        (Currently called by Sample's getReferencedAppResults() and
         AppSessionLaunchObject's __deserializeObject__() to serialize References)
 
         :param dct: dictionary from an API response (converted from JSON) for a BaseSpace item (eg., a Project)
@@ -334,13 +335,13 @@ class BaseSpaceAPI(BaseAPI):
         if type.lower()=='sample':
             return tempApi.deserialize(dct, Sample.Sample)
         if type.lower()=='appresult':
-            return tempApi.deserialize(dct, AppResult.AppResult)        
-        return dct            
-                
+            return tempApi.deserialize(dct, AppResult.AppResult)
+        return dct
+
     def getAccess(self, obj, accessType='write', web=False, redirectURL='', state=''):
         '''
         Requests access to the provided BaseSpace object.
-        
+
         :param obj: The data object we wish to get access to -- must be a Project, Sample, AppResult, or Run.
         :param accessType: (Optional) the type of access (browse|read|write|create), default is write. Create is only supported for Projects.
         :param web: (Optional) true if the App is web-based, default is false meaning a device based app
@@ -357,12 +358,12 @@ class BaseSpaceAPI(BaseAPI):
             return self.getWebVerificationCode(scopeStr, redirectURL, state)
         else:
             return self.getVerificationCode(scopeStr)
-        
+
     def getVerificationCode(self, scope):
         '''
-        For non-web applications (eg. devices), returns the device code 
-        and verification url for the user to approve access to a specific data scope.  
-            
+        For non-web applications (eg. devices), returns the device code
+        and verification url for the user to approve access to a specific data scope.
+
         :param scope: The scope that access is requested for (e.g. 'browse project 123')
         :returns: dictionary of server response
         '''
@@ -372,21 +373,21 @@ class BaseSpaceAPI(BaseAPI):
     def getWebVerificationCode(self, scope, redirectURL, state=''):
         '''
         Generates the URL the user should be redirected to for web-based authentication
-         
+
         :param scope: The scope that access is requested for (e.g. 'browse project 123')
         :param redirectURL: The redirect URL
         :param state: (Optional) A state parameter that will passed through to the redirect response
-        :returns: a url 
-        '''        
+        :returns: a url
+        '''
         data = {'client_id': self.key, 'redirect_uri': redirectURL, 'scope': scope, 'response_type': 'code', "state": state}
-        return self.weburl + webAuthorize + '?' + urllib.urlencode(data)
+        return self.weburl + webAuthorize + '?' + urllib.parse.urlencode(data)
 
     def obtainAccessToken(self, code, grantType='device', redirect_uri=None):
         '''
-        Returns a user specific access token, for either device (non-web) or web apps.   
-        
+        Returns a user specific access token, for either device (non-web) or web apps.
+
         :param code: The device code returned by the getVerificationCode method
-        :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps 
+        :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps
         :param redirect_uri: The uri to redirect to; required for web apps only.
         :raises OAuthException: when redirect_uri isn't provided by web apps
         :returns: an access token
@@ -414,12 +415,12 @@ class BaseSpaceAPI(BaseAPI):
             raise ServerResponseException('Could not query access token endpoint: %s' % str(e))
         if not response:
             raise ServerResponseException('No response returned')
-        if response.has_key('ResponseStatus'):
-            if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ResponseStatus' in response:
+            if 'ErrorCode' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['ErrorCode'] + ": " + response['ResponseStatus']['Message']))
-            elif response['ResponseStatus'].has_key('Message'):
+            elif 'Message' in response['ResponseStatus']:
                 raise ServerResponseException(str(response['ResponseStatus']['Message']))
-        elif response.has_key('ErrorCode'):
+        elif 'ErrorCode' in response:
             raise ServerResponseException(response["MessageFormatted"])
 
         responseObject = self.apiClient.deserialize(response["Response"], Token.Token)
@@ -431,27 +432,27 @@ class BaseSpaceAPI(BaseAPI):
         Retrieves a user-specific access token, and sets the token on the current object.
 
         :param code: The device code returned by the getVerificationCode method
-        :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps 
+        :param grantType: Grant-type may be either 'device' for non-web apps (default), or 'authorization_code' for web apps
         :param redirect_uri: The uri to redirect to; required for web apps only.
-        :returns: None        
+        :returns: None
         '''
         token = self.obtainAccessToken(code, grantType=grantType, redirect_uri=redirect_uri)
         self.setAccessToken(token)
-            
+
     def createProject(self, Name):
         '''
-        Creates a project with the specified name and returns a project object. 
+        Creates a project with the specified name and returns a project object.
         If a project with this name already exists, the existing project is returned.
-        
+
         :param Name: Name of the project
-        :returns: a Project instance of the newly created project        
-        '''        
-        resourcePath            = '/projects/'        
+        :returns: a Project instance of the newly created project
+        '''
+        resourcePath            = '/projects/'
         method                  = 'POST'
         queryParams             = {}
         headerParams            = {}
         postData                = {}
-        postData['Name']        = Name        
+        postData['Name']        = Name
         return self.__singleRequest__(ProjectResponse.ProjectResponse,
                                       resourcePath, method, queryParams, headerParams, postData=postData)
 
@@ -461,26 +462,26 @@ class BaseSpaceAPI(BaseAPI):
         queryParams             = {}
         headerParams            = { 'Content-Type' : "application/json" }
         postData                = configJson
-        return self.__singleRequest__(AppLaunchResponse.AppLaunchResponse, 
+        return self.__singleRequest__(AppLaunchResponse.AppLaunchResponse,
                                       resourcePath, method, queryParams, headerParams, postData=postData)
 
     def getUserById(self, Id):
         '''
         Returns the User object corresponding to User Id
-        
+
         :param Id: The Id of the user
         :returns: a User instance
-        '''        
-        resourcePath = '/users/{Id}'        
+        '''
+        resourcePath = '/users/{Id}'
         method = 'GET'
         resourcePath = resourcePath.replace('{Id}', Id)
         queryParams = {}
         headerParams = {}
         return self.__singleRequest__(UserResponse.UserResponse, resourcePath, method, queryParams, headerParams)
-           
+
     def getAppResultFromAppSessionId(self, Id, appResultName=""):
         '''
-        Returns an AppResult object from an AppSession Id. 
+        Returns an AppResult object from an AppSession Id.
         if appResultName is supplied, look for an appresult with this name
         otherwise, expect there to be exactly one appresult
 
@@ -503,47 +504,47 @@ class BaseSpaceAPI(BaseAPI):
     def getAppResultById(self, Id, queryPars=None):
         '''
         Returns an AppResult object corresponding to Id
-        
+
         :param Id: The Id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: an AppResult instance
-        '''        
+        '''
         queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appresults/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(AppResultResponse.AppResultResponse,resourcePath, method, queryParams, headerParams)
 
     def getAppResultPropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of an AppResult object corresponding to AppResult Id
-        
+
         :param Id: The Id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a PropertyList instance
-        '''                    
-        queryParams = self._validateQueryParameters(queryPars)        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appresults/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)                
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse, resourcePath, method, queryParams, headerParams)
 
     def getAppResultFilesById(self, Id, queryPars=None):
         '''
         Returns a list of File object for an AppResult
-        
+
         :param Id: The id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :returns: a list of File instances 
+        :returns: a list of File instances
         '''
-        queryParams = self._validateQueryParameters(queryPars)                
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/appresults/{Id}/files'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'        
+        method = 'GET'
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams)
@@ -551,12 +552,12 @@ class BaseSpaceAPI(BaseAPI):
     def getAppResultFiles(self, Id, queryPars=None):
         '''
         * Deprecated in favor of getAppResultFileById() *
-        
+
         Returns a list of File object for an AppResult
-        
+
         :param Id: The id of the AppResult
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
-        :returns: a list of File instances 
+        :returns: a list of File instances
         '''
         return self.getAppResultFilesById(Id, queryPars)
 
@@ -586,46 +587,46 @@ class BaseSpaceAPI(BaseAPI):
     def getProjectById(self, Id, queryPars=None):
         '''
         Request a project object by Id
-        
+
         :param Id: The Id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a Project instance
         '''
-        queryParams = self._validateQueryParameters(queryPars)                
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/projects/{Id}'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(ProjectResponse.ProjectResponse, resourcePath, method, queryParams, headerParams)
 
     def getProjectPropertiesById(self, Id, queryPars=None):
         '''
         Request the Properties of a project object by Id
-        
+
         :param Id: The Id of the project
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a ProjectList instance
         '''
-        queryParams = self._validateQueryParameters(queryPars)       
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/projects/{Id}/properties'
         resourcePath = resourcePath.replace('{format}', 'json')
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
-           
+
     def getProjectByUser(self, queryPars=None):
         '''
         Returns a list available projects for the current User.
-                
+
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of Project instances
         '''
-        queryParams = self._validateQueryParameters(queryPars)               
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/users/current/projects'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'        
+        method = 'GET'
         headerParams = {}
         return self.__listRequest__(Project.Project,resourcePath, method, queryParams, headerParams)
 
@@ -644,92 +645,92 @@ class BaseSpaceAPI(BaseAPI):
     def getAccessibleRunsByUser(self, queryPars=None):
         '''
         Returns a list of accessible runs for the current User
-                
+
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of Run instances
-        '''        
-        queryParams = self._validateQueryParameters(queryPars)               
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/users/current/runs'
         resourcePath = resourcePath.replace('{format}', 'json')
-        method = 'GET'        
+        method = 'GET'
         headerParams = {}
         return self.__listRequest__(Run.Run, resourcePath, method, queryParams, headerParams)
-    
+
     def getRunById(self, Id, queryPars=None):
-        '''        
+        '''
         Request a run object by Id
-        
+
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a Run instance
-        '''        
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/runs/{Id}'        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/runs/{Id}'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)            
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(RunResponse.RunResponse,resourcePath, method, queryParams, headerParams)
-    
+
     def getRunPropertiesById(self, Id, queryPars=None):
-        '''        
+        '''
         Request the Properties of a run object by Id
-        
+
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a PropertyList instance
-        '''        
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/runs/{Id}/properties'        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/runs/{Id}/properties'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,resourcePath, method, queryParams, headerParams)
 
     def getRunFilesById(self, Id, queryPars=None):
-        '''        
+        '''
         Request the files associated with a Run, using the Run's Id
-        
+
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of Run instances
-        '''        
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/runs/{Id}/files'        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/runs/{Id}/files'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)            
-        headerParams = {}         
+        resourcePath = resourcePath.replace('{Id}', Id)
+        headerParams = {}
         return self.__listRequest__(File.File,resourcePath, method, queryParams, headerParams)
 
     def getRunSamplesById(self, Id, queryPars=None):
-        '''        
+        '''
         Request the Samples associated with a Run, using the Run's Id
-        
+
         :param Id: The Id of the run
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of Sample instances
-        '''        
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/runs/{Id}/samples'        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/runs/{Id}/samples'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)            
-        headerParams = {}         
+        resourcePath = resourcePath.replace('{Id}', Id)
+        headerParams = {}
         return self.__listRequest__(Sample.Sample,resourcePath, method, queryParams, headerParams)
-  
+
     def getAppResultsByProject(self, Id, queryPars=None, statuses=None):
         '''
         Returns a list of AppResult object associated with the project with Id
-        
+
         :param Id: The project id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :param statuses: An (optional) list of AppResult statuses to filter by, eg., 'complete'
         :returns: a list of AppResult instances
         '''
-        queryParams = self._validateQueryParameters(queryPars) 
+        queryParams = self._validateQueryParameters(queryPars)
         if statuses is None:
-            statuses = []               
-        resourcePath = '/projects/{Id}/appresults'        
-        method = 'GET'        
-        if len(statuses): 
+            statuses = []
+        resourcePath = '/projects/{Id}/appresults'
+        method = 'GET'
+        if len(statuses):
             queryParams['Statuses'] = ",".join(statuses)
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
@@ -754,22 +755,22 @@ class BaseSpaceAPI(BaseAPI):
     def getSampleById(self, Id, queryPars=None):
         '''
         Returns a Sample object
-        
+
         :param Id: The id of the sample
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a Sample instance
         '''
-        queryParams = self._validateQueryParameters(queryPars)        
-        resourcePath = '/samples/{Id}'        
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/samples/{Id}'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(SampleResponse.SampleResponse, resourcePath, method, queryParams, headerParams)
-    
+
     def getSamplePropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of a Sample object
-        
+
         :param Id: The id of the sample
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a PropertyList instance
@@ -785,14 +786,14 @@ class BaseSpaceAPI(BaseAPI):
     def getSampleFilesById(self, Id, queryPars=None):
         '''
         Returns a list of File objects associated with a Sample
-        
+
         :param Id: A Sample id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of File instances
         '''
         queryParams = self._validateQueryParameters(queryPars)
-        resourcePath = '/samples/{Id}/files'        
-        method = 'GET'        
+        resourcePath = '/samples/{Id}/files'
+        method = 'GET'
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}',Id)
         return self.__listRequest__(File.File,
@@ -801,43 +802,43 @@ class BaseSpaceAPI(BaseAPI):
     def getFilesBySample(self, Id, queryPars=None):
         '''
         * Deprecated in favor of getSampleFilesById() *
-        
+
         Returns a list of File objects associated with a Sample
-        
+
         :param Id: A Sample id
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of File instances
         '''
-        return self.getSampleFilesById(Id, queryPars)        
-    
+        return self.getSampleFilesById(Id, queryPars)
+
     def getFileById(self, Id, queryPars=None):
         '''
         Returns a file object by Id
-        
+
         :param Id: The id of the file
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a File instance
         '''
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/files/{Id}'        
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/files/{Id}'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)            
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(FileResponse.FileResponse,
                                       resourcePath, method, queryParams, headerParams)
-        
+
     def getFilePropertiesById(self, Id, queryPars=None):
         '''
         Returns the Properties of a file object by Id
-        
+
         :param Id: The id of the file
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a PropertyList instance
-        '''        
-        queryParams = self._validateQueryParameters(queryPars)                
-        resourcePath = '/files/{Id}/properties'        
+        '''
+        queryParams = self._validateQueryParameters(queryPars)
+        resourcePath = '/files/{Id}/properties'
         method = 'GET'
-        resourcePath = resourcePath.replace('{Id}', Id)            
+        resourcePath = resourcePath.replace('{Id}', Id)
         headerParams = {}
         return self.__singleRequest__(PropertiesResponse.PropertiesResponse,
                                       resourcePath, method, queryParams, headerParams)
@@ -845,7 +846,7 @@ class BaseSpaceAPI(BaseAPI):
     def getGenomeById(self, Id, ):
         '''
         Returns an instance of Genome with the specified Id
-        
+
         :param Id: The genome id
         :returns: a GenomeV1 instance
         '''
@@ -862,10 +863,10 @@ class BaseSpaceAPI(BaseAPI):
     def getAvailableGenomes(self, queryPars=None):
         '''
         Returns a list of all available genomes
-        
+
         :param queryPars: An (optional) object of type QueryParameters for custom sorting and filtering
         :returns: a list of GenomeV1 instances
-        '''        
+        '''
         queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/genomes'
         method = 'GET'
@@ -876,12 +877,12 @@ class BaseSpaceAPI(BaseAPI):
     def getIntervalCoverage(self, Id, Chrom, StartPos, EndPos):
         '''
         Returns metadata about an alignment, including max coverage and cov granularity.
-        Note that HrefCoverage must be available for the provided BAM file.       
-        
+        Note that HrefCoverage must be available for the provided BAM file.
+
         :param Id: the Id of a BAM file
         :param Chrom: chromosome name
         :param StartPos: get coverage starting at this position
-        :param EndPos: get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate        
+        :param EndPos: get coverage up to and including this position; the returned EndPos may be larger than requested due to rounding up to nearest window end coordinate
         :returns: a Coverage instance
         '''
         resourcePath = '/coverage/{Id}/{Chrom}'
@@ -899,7 +900,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Returns metadata about coverage of a chromosome.
         Note that HrefCoverage must be available for the provided BAM file
-        
+
         :param Id: the Id of a Bam file
         :param Chrom: chromosome name
         :returns: a CoverageMetaData instance
@@ -909,15 +910,15 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         resourcePath = resourcePath.replace('{Chrom}', Chrom)
-        resourcePath = resourcePath.replace('{Id}', Id)        
+        resourcePath = resourcePath.replace('{Id}', Id)
         return self.__singleRequest__(CoverageMetaResponse.CoverageMetaResponse,
                                       resourcePath, method, queryParams, headerParams)
 
     def filterVariantSet(self,Id, Chrom, StartPos, EndPos, Format='json', queryPars=None):
         '''
         List the variants in a set of variants. Note the maximum returned records is 1000.
-        
-        :param Id: The id of the variant file 
+
+        :param Id: The id of the variant file
         :param Chrom: Chromosome name
         :param StartPos: The start position of the sequence of interest
         :param EndPos: The start position of the sequence of interest
@@ -927,7 +928,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         queryParams = self._validateQueryParameters(queryPars)
         resourcePath = '/variantset/{Id}/variants/{Chrom}'
-        method = 'GET'        
+        method = 'GET'
         headerParams = {}
         queryParams['StartPos'] = StartPos
         queryParams['EndPos']   = EndPos
@@ -940,14 +941,14 @@ class BaseSpaceAPI(BaseAPI):
             return self.__listRequest__(Variant.Variant, resourcePath, method, queryParams, headerParams, sort=False)
 
     def getVariantMetadata(self, Id, Format='json'):
-        '''        
+        '''
         Returns the header information of a VCF file.
-        
+
         :param Id: The Id of the VCF file
         :param Format: (optional) The return-value format, set to 'json' (default) to return return an object (not actually json format), or 'vcf' (not implemented yet) to return a string in VCF format.
         :returns: A VariantHeader instance
         '''
-        resourcePath = '/variantset/{Id}'        
+        resourcePath = '/variantset/{Id}'
         method = 'GET'
         queryParams = {}
         headerParams = {}
@@ -958,16 +959,16 @@ class BaseSpaceAPI(BaseAPI):
         else:
             return self.__singleRequest__(VariantsHeaderResponse.VariantsHeaderResponse,
                                           resourcePath, method, queryParams, headerParams)
-         
+
     def createAppResult(self, Id, name, desc, samples=None, appSessionId=None):
         '''
         Create an AppResult object.
-        
+
         :param Id: The id of the project in which the AppResult is to be added
         :param name: The name of the AppResult
         :param desc: A description of the AppResult
-        :param samples: (Optional) A list of one or more Samples Ids that the AppResult is related to 
-        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object 
+        :param samples: (Optional) A list of one or more Samples Ids that the AppResult is related to
+        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the appresult object
         :raises Exception: when attempting to create AppResult in an AppSession that has a status other than 'running'.
         :returns: a newly created AppResult instance
         '''
@@ -982,12 +983,12 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         postData = {}
-        
+
         if appSessionId:
             queryParams['appsessionid'] = appSessionId
         if appSessionId==None:
             queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
-        
+
         # add the sample references
         if len(samples):
             ref = []
@@ -996,28 +997,28 @@ class BaseSpaceAPI(BaseAPI):
                 ref.append(d)
             postData['References']  = ref
         # case, an appSession is provided, we need to check if the app is running
-        if queryParams.has_key('appsessionid'):
+        if 'appsessionid' in queryParams:
             session = self.getAppSession(Id=queryParams['appsessionid'])
             if not session.canWorkOn():
                 raise Exception('AppSession status must be "running," to create an AppResults. Current status is ' + session.Status)
-            
+
         postData['Name'] = name
         postData['Description'] = desc
         return self.__singleRequest__(AppResultResponse.AppResultResponse,
                                       resourcePath, method, queryParams, headerParams, postData=postData)
-            
+
     def appResultFileUpload(self, Id, localPath, fileName, directory, contentType):
         '''
         Uploads a file associated with an AppResult to BaseSpace and returns the corresponding file object.
         Small files are uploaded with a single-part upload method, while larger files (> 25 MB) are uploaded
         with multipart upload.
-        
+
         :param Id: AppResult id.
         :param localPath: The local path to the file to be uploaded, including file name.
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
         :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
-        :returns: a newly created File instance    
+        :returns: a newly created File instance
         '''
         multipart_min_file_size = 25000000 # bytes
         if os.path.getsize(localPath) > multipart_min_file_size:
@@ -1028,11 +1029,11 @@ class BaseSpaceAPI(BaseAPI):
     def createSample(self, Id, name, experimentName, sampleNumber, sampleTitle, readLengths, countRaw, countPF, reference=None, appSessionId=None):
         '''
         Create a Sample object.
-        
+
         :param Id: The id of the project in which the Sample is to be added
         :param name: The name of the Sample
-        :param reference: (Optional) Reference genome that the sample relates to 
-        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the sample object 
+        :param reference: (Optional) Reference genome that the sample relates to
+        :param appSessionId: (Optional) If no appSessionId is given, the id used to initialize the BaseSpaceAPI instance will be used. If appSessionId is set equal to an empty string, a new appsession will be created for the sample object
         :raises Exception: when attempting to create Sample in an AppSession that has a status other than 'running'.
         :returns: a newly created Sample instance
         '''
@@ -1047,18 +1048,18 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         postData = {}
-        
+
         if appSessionId:
             queryParams['appsessionid'] = appSessionId
         if appSessionId==None:
             queryParams['appsessionid'] = self.appSessionId      # default case, we use the current appsession
-        
+
         # case, an appSession is provided, we need to check if the app is running
-        if queryParams.has_key('appsessionid'):
+        if 'appsessionid' in queryParams:
             session = self.getAppSession(Id=queryParams['appsessionid'])
             if not session.canWorkOn():
                 raise Exception('AppSession status must be "running," to create a Sample. Current status is ' + session.Status)
-            
+
         postData['Name'] = name
         postData['ExperimentName'] = experimentName
         postData['SampleNumber'] = sampleNumber
@@ -1099,14 +1100,14 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Uploads a file associated with an Endpoint to BaseSpace and returns the corresponding file object.
         Intended for small files -- reads whole file into memory prior to upload.
-        
+
         :param resourceType: resource type for the property
         :param resourceId: identifier for the resource
         :param localPath: The local path to the file to be uploaded, including file name.
         :param fileName: The desired filename in the Endpoint folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
         :param contentType: The content-type of the file.
-        :returns: a newly created File instance       
+        :returns: a newly created File instance
         '''
         if resourceType not in PROPERTY_RESOURCE_TYPES:
             raise IllegalParameterException(resourceType, PROPERTY_RESOURCE_TYPES)
@@ -1116,7 +1117,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath                 = resourcePath.replace('{Resource}', resourceType)
         queryParams                  = {}
         queryParams['name']          = fileName
-        queryParams['directory']     = directory 
+        queryParams['directory']     = directory
         headerParams                 = {}
         headerParams['Content-Type'] = contentType
         postData                     = open(localPath).read()
@@ -1125,14 +1126,14 @@ class BaseSpaceAPI(BaseAPI):
 
     def __initiateMultipartFileUpload__(self, resourceType, resourceId, fileName, directory, contentType):
         '''
-        Initiates multipart upload of a file to an AppResult in BaseSpace (does not actually upload file).  
-        
+        Initiates multipart upload of a file to an AppResult in BaseSpace (does not actually upload file).
+
         :param resourceType: resource type for the property
         :param resourceId: identifier for the resource
         :param fileName: The desired filename in the AppResult folder on the BaseSpace server.
         :param directory: The directory the file should be placed in on the BaseSpace server.
         :param contentType: The content-type of the file, eg. 'text/plain' for text files, 'application/octet-stream' for binary files
-        :returns: A newly created File instance      
+        :returns: A newly created File instance
         '''
         if resourceType not in PROPERTY_RESOURCE_TYPES:
             raise IllegalParameterException(resourceType, PROPERTY_RESOURCE_TYPES)
@@ -1142,10 +1143,10 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath                 = resourcePath.replace('{Resource}', resourceType)
         queryParams                  = {}
         queryParams['name']          = fileName
-        queryParams['directory']     = directory 
+        queryParams['directory']     = directory
         headerParams                 = {}
         headerParams['Content-Type'] = contentType
-                
+
         queryParams['multipart']     = 'true'
         postData                     = None
         # Set force post as this need to use POST though no data is being streamed
@@ -1155,12 +1156,12 @@ class BaseSpaceAPI(BaseAPI):
     def __uploadMultipartUnit__(self, Id, partNumber, md5, data):
         '''
         Uploads file part for multipart upload
-        
-        :param Id: file id 
+
+        :param Id: file id
         :param partNumber: the file part to be uploaded
         :param md5: md5 sum of datastream
         :param data: the name of the file containing only data to be uploaded
-        :returns: A dictionary of the server response, with a 'Response' key that contains a dict, which contains an 'ETag' key and value on success. On failure, this method returns None 
+        :returns: A dictionary of the server response, with a 'Response' key that contains a dict, which contains an 'ETag' key and value on success. On failure, this method returns None
         '''
         method                       = 'PUT'
         resourcePath                 = '/files/{Id}/parts/{partNumber}'
@@ -1168,12 +1169,12 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath                 = resourcePath.replace('{partNumber}', str(partNumber))
         queryParams                  = {}
         headerParams                 = {'Content-MD5':md5.strip()}
-        return self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams, forcePost=0)        
+        return self.apiClient.callAPI(resourcePath, method, queryParams, data, headerParams=headerParams, forcePost=0)
 
     def __finalizeMultipartFileUpload__(self, Id):
         '''
-        Marks a multipart upload file as complete  
-        
+        Marks a multipart upload file as complete
+
         :param Id: the File Id
         :returns: a File instance with UploadStatus attribute updated to 'complete'
         '''
@@ -1182,7 +1183,7 @@ class BaseSpaceAPI(BaseAPI):
         resourcePath                 = resourcePath.replace('{Id}', Id)
         headerParams                 = {}
         queryParams                  = {'uploadstatus':'complete'}
-        postData                     = None        
+        postData                     = None
         # Set force post as this need to use POST though no data is being streamed
         return self.__singleRequest__(FileResponse.FileResponse,
                                       resourcePath, method, queryParams, headerParams, postData=postData, forcePost=1)
@@ -1190,7 +1191,7 @@ class BaseSpaceAPI(BaseAPI):
     def multipartFileUpload(self, resourceType, resourceId, localPath, fileName, directory, contentType, processCount=10, partSize=25):
         '''
         Method for multi-threaded file-upload for parallel transfer of very large files (currently only runs on unix systems)
-        
+
         :param resourceType: resource type for the property
         :param resourceId: identifier for the resource
         :param localPath: The local path of the file to upload, including file name; local path will not be stored in BaseSpace (use directory argument for this)
@@ -1208,7 +1209,7 @@ class BaseSpaceAPI(BaseAPI):
             raise UploadPartSizeException("Multipart upload partSize must be >5 MB and <=25 MB")
         bsFile = self.__initiateMultipartFileUpload__(resourceType, resourceId, fileName, directory, contentType)
         myMpu = mpu(self, localPath, bsFile, processCount, partSize)
-        return myMpu.upload()                
+        return myMpu.upload()
 
     def multipartFileUploadSample(self, Id, localPath, fileName, directory, contentType, tempDir=None, processCount=10, partSize=25):
         '''
@@ -1239,21 +1240,21 @@ class BaseSpaceAPI(BaseAPI):
     def fileDownload(self, Id, localDir, byteRange=None, createBsDir=False):
         '''
         Downloads a BaseSpace file to a local directory, and names the file with the BaseSpace file name.
-        If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir 
+        If the File has a directory in BaseSpace, it will be re-created locally in the provided localDir
         (to disable this, set createBsPath=False).
-        
-        If the file is large, multi-part download will be used. 
-        
+
+        If the file is large, multi-part download will be used.
+
         Byte-range requests are supported for only small byte ranges (single-part downloads).
         Byte-range requests are restricted to a single request of 'start' and 'end' bytes, without support for
         negative or empty values for 'start' or 'end'.
-        
+
         :param Id: The file id
-        :param localDir: The local directory to place the file in    
+        :param localDir: The local directory to place the file in
         :param byteRange: (optional) The byte range of the file to retrieve, provide a 2-element list with start and end byte values
         :param createBsDir: (optional) create BaseSpace File's directory inside localDir (default: False)
         :raises ByteRangeException: if the provided byte range is invalid
-        :returns: a File instance                
+        :returns: a File instance
         '''
         max_retries = 5
         multipart_min_file_size = 5000000 # bytes
@@ -1266,7 +1267,7 @@ class BaseSpaceAPI(BaseAPI):
                 raise ByteRangeException("Byte range must have smaller byte number first")
             if rangeSize > multipart_min_file_size:
                 raise ByteRangeException("Byte range %d larger than maximum allowed size %d" % (rangeSize, multipart_min_file_size))
-                
+
         bsFile = self.getFileById(Id)
         if (bsFile.Size < multipart_min_file_size) or (byteRange and (rangeSize < multipart_min_file_size)):
             # append File's directory to local dir, and create this path if it doesn't exist
@@ -1274,7 +1275,7 @@ class BaseSpaceAPI(BaseAPI):
             if createBsDir:
                 localDest = os.path.join(localDir, os.path.dirname(bsFile.Path))
                 if not os.path.exists(localDest):
-                    os.makedirs(localDest)            
+                    os.makedirs(localDest)
             attempt = 0
             while attempt < max_retries:
                 try:
@@ -1286,18 +1287,18 @@ class BaseSpaceAPI(BaseAPI):
             if attempt == max_retries:
                 raise ServerResponseException("Max retries exceeded")
             return bsFile
-        else:                        
+        else:
             return self.multipartFileDownload(Id, localDir, createBsDir=createBsDir)
 
     def __downloadFile__(self, Id, localDir, name, byteRange=None, standaloneRangeFile=False, lock=None): #@ReservedAssignment
         '''
-        Downloads a BaseSpace file to a local directory. 
-        Supports byte-range requests; by default will seek() into local file for multipart downloads, 
+        Downloads a BaseSpace file to a local directory.
+        Supports byte-range requests; by default will seek() into local file for multipart downloads,
         with option to save only range data in standalone file (no seek()).
-        
-        This method is for downloading relatively small files, eg. < 5 MB. 
-        For larger files, use multipart download (which uses this method for file parts).                
-        
+
+        This method is for downloading relatively small files, eg. < 5 MB.
+        For larger files, use multipart download (which uses this method for file parts).
+
         :param Id: The file id
         :param localDir: The local directory to place the file in
         :param name: The name of the local file
@@ -1316,24 +1317,24 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
-        
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly
+
         response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ErrorCode' in response['ResponseStatus']:
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-        
+
         # get the Amazon URL, then do the download; for range requests include
         # size to ensure reading until end of data stream. Create local file if
-        # it doesn't exist (don't truncate in case other processes from 
+        # it doesn't exist (don't truncate in case other processes from
         # multipart download also do this)
-        req = urllib2.Request(response['Response']['HrefContent'])
+        req = urllib.request.Request(response['Response']['HrefContent'])
         filename = os.path.join(localDir, name)
         if not os.path.exists(filename):
             open(filename, 'a').close()
         iter_size = 16*1024 # python default
         if len(byteRange):
             req.add_header('Range', 'bytes=%s-%s' % (byteRange[0], byteRange[1]))
-        flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking                
+        flo = urllib.request.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking
         totRead = 0
         with open(filename, 'r+b', 0) as fp:
             if len(byteRange) and standaloneRangeFile == False:
@@ -1360,14 +1361,14 @@ class BaseSpaceAPI(BaseAPI):
     def multipartFileDownload(self, Id, localDir, processCount=10, partSize=25, createBsDir=False, tempDir=""):
         '''
         Method for multi-threaded file-download for parallel transfer of very large files (currently only runs on unix systems)
-        
-        :param Id: The ID of the File to download 
+
+        :param Id: The ID of the File to download
         :param localDir: The local path in which to store the downloaded file
         :param processCount: (optional) The number of processes to be used, default 10
         :param partSize: (optional) The size in MB of individual file parts to download, default 25
         :param createBsDir: (optional) create BaseSpace File's directory in local_dir, default False
         :param tempDir: (optional) Set temp directory to use debug mode, which stores downloaded file chunks in individual files, then completes by 'cat'ing chunks into large file
-        :returns: a File instance 
+        :returns: a File instance
         '''
         myMpd = mpd(self, Id, localDir, processCount, partSize, createBsDir, tempDir)
         return myMpd.download()
@@ -1375,9 +1376,9 @@ class BaseSpaceAPI(BaseAPI):
     def fileUrl(self, Id):
         '''
         ** Deprecated in favor of fileS3metadata() **
-        
+
         Returns URL of file (on S3)
-        
+
         :param Id: The file id
         :raises Exception: if REST API call to BaseSpace server fails
         :returns: a URL
@@ -1388,17 +1389,17 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
-        
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly
+
         response = self.apiClient.callAPI(resourcePath, method, queryParams, None, headerParams)
-        if response['ResponseStatus'].has_key('ErrorCode'):
-            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])                
+        if 'ErrorCode' in response['ResponseStatus']:
+            raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
         return response['Response']['HrefContent']
 
     def fileS3metadata(self, Id):
         '''
         Returns the S3 url and etag (md5 for small files uploaded as a single part) for a BaseSpace file
-                
+
         :param Id: The file id
         :raises Exception: if REST API call to BaseSpace server fails
         :returns: Dict with s3 url ('url' key) and etag ('etag' key)
@@ -1410,20 +1411,20 @@ class BaseSpaceAPI(BaseAPI):
         queryParams = {}
         headerParams = {}
         resourcePath = resourcePath.replace('{Id}', Id)
-        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly 
-        
+        queryParams['redirect'] = 'meta' # we need to add this parameter to get the Amazon link directly
+
         response = self.apiClient.callAPI(resourcePath, method, queryParams,None, headerParams)
-        if response['ResponseStatus'].has_key('ErrorCode'):
+        if 'ErrorCode' in response['ResponseStatus']:
             raise Exception('BaseSpace error: ' + str(response['ResponseStatus']['ErrorCode']) + ": " + response['ResponseStatus']['Message'])
-        
+
         # record S3 URL
         ret['url'] = response['Response']['HrefContent']
-        
+
         # TODO should use HEAD call here, instead do small GET range request
-        # GET S3 url and record etag         
-        req = urllib2.Request(response['Response']['HrefContent'])
+        # GET S3 url and record etag
+        req = urllib.request.Request(response['Response']['HrefContent'])
         req.add_header('Range', 'bytes=%s-%s' % (0, 1))
-        flo = urllib2.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking  
+        flo = urllib.request.urlopen(req, timeout=self.getTimeout()) # timeout prevents blocking
         try:
             etag = flo.headers['etag']
         except KeyError:
@@ -1433,12 +1434,12 @@ class BaseSpaceAPI(BaseAPI):
             etag = etag[1:-1]
         ret['etag'] = etag
         return ret
-    
+
     def _validateQueryParameters(self, queryPars):
         '''
         Initializes and validates Query Parameter arguments
-        
-        :param queryPars: a QueryParameter object        
+
+        :param queryPars: a QueryParameter object
         :return: dictionary of query parameters
         '''
         if queryPars is None:
@@ -1461,7 +1462,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         LEGAL_KEY_TYPES = [str, int, float, bool]
         propList = []
-        for key, value in rawProperties.iteritems():
+        for key, value in six.iteritems(rawProperties):
             if type(value) not in LEGAL_KEY_TYPES:
                 raise IllegalParameterException(type(value), LEGAL_KEY_TYPES)
             propName = "%s.%s" % (namespace, key)
@@ -1506,8 +1507,8 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Gets the properties for an arbitrary resource:
 
-        https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties   
-        
+        https://developer.basespace.illumina.com/docs/content/documentation/rest-api/api-reference#Properties
+
         :param resourceType: resource type for the property
 
         Because of this generic treatment of properties (which is fairly new in BaseSpace)

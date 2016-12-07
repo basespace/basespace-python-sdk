@@ -5,7 +5,7 @@ Copyright 2012 Illumina
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
- 
+
     Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,7 +24,7 @@ except ImportError:
 setup(name='basespace-python-sdk',
       description='A Python SDK for connecting to Illumina BaseSpace data',
       author='Illumina',
-      version='0.4',
+      version='0.5',
       long_description="""
 BaseSpacePy is a Python based SDK to be used in the development of Apps and scripts for working with
 Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis.
@@ -33,7 +33,7 @@ to authenticate a user, retrieve data, and upload data/results from their own an
       author_email='techsupport@illumina.com',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
       package_dir={'BaseSpacePy' : os.path.join(os.path.dirname(__file__),'BaseSpacePy')},
-      install_requires=['python-dateutil','requests'],
+      install_requires=['python-dateutil','requests','six'],
       zip_safe=False,
 )
 
@@ -42,5 +42,4 @@ to authenticate a user, retrieve data, and upload data/results from their own an
 #try:
 #    import dateutil
 #except:
-#    print "WARNING - please install required package 'python-dateutil'"
-
+#    print("WARNING - please install required package 'python-dateutil'")

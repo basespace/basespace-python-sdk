@@ -36,10 +36,10 @@ app_minimum_properties = [
     'sample-id',
 ]
 app_defaults = {
-    'AnnotationSource': u'RefSeq',
-    'genome-id': u'Human',
-    'GQX-id': u'30',
-    'StrandBias-id': u'10',
+    'AnnotationSource': 'RefSeq',
+    'genome-id': 'Human',
+    'GQX-id': '30',
+    'StrandBias-id': '10',
     'FlagPCRDuplicates-id': []
 }
 
