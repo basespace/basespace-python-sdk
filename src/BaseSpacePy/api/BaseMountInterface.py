@@ -74,7 +74,7 @@ class BaseMountInterface(object):
         return "%s : (%s) : (%s)" % (self.path, self.id, self.type)
 
     def _get_access_token_from_config(self, config_path):
-        from configParser import SafeConfigParser, NoSectionError, NoOptionError
+        from configparser import SafeConfigParser, NoSectionError, NoOptionError
         config = SafeConfigParser()
         config.read(config_path)
         try:

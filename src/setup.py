@@ -33,7 +33,7 @@ to authenticate a user, retrieve data, and upload data/results from their own an
       author_email='techsupport@illumina.com',
       packages=['BaseSpacePy.api','BaseSpacePy.model','BaseSpacePy'],
       package_dir={'BaseSpacePy' : os.path.join(os.path.dirname(__file__),'BaseSpacePy')},
-      install_requires=['python-dateutil','requests','six'],
+      install_requires=['python-dateutil','requests','six','configparser'],
       zip_safe=False,
 )
 

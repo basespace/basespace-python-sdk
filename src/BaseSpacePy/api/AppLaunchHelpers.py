@@ -436,7 +436,7 @@ class LaunchSpecification(object):
                         map_properties.append(assembled_args)
                 rowcount_entry = {
                     "Type" : "string",
-                    "Name" : "%s.rowcount" % (property_name),
+                    "Name" : "Input.%s.rowcount" % (property_name),
                     "Content" : len(property_value)
                 }
                 map_properties.append(rowcount_entry)
@@ -591,7 +591,8 @@ class LaunchPayload(object):
     ENTITY_TYPE_TO_METHOD_NAME = {
         "sample": "getSampleById",
         "appresult": "getAppResultById",
-        "project": "getProjectById"
+        "project": "getProjectById",
+        "file": "getFileById"
     }
 
     def __init__(self, launch_spec, args, configoptions, api, disable_consistency_checking=True):
@@ -698,9 +699,11 @@ class LaunchPayload(object):
         :param app_name: name of app
         :return: useful name for app launch
         """
-        launch_names = self._find_all_entity_names("sample")
-        if not launch_names:
-            launch_names = self._find_all_entity_names("appresult")
+        launch_names = []
+        # maybe this should be down in the called function :/
+        for entity_type in [ "sample", "appresult", "file"]:
+            these_names = self._find_all_entity_names(entity_type)
+            launch_names.extend(these_names)
         if len(launch_names) > 3:
             contracted_names = launch_names[:3] + ["%dmore" % (len(launch_names) - 3)]
             launch_instance_name = "+".join(contracted_names)
