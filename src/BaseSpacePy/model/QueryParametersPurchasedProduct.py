@@ -11,7 +11,7 @@ class QueryParametersPurchasedProduct(object):
         if pars is None:
             pars = {}
         self.passed = {}
-        for k in six.viewkeys(pars):
+        for k in six.iterkeys(pars):
             self.passed[k] = pars[k]
         self.validate()
 
@@ -25,6 +25,6 @@ class QueryParametersPurchasedProduct(object):
         return self.passed
 
     def validate(self):
-        for p in six.viewkeys(self.passed):
+        for p in six.iterkeys(self.passed):
             if not p in legal:
                 raise UnknownParameterException(p)

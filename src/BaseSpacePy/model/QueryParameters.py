@@ -37,7 +37,7 @@ class QueryParameters(object):
             required = []
         self.passed = {}
         try:
-            for k in six.viewkeys(pars):
+            for k in six.iterkeys(pars):
                 self.passed[k] = pars[k]
         except AttributeError:
             raise QueryParameterException("The 'pars' argument to QueryParameters must be a dictionary")
@@ -66,7 +66,7 @@ class QueryParameters(object):
         for p in self.required:
             if not p in self.passed:
                 raise UndefinedParameterException(p)
-        for p in six.viewkeys(self.passed):
+        for p in six.iterkeys(self.passed):
             if not p in legal:
                 raise UnknownParameterException(p)
             if len(legal[p])>0 and (not self.passed[p] in legal[p]):
