@@ -66,8 +66,7 @@ class AppSessionMetaData(object):
                 all_names.add(property_basename)
         return duplicate_names
 
-    @staticmethod
-    def _get_map_underlying_types(content):
+    def _get_map_underlying_types(self, content):
         """
         Takes the content present in an existing appsession map type
         and converts this into the underlying columns with their name and type
@@ -77,7 +76,7 @@ class AppSessionMetaData(object):
         # this should return a list of strings for a single row of the raw table
         # this only gets us the names - we need to look up types later :(
         first_row = content[0]
-        columns = [".".join(column.split(".")[:-1]) for column in first_row.Values]
+        columns = [".".join(column.split(".")[:-1]) for column in self.unpack_bs_property(first_row, "Values")]
         return columns
 
     @staticmethod
