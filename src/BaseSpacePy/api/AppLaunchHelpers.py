@@ -296,7 +296,7 @@ class LaunchSpecification(object):
         # for properties with type map this is probably going to be prone to error :(
         property_type = self.get_property_bald_type(varname)
         if param.startswith("@") and property_type != "string":
-            assert self.is_list_property(varname), "cannot specify non-list parameter with file"
+            assert self.is_list_property(varname) or property_type == "map", "cannot specify non-list parameter with file"
             with open(param[1:]) as fh:
                 if property_type == "map":
                     processed_param = [line.strip().split(",") for line in fh]
