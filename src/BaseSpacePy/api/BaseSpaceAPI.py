@@ -1536,14 +1536,12 @@ class BaseSpaceAPI(BaseAPI):
         '''
         Get details about all apps.
         Note that each app will only have a single entry, even if it has many versions
-        :param queryPars: query parameters. Will default to a limit of 1000, so all are gained
+        :param queryPars: query parameters
         :return: list of model.Application.Application objects
         '''
         resourcePath = '/applications'
         method = 'GET'
         headerParams = {}
-        if not queryPars:
-            queryPars = qp({"Limit": 1000})
         queryParams = self._validateQueryParameters(queryPars)
         return self.__listRequest__(Application.Application, resourcePath, method, queryParams, headerParams)
 
