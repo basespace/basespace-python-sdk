@@ -141,7 +141,10 @@ class BaseAPI(object):
             # to catch the race condition where a new entity appears while we're calling
             total_number = respObj.Response.TotalCount
             if total_number > 0 and respObj.Response.DisplayedCount == 0:
-                raise ServerResponseException("Paged query returned no results")
+                # sometimes the API DisplayedCount and TotalCount don't match :(
+                # if there are none left, just return what we've found already
+                break
+                #raise ServerResponseException("Paged query returned no results")
             number_received += respObj.Response.DisplayedCount
 
         return [self.apiClient.deserialize(c, myModel) for c in chain(*[ ro._convertToObjectList() for ro in responses ])]

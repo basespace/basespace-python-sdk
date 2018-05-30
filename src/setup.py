@@ -24,7 +24,7 @@ except ImportError:
 setup(name='basespace-python-sdk',
       description='A Python SDK for connecting to Illumina BaseSpace data',
       author='Illumina',
-      version='0.4.1',
+      version='0.4.2',
       long_description="""
 BaseSpacePy is a Python based SDK to be used in the development of Apps and scripts for working with
 Illumina's BaseSpace cloud-computing solution for next-gen sequencing data analysis.
