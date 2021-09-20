@@ -132,7 +132,7 @@ class BaseSpaceAPI(BaseAPI):
         '''
         config_file = os.path.join(os.path.expanduser('~/.basespace'), "%s.cfg" % profile)
         if not os.path.exists(config_file):
-            raise CredentialsException("Could not find config file: %s" % config_file)
+            return {}
         section_name = "DEFAULT"
         cred = {}
         config = configparser.SafeConfigParser()
